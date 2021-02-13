@@ -1,0 +1,14 @@
+RewriteEngine on
+
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule .* https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+RewriteCond %{HTTP_HOST} !^www\. [NC]
+RewriteRule .* https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+
+#RewriteCond %{HTTP_HOST} ^workindiafirststep.in$ [NC,OR]
+#RewriteCond %{HTTP_HOST} ^www.workindiafirststep.in$
+#RewriteCond %{REQUEST_URI} !public/
+RewriteRule (.*) /public/$1 [L]
