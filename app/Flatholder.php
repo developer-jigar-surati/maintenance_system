@@ -338,9 +338,9 @@ class Flatholder extends Model
             
             $conditions = [];
             $conditions['fholder_id'] = $input_arr['fholder_id'];
-            $category = DB::connection()->table(self::main_tbl)->where($conditions)->whereNull('deleted_on')->first();
+            $fholder = DB::connection()->table(self::main_tbl)->where($conditions)->whereNull('deleted_on')->first();
             
-            if($category){
+            if($fholder){
                 $flatholder_email_check = DB::connection()->table(self::main_tbl)
                                         ->where([['email_id','=',$input_arr['email_id']],['fholder_id','!=',$input_arr['fholder_id']]])
                                         ->whereNull('deleted_on')->count();
@@ -359,7 +359,7 @@ class Flatholder extends Model
                     "flat_no" => $input_arr['flat_no'],
                     "name" => $input_arr['name'],
                     "mobile_no" => $input_arr['mobile_no'],
-                    "email_id" => $input_arr['email_id'],
+                    // "email_id" => $input_arr['email_id'],
                     "flat_type" => $input_arr['flat_type'],
                     "owner_name" => $input_arr['owner_name'],
                     "owner_mobile_no" => $input_arr['owner_mobile_no'],
@@ -374,6 +374,12 @@ class Flatholder extends Model
                     "modified_by" => $this->request->session()->get('z_adminid_pk')
                 ];
                 DB::connection()->table(self::main_tbl)->where('fholder_id',$input_arr['fholder_id'])->update($update_arr);
+
+                $adminupdate_arr = [
+                    'user_role' => ($input_arr['is_president'] == 1) ?'2':'3',
+                    'building_id' => $input_arr['building'],
+                ];
+                DB::connection()->table(self::admin_tbl)->where('email_id',$input_arr['email_id'])->update($adminupdate_arr);
                 return response()->json(["Success"=> "true","Message" => "Flat Holder Update Successfully","data"=>""]);
             } else {
                 return response()->json(["Success"=> "false","Message" => "Flat Holder Not Found","data"=>""]);
@@ -439,9 +445,9 @@ class Flatholder extends Model
                 $admin = DB::connection()->table(self::admin_tbl)->insert($insert_arr);
 
                 if($admin){
-                    $fromemail = str_replace('_',' ',env('MAIL_FROM_ADDRESS'));
+                    $fromemail = env('MAIL_FROM_ADDRESS');
                     $data = array(  'username' => $flatholder_details->name,
-                                    'product_name' => env('APP_NAME'),
+                                    'product_name' => str_replace('_',' ',env('APP_NAME')),
                                     'useremail' => $flatholder_details->email_id,
                                     'password' => $pass,
                                     'login_username' => $this->request->session()->get('name')

@@ -229,6 +229,8 @@
         $("#owner_address").removeClass('notnull');
         $("#is_aggrement").removeClass('dropdown');
 
+        $("#email_id").prop('readonly',false);
+
         $(".ifrentaggrement").hide();
         $("#start_date").removeClass('notnull');
         $("#end_date").removeClass('notnull');
@@ -244,10 +246,6 @@
 
         if (user_role == 3) {
             $('#datatable').DataTable({
-                dom: 'Bfrtip',
-                buttons: [
-                    'copy', 'csv', 'excel', 'pdf', 'print'
-                ],
                 "responsive": true,
                 "lengthChange": true,
                 "processing": false,
@@ -620,6 +618,7 @@
                     $("#flat_type").val(res.data.flat_type);
                     $("#fholder_id").val(res.data.fholder_id);
                     $("#is_president").val(res.data.is_president);
+                    $("#email_id").prop('readonly',true);
 
                     getrentfieldfun(res.data.flat_type, 'edit', res.data);
 

@@ -17,6 +17,10 @@
 <script src="{{ url('assets/ckeditor-full/ckeditor.js') }}"></script>
 <script src="{{ url('assets/ckeditor-full/adapters/jquery.js') }}"></script>
 
+<!-- chart -->
+<script src="{{ url('assets/js/plugins/apexcharts.min.js') }}"></script>
+<!-- <script src="{{ url('assets/js/pages/chart-apex.js') }}"></script> -->
+
 <!-- datepicker -->
 </body>
 

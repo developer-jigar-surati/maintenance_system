@@ -23,10 +23,21 @@ Route::get('/a@dmin', function () {
 Route::post('admin_login','AdminController@dologin');
 Route::get('logout', 'AdminController@dologout');
 
+Route::post('admin_forgotpassword','AdminController@forgotpassword');
+Route::get('/a@dmin/forgotpassword/{linkid}', 'AdminController@forgotpasswordlink');
+Route::match(['get', 'post'],'forgotpasslink','AdminController@forgotpasslink');
+
 Route::group(['middleware' => ['checkwebadmin']], function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
+
+    Route::get('/resetpass', function () {
+        return view('resetpass');
     });
+    Route::post('resetpassword','AdminController@resetpass');
+
+    // Route::get('/dashboard', function () {
+    //     return view('dashboard');
+    // });
+    Route::match(['get', 'post'],'dashboard','AdminController@showdashboard');
 
     //Building
     Route::get('/buildingslist', function () {

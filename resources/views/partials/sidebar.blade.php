@@ -12,7 +12,7 @@
                 </div>
                 <div class="collapse" id="nav-user-link">
                     <ul class="list-unstyled">
-                        {{-- <li class="list-group-item"><a href="{{ url('/resetpass') }}"><i class="feather icon-tool m-r-5"></i>Reset Password</a></li> --}}
+                        <li class="list-group-item"><a href="{{ url('/resetpass') }}"><i class="feather icon-lock m-r-5"></i>Reset Password</a></li>
                         <li class="list-group-item"><a href="{{ url('/logout') }}"><i class="feather icon-log-out m-r-5"></i>Logout</a></li>
                     </ul>
                 </div>

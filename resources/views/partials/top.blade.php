@@ -28,7 +28,7 @@
                         </div>
                         <ul class="pro-body">
                             
-                            <!-- <li><a href="{{ url('/resetpass') }}" class="dropdown-item"><i class="feather icon-tool m-r-5"></i>Reset Password</a></li> -->
+                            <li><a href="{{ url('/resetpass') }}" class="dropdown-item"><i class="feather icon-lock m-r-5"></i>Reset Password</a></li>
                             <li><a href="{{ url('/logout') }}" class="dropdown-item"><i class="feather icon-log-out m-r-5"></i>Logout</a></li>
                         </ul>
                     </div>

@@ -462,8 +462,8 @@
                                 <tr>
                                     <td class="content-cell">
                                         <div class="f-fallback">
-                                            <h1>Welcome, {{ $username }}!</h1>
-                                            <p>Thanks for using {{ $product_name }}. Please click on below button for go to login in {{ $product_name }}.</p>
+                                            <h1>Hello, {{ $username }}!</h1>
+                                            <p>Thanks for using {{ $product_name }}. As per your request we are successully reset you password in {{ $product_name }}.</p>
                                             <!-- Action -->
                                             <table class="body-action" align="center" width="100%" cellpadding="0" cellspacing="0" role="presentation">
                                                 <tr>
@@ -480,7 +480,7 @@
                                                     </td>
                                                 </tr>
                                             </table>
-                                            <p>For reference, here's your login information:</p>
+                                            <p>For reference, here's your new login information:</p>
                                             <table class="attributes" width="100%" cellpadding="0" cellspacing="0" role="presentation">
                                                 <tr>
                                                     <td class="attributes_content">
@@ -504,7 +504,7 @@
                                                 </tr>
                                             </table>
                                             <p>Thanks & Regards,
-                                                <br>{{ $login_username }} and the {{ $product_name }} Team
+                                                <br>{{ $product_name }} Team
                                             </p>
                                             <!-- Sub copy -->
                                             <table class="body-sub" role="presentation">

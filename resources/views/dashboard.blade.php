@@ -13,79 +13,71 @@
 <!-- [ Main Content ] start -->
 <div class="pcoded-main-container">
     <div class="pcoded-content">
-        
+
         @include('partials.breadcrumb',['active_breadcrumb'=>"Dashboard",'pagename'=>"Dashboard"])
 
         <!-- [ Main Content ] start -->
-        <div class="row" style="display: none;">
-            <div class="col-lg-7 col-md-12">
-                <!-- support-section start -->
-                <div class="row">
-                    <div class="col-sm-6">
-                        <div class="card support-bar overflow-hidden">
-                            <div class="card-body pb-0">
-                                <h2 class="m-0">350</h2>
-                                <span class="text-c-blue">Support Requests</span>
-                                <p class="mb-3 mt-3">Total number of support requests that come in.</p>
-                            </div>
-                            <div id="support-chart"></div>
-                            <div class="card-footer bg-primary text-white">
-                                <div class="row text-center">
-                                    <div class="col">
-                                        <h4 class="m-0 text-white">10</h4>
-                                        <span>Open</span>
-                                    </div>
-                                    <div class="col">
-                                        <h4 class="m-0 text-white">5</h4>
-                                        <span>Running</span>
-                                    </div>
-                                    <div class="col">
-                                        <h4 class="m-0 text-white">3</h4>
-                                        <span>Solved</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6">
-                        <div class="card support-bar overflow-hidden">
-                            <div class="card-body pb-0">
-                                <h2 class="m-0">350</h2>
-                                <span class="text-c-green">Support Requests</span>
-                                <p class="mb-3 mt-3">Total number of support requests that come in.</p>
-                            </div>
-                            <div id="support-chart1"></div>
-                            <div class="card-footer bg-success text-white">
-                                <div class="row text-center">
-                                    <div class="col">
-                                        <h4 class="m-0 text-white">10</h4>
-                                        <span>Open</span>
-                                    </div>
-                                    <div class="col">
-                                        <h4 class="m-0 text-white">5</h4>
-                                        <span>Running</span>
-                                    </div>
-                                    <div class="col">
-                                        <h4 class="m-0 text-white">3</h4>
-                                        <span>Solved</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- support-section end -->
-            </div>
-            <div class="col-lg-5 col-md-12">
+        <div class="row">
+            <div class="col-lg-12 col-md-12">
                 <!-- page statustic card start -->
                 <div class="row">
-                    <div class="col-sm-6">
+                    <div class="col-sm-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-8">
+                                        <h4 class="text-c-green">₹ {{ number_format($crdata,2) }}</h4>
+                                        <h6 class="text-muted m-b-0">Cr</h6>
+                                    </div>
+                                    <div class="col-4 text-right">
+                                        <i class="feather icon-trending-up f-28"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-c-green">
+                                <div class="row align-items-center">
+                                    <div class="col-9">
+                                        <p class="text-white m-b-0">Credit</p>
+                                    </div>
+                                    <div class="col-3 text-right">
+                                        <i class="feather icon-trending-up text-white f-16"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-8">
+                                        <h4 class="text-c-red">₹ {{ number_format($drdata,2) }}</h4>
+                                        <h6 class="text-muted m-b-0">Dr</h6>
+                                    </div>
+                                    <div class="col-4 text-right">
+                                        <i class="feather icon-trending-down f-28"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-c-red">
+                                <div class="row align-items-center">
+                                    <div class="col-9">
+                                        <p class="text-white m-b-0">Debit</p>
+                                    </div>
+                                    <div class="col-3 text-right">
+                                        <i class="feather icon-trending-down text-white f-16"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- <div class="col-sm-3">
                         <div class="card">
                             <div class="card-body">
                                 <div class="row align-items-center">
                                     <div class="col-8">
                                         <h4 class="text-c-yellow">$30200</h4>
-                                        <h6 class="text-muted m-b-0">All Earnings</h6>
+                                        <h6 class="text-muted m-b-0">Flats</h6>
                                     </div>
                                     <div class="col-4 text-right">
                                         <i class="feather icon-bar-chart-2 f-28"></i>
@@ -95,7 +87,7 @@
                             <div class="card-footer bg-c-yellow">
                                 <div class="row align-items-center">
                                     <div class="col-9">
-                                        <p class="text-white m-b-0">% change</p>
+                                        <p class="text-white m-b-0">No of Flats</p>
                                     </div>
                                     <div class="col-3 text-right">
                                         <i class="feather icon-trending-up text-white f-16"></i>
@@ -103,77 +95,27 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-sm-6">
+                    </div> -->
+                    <div class="col-sm-4">
                         <div class="card">
                             <div class="card-body">
                                 <div class="row align-items-center">
                                     <div class="col-8">
-                                        <h4 class="text-c-green">290+</h4>
-                                        <h6 class="text-muted m-b-0">Page Views</h6>
+                                        <h4 class="text-c-blue">₹ {{ number_format(floatval($crdata) - floatval($drdata),2) }}</h4>
+                                        <h6 class="text-muted m-b-0">Total</h6>
                                     </div>
                                     <div class="col-4 text-right">
-                                        <i class="feather icon-file-text f-28"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-footer bg-c-green">
-                                <div class="row align-items-center">
-                                    <div class="col-9">
-                                        <p class="text-white m-b-0">% change</p>
-                                    </div>
-                                    <div class="col-3 text-right">
-                                        <i class="feather icon-trending-up text-white f-16"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="row align-items-center">
-                                    <div class="col-8">
-                                        <h4 class="text-c-red">145</h4>
-                                        <h6 class="text-muted m-b-0">Task</h6>
-                                    </div>
-                                    <div class="col-4 text-right">
-                                        <i class="feather icon-calendar f-28"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-footer bg-c-red">
-                                <div class="row align-items-center">
-                                    <div class="col-9">
-                                        <p class="text-white m-b-0">% change</p>
-                                    </div>
-                                    <div class="col-3 text-right">
-                                        <i class="feather icon-trending-down text-white f-16"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="row align-items-center">
-                                    <div class="col-8">
-                                        <h4 class="text-c-blue">500</h4>
-                                        <h6 class="text-muted m-b-0">Downloads</h6>
-                                    </div>
-                                    <div class="col-4 text-right">
-                                        <i class="feather icon-thumbs-down f-28"></i>
+                                        <i class="feather icon-thumbs-up f-28"></i>
                                     </div>
                                 </div>
                             </div>
                             <div class="card-footer bg-c-blue">
                                 <div class="row align-items-center">
                                     <div class="col-9">
-                                        <p class="text-white m-b-0">% change</p>
+                                        <p class="text-white m-b-0">Available Balance</p>
                                     </div>
                                     <div class="col-3 text-right">
-                                        <i class="feather icon-trending-down text-white f-16"></i>
+                                        <i class="feather icon-trending-up text-white f-16"></i>
                                     </div>
                                 </div>
                             </div>
@@ -183,7 +125,62 @@
                 <!-- page statustic card end -->
             </div>
         </div>
+
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Categories wise charges Charts</h5>
+                </div>
+                <div class="card-body">
+                    <div id="pie-chart-1" style="width:100%"></div>
+                </div>
+            </div>
+        </div>
         <!-- [ Main Content ] end -->
     </div>
 </div>
+
 @include('partials.footer')
+
+<script>
+    $(function() {
+        var categorydataarr = '{{ $categorydata }}';
+        var categorydatajson = JSON.parse(categorydataarr.replace(/&quot;/g,'"'));
+        
+        console.log(categorydatajson.category_name);
+        console.log(categorydatajson.totalamount);
+
+        var options = {
+            chart: {
+                height: 320,
+                type: 'pie',
+            },
+            labels: categorydatajson.category_name,//['Team A', 'Team B', 'Team C', 'Team D', 'Team E'],
+            series: categorydatajson.totalamount,//[44, 55, 13, 43, 22],
+            // colors: ["#4680ff", "#0e9e4a"],
+            legend: {
+                show: true,
+                position: 'bottom',
+            },
+            dataLabels: {
+                enabled: true,
+                dropShadow: {
+                    enabled: false,
+                }
+            },
+            responsive: [{
+                breakpoint: 480,
+                options: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }]
+        }
+        var chart = new ApexCharts(
+            document.querySelector("#pie-chart-1"),
+            options
+        );
+        chart.render();
+    });
+</script>

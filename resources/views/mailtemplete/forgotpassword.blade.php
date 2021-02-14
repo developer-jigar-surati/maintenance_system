@@ -462,8 +462,8 @@
                                 <tr>
                                     <td class="content-cell">
                                         <div class="f-fallback">
-                                            <h1>Welcome, {{ $username }}!</h1>
-                                            <p>Thanks for using {{ $product_name }}. Please click on below button for go to login in {{ $product_name }}.</p>
+                                            <h1>Hello, {{ $username }}!</h1>
+                                            <p>Thanks for using {{ $product_name }}. As per your forgot password request your link is defined below. link is expire after {{ $forgotlink_expire }}</p>
                                             <!-- Action -->
                                             <table class="body-action" align="center" width="100%" cellpadding="0" cellspacing="0" role="presentation">
                                                 <tr>
@@ -473,14 +473,14 @@
                                                         <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
                                                             <tr>
                                                                 <td align="center">
-                                                                    <a href="{{ url('/a@dmin') }}" class="f-fallback button" target="_blank">Login</a>
+                                                                    <a href="{{ $forgotlink }}" class="f-fallback button" target="_blank">Forgot Password</a>
                                                                 </td>
                                                             </tr>
                                                         </table>
                                                     </td>
                                                 </tr>
                                             </table>
-                                            <p>For reference, here's your login information:</p>
+                                            <p>For reference, here's your forgot pasword link information:</p>
                                             <table class="attributes" width="100%" cellpadding="0" cellspacing="0" role="presentation">
                                                 <tr>
                                                     <td class="attributes_content">
@@ -488,14 +488,14 @@
                                                             <tr>
                                                                 <td class="attributes_item">
                                                                     <span class="f-fallback">
-                                                                        <strong>Username:</strong> {{ $useremail }}
+                                                                        <strong>Link:</strong> {{ $forgotlink }}
                                                                     </span>
                                                                 </td>
                                                             </tr>
                                                             <tr>
                                                                 <td class="attributes_item">
                                                                     <span class="f-fallback">
-                                                                        <strong>Password:</strong> {{ $password }}
+                                                                        <strong>Link Expire Time:</strong> {{ $forgotlink_expire }}
                                                                     </span>
                                                                 </td>
                                                             </tr>
@@ -504,17 +504,8 @@
                                                 </tr>
                                             </table>
                                             <p>Thanks & Regards,
-                                                <br>{{ $login_username }} and the {{ $product_name }} Team
+                                                <br>{{ $product_name }} Team
                                             </p>
-                                            <!-- Sub copy -->
-                                            <table class="body-sub" role="presentation">
-                                                <tr>
-                                                    <td>
-                                                        <p class="f-fallback sub">If you’re having trouble with the button above, copy and paste the URL below into your web browser.</p>
-                                                        <p class="f-fallback sub">{{ url('/a@dmin') }}</p>
-                                                    </td>
-                                                </tr>
-                                            </table>
                                         </div>
                                     </td>
                                 </tr>
