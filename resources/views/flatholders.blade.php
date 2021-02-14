@@ -504,6 +504,7 @@
             alertify.error('Please Fill Neccesary Information!');
         } else {
             $("#flatholderbtn").prop('disabled', true);
+            showloader();
             if ($("#fholder_id").val() == "0") {
                 url = "addflatholder";
             } else {
@@ -519,6 +520,7 @@
                 processData: false,
                 method: 'POST',
                 success: function(res) {
+                    hideloader();
                     $("#flatholderbtn").prop('disabled', false);
                     if (res.Success == "true") {
                         alertify.success(res.Message);
@@ -528,6 +530,7 @@
                     }
                 },
                 error: function(jqXHR, res, errorThrown) {
+                    hideloader();
                     $("#flatholderbtn").prop('disabled', false);
                     console.log("error");
                     console.log(jqXHR);
@@ -540,6 +543,7 @@
     });
 
     function changestatus(fholder_id, status) {
+        showloader();
         $.ajax({
             type: 'post',
             url: 'changeflatholderstatus',
@@ -549,6 +553,7 @@
                 "_token": '{{ csrf_token() }}'
             },
             success: function(res) {
+                hideloader();
                 if (res.Success == "true") {
                     refreshdata();
                     alertify.success(res.Message);
@@ -557,6 +562,7 @@
                 }
             },
             error: function(jqXHR, res, errorThrown) {
+                hideloader();
                 console.log("error");
                 console.log(jqXHR);
                 console.log(res);
@@ -567,6 +573,7 @@
     }
 
     function deleteflatholder(fholder_id) {
+        showloader();
         $.ajax({
             type: 'post',
             url: 'deleteflatholder',
@@ -575,6 +582,7 @@
                 "_token": '{{ csrf_token() }}'
             },
             success: function(res) {
+                hideloader();
                 if (res.Success == "true") {
                     refreshdata();
                     alertify.success(res.Message);
@@ -583,6 +591,7 @@
                 }
             },
             error: function(jqXHR, res, errorThrown) {
+                hideloader();
                 console.log("error");
                 console.log(jqXHR);
                 console.log(res);
@@ -594,7 +603,7 @@
 
     function editflatholderbyid(fholder_id) {
         $('.invalid').removeClass('invalid');
-
+        showloader();
         $.ajax({
             type: 'post',
             url: 'getflatholderbyid',
@@ -603,6 +612,7 @@
                 "_token": '{{ csrf_token() }}'
             },
             success: function(res) {
+                hideloader();
                 console.log(res);
                 if (res.Success == "true") {
 
@@ -632,6 +642,7 @@
                 }
             },
             error: function(jqXHR, res, errorThrown) {
+                hideloader();
                 console.log("error");
                 console.log(jqXHR);
                 console.log(res);
@@ -696,6 +707,7 @@
         var generated_pass = generatePassword(8);
         alertify.prompt("Enter Credentials", 'Please Enter Password', generated_pass, function(evt, value) {
             // alertify.success('You entered: ' + value)
+            showloader();
             $.ajax({
                 type: 'post',
                 url: 'saveflatholderasadmin',
@@ -706,6 +718,7 @@
                     "_token": '{{ csrf_token() }}'
                 },
                 success: function(res) {
+                    hideloader();
                     if (res.Success == "true") {
                         refreshdata();
                         alertify.success(res.Message);
@@ -714,6 +727,7 @@
                     }
                 },
                 error: function(jqXHR, res, errorThrown) {
+                    hideloader();
                     console.log("error");
                     console.log(jqXHR);
                     console.log(res);

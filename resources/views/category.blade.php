@@ -209,6 +209,7 @@
     $('form').submit(function(event) {
         event.preventDefault();
         if (validate_form('categoryform')) {
+            showloader();
             $("#categorybtn").prop('disabled', true);
 
             if($("#category_id").val() == "0"){
@@ -227,6 +228,7 @@
                 processData: false,
                 success: function(res) {
                     $("#categorybtn").prop('disabled', false);
+                    hideloader();
                     if (res.Success == "true") {
                         alertify.success(res.Message);
 
@@ -241,6 +243,7 @@
                 },
                 error: function(jqXHR, res, errorThrown) {
                     $("#categorybtn").prop('disabled', false);
+                    hideloader();
                     console.log("error");
                     console.log(jqXHR);
                     console.log(res);
@@ -255,11 +258,13 @@
     });
 
     function changestatus(cat_id,status) {
+        showloader();
         $.ajax({
             type: 'post',
             url: 'changecategorystatus',
             data: {"is_active":status,"categoryid":cat_id,"_token": '{{ csrf_token() }}' },
             success: function (res) {
+                hideloader();
                 if(res.Success == "true"){
                     refreshdata();
                     alertify.success(res.Message);
@@ -268,6 +273,7 @@
                 }
             },
             error: function (jqXHR,res,errorThrown) {
+                hideloader();
                 console.log("error");
                 console.log(jqXHR);
                 console.log(res);
@@ -278,11 +284,13 @@
     }
 
     function deletecategory(cat_id) {
+        showloader();
         $.ajax({
             type: 'post',
             url: 'deletecategory',
             data: {"categoryid":cat_id,"_token": '{{ csrf_token() }}' },
             success: function (res) {
+                hideloader();
                 if(res.Success == "true"){
                     refreshdata();
                     alertify.success(res.Message);
@@ -291,6 +299,7 @@
                 }
             },
             error: function (jqXHR,res,errorThrown) {
+                hideloader();
                 console.log("error");
                 console.log(jqXHR);
                 console.log(res);
@@ -302,12 +311,13 @@
 
     function editcategory(cat_id) {
         $('.invalid').removeClass('invalid');
-        
+        showloader();
         $.ajax({
             type: 'post',
             url: 'getcategorybyid',
             data: {"categoryid":cat_id,"_token": '{{ csrf_token() }}' },
             success: function (res) {
+                hideloader();
                 if(res.Success == "true"){
                     $("#category_name").val(res.data.category_name);
                     $("#cat_type").val(res.data.cat_type);
@@ -325,6 +335,7 @@
                 }
             },
             error: function (jqXHR,res,errorThrown) {
+                hideloader();
                 console.log("error");
                 console.log(jqXHR);
                 console.log(res);

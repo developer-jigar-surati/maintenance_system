@@ -1,5 +1,6 @@
 <!-- [ navigation menu ] start -->
 <nav class="pcoded-navbar menu-light">
+    <div class="loading" id="custom_loader" style="display: none;">Loading&#8230;</div>
     <div class="navbar-wrapper">
         <div class="navbar-content scroll-div">
 

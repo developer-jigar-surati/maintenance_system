@@ -22,6 +22,17 @@
 <!-- <script src="{{ url('assets/js/pages/chart-apex.js') }}"></script> -->
 
 <!-- datepicker -->
+
+<script>
+    function showloader(){
+        $("#custom_loader").show();
+    }
+
+    function hideloader(){
+        $("#custom_loader").hide();
+    }
+</script>
+
 </body>
 
 </html>

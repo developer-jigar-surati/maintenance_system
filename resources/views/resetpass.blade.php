@@ -67,7 +67,7 @@
         event.preventDefault();
         if (validate_form('resetpasswordform')) {
             $("#resetpassbtn").prop('disabled', true);
-
+            showloader();
             var frmdata = new FormData($(this)[0]);
             $.ajax({
                 type: 'post',
@@ -77,6 +77,7 @@
                 contentType: false,
                 processData: false,
                 success: function(res) {
+                    hideloader();
                     $("#resetpassbtn").prop('disabled', false);
                     if (res.Success == "true") {
                         alertify.success(res.Message);
@@ -92,6 +93,7 @@
                     }
                 },
                 error: function(jqXHR, res, errorThrown) {
+                    hideloader();
                     $("#resetpassbtn").prop('disabled', false);
                     console.log("error");
                     console.log(jqXHR);

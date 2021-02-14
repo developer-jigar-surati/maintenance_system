@@ -292,7 +292,7 @@
         event.preventDefault();
         if (validate_form('buildingform')) {
             $("#buildingbtn").prop('disabled', true);
-
+            showloader();
             if($("#building_id").val() == "0"){
                 curl = "savebuilding";
             } else {
@@ -308,6 +308,7 @@
                 contentType: false,
                 processData: false,
                 success: function(res) {
+                    hideloader();
                     $("#buildingbtn").prop('disabled', false);
                     if (res.Success == "true") {
                         alertify.success(res.Message);
@@ -321,6 +322,7 @@
                     }
                 },
                 error: function(jqXHR, res, errorThrown) {
+                    hideloader();
                     $("#buildingbtn").prop('disabled', false);
                     console.log("error");
                     console.log(jqXHR);
@@ -336,11 +338,13 @@
     });
 
     function changestatus(building_id,status) {
+        showloader();
         $.ajax({
             type: 'post',
             url: 'changebuildingstatus',
             data: {"is_active":status,"building_id":building_id,"_token": '{{ csrf_token() }}' },
             success: function (res) {
+                hideloader();
                 if(res.Success == "true"){
                     refreshdata();
                     alertify.success(res.Message);
@@ -349,6 +353,7 @@
                 }
             },
             error: function (jqXHR,res,errorThrown) {
+                hideloader();
                 console.log("error");
                 console.log(jqXHR);
                 console.log(res);
@@ -359,11 +364,13 @@
     }
 
     function deletebuilding(building_id) {
+        showloader();
         $.ajax({
             type: 'post',
             url: 'deletebuilding',
             data: {"building_id":building_id,"_token": '{{ csrf_token() }}' },
             success: function (res) {
+                hideloader();
                 if(res.Success == "true"){
                     refreshdata();
                     alertify.success(res.Message);
@@ -372,6 +379,7 @@
                 }
             },
             error: function (jqXHR,res,errorThrown) {
+                hideloader();
                 console.log("error");
                 console.log(jqXHR);
                 console.log(res);
@@ -383,12 +391,13 @@
 
     function editbuilding(building_id) {
         $('.invalid').removeClass('invalid');
-        
+        showloader();
         $.ajax({
             type: 'post',
             url: 'getbuildingbyid',
             data: {"building_id":building_id,"_token": '{{ csrf_token() }}' },
             success: function (res) {
+                hideloader();
                 if(res.Success == "true"){
                     $("#building_name").val(res.data.building_name);
                     $("#description").val(res.data.description);
@@ -408,6 +417,7 @@
                 }
             },
             error: function (jqXHR,res,errorThrown) {
+                hideloader();
                 console.log("error");
                 console.log(jqXHR);
                 console.log(res);

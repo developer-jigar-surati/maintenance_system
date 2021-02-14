@@ -209,14 +209,15 @@
 
         $("#payment_id").val("0");
         $("#ledgerform").trigger("reset");
-
+        
+        showloader();
         $.ajax({
             type: 'post',
             url: 'getledgerdata',
             data: { "_token" : '{{ csrf_token() }}','buildingid':buildingid },
             method: 'POST',
             success: function (res) {
-                
+                hideloader();
                 if(res.Success=="true"){
                     
                     var html = '';
@@ -271,6 +272,7 @@
                 }  
             },
             error: function (jqXHR,res,errorThrown) {
+                hideloader();
                 console.log("error");
                 console.log(jqXHR);
                 console.log(res);
@@ -387,6 +389,7 @@
             $("#ledgerbtn").prop('disabled', false);
             alertify.error('Please Fill Neccesary Information!');
         } else {
+            showloader();
             $("#ledgerbtn").prop('disabled', true);
             if($("#payment_id").val() == "0"){
                 url = "addledgerpayment";
@@ -403,6 +406,7 @@
                 processData: false,
                 method: 'POST',
                 success: function (res) {
+                    hideloader();
                     $("#ledgerbtn").prop('disabled', false);
                     if(res.Success=="true"){
                         alertify.success(res.Message);
@@ -413,6 +417,7 @@
                     }  
                 },
                 error: function (jqXHR,res,errorThrown) {
+                    hideloader();
                     $("#ledgerbtn").prop('disabled', false);
                     console.log("error");
                     console.log(jqXHR);

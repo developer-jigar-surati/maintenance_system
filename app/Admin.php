@@ -187,7 +187,7 @@ class Admin extends Model
                 Log::info("Admin => Forgot Password mail send successfully.");
 
 
-                return response()->json(["Success"=> "true","Message" => "Forgot Password OTP Sent Successfully","data"=>""]);
+                return response()->json(["Success"=> "true","Message" => "Forgot Password Mail Sent Successfully","data"=>""]);
             } else {
                 return response()->json(["Success"=> "false","Message" => "Invalid Email","data"=>""]);
             }

@@ -26,10 +26,12 @@
                         <form id="forgotpasswordform" style="display: none;">
                             <img src="{{ url('assets/images/logo-dark.png') }}" alt="" class="img-fluid mb-4">
                             <h4 class="mb-3 f-w-400">Forgot Password</h4>
+                            
                             <div class="form-group mb-3">
                                 <label class="floating-label" for="Email">Email address</label>
                                 <input type="text" name="forgotpasswordemail_id" class="form-control notnull email" id="forgotpasswordemail_id" placeholder="">
                             </div>
+                            <div class="text-success mb-3 success_msg" style="display: none;"><strong>Forgot Password Mail Sent Successfully Plase Check Mail</strong></div>
                             <input type="hidden" id="_token" name="_token" value="{{ csrf_token() }}">
                             <button class="btn btn-block btn-primary mb-4" type="button" id="forgotpasswordbtn" onclick="forgotpasswordclick()">Submit</button>
                             <p class="mb-2 text-muted">Know password? <a href="javascript:void(0);" onclick="backtologinclick()" class="f-w-400">Signin</a></p>
@@ -82,10 +84,12 @@
     }
 
     function forgotpassclick() {
+        $(".success_msg").hide();
         $("#loginform").hide();
         $("#forgotpasswordform").show();
     }
     function backtologinclick() {
+        $(".success_msg").hide();
         $("#loginform").show();
         $("#forgotpasswordform").hide();
     }
@@ -93,14 +97,17 @@
     function forgotpasswordclick() {
         if (validate_form('forgotpasswordform')) {
             $("#forgotpasswordbtn").prop('disabled', true);
+            showloader();
             $.ajax({
                 type: 'post',
                 url: 'admin_forgotpassword',
                 data: $('#forgotpasswordform').serialize(),
                 success: function(res) {
+                    hideloader();
                     $("#forgotpasswordbtn").prop('disabled', false);
                     if (res.Success == "true") {
                         $("#forgotpasswordemail_id").val("");
+                        $(".success_msg").show();
                         alertify.success(res.Message);
                     } else if (res.Success == "false" && typeof res.data != 'undefined' && res.data != null && res.data != '') {
                         $.each(res.data, function(key, value) {
@@ -111,6 +118,7 @@
                     }
                 },
                 error: function(jqXHR, res, errorThrown) {
+                    hideloader();
                     $("#forgotpasswordbtn").prop('disabled', false);
                     console.log("error");
                     console.log(jqXHR);
