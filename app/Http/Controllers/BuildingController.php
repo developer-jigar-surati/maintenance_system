@@ -105,4 +105,18 @@ class BuildingController extends Controller
             return response()->json(["Success"=> "false","Message" => "Exception Caught","data"=>$e->getMessage()]);
         }
     }
+
+    public function getbuildingLogs(Request $request)
+    {
+        try{
+            Log::info("BuildingController => getbuildingLogs Method ");
+            $catobj = new Building($request);
+            $res = $catobj->getbuildingLogs();
+            return $res;
+        } catch (\Exception $e){
+            Log::info("BuildingController => getbuildingLogs Method Exception Caught => ");
+            Log::info($e->getMessage());
+            return response()->json(["Success"=> "false","Message" => "Exception Caught","data"=>$e->getMessage()]);
+        }
+    }
 }

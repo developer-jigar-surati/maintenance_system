@@ -820,7 +820,6 @@
     }
 
     function showRentDetails(fholder_id) {
-        console.log('fholder_id', fholder_id);
         showloader();
         $.ajax({
             type: 'post',

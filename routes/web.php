@@ -49,6 +49,7 @@ Route::group(['middleware' => ['checkwebadmin']], function () {
     Route::post('deletebuilding','BuildingController@deletebuilding');
     Route::post('getbuildingbyid','BuildingController@getbuildingbyid');
     Route::post('updatebuilding','BuildingController@updatebuilding');
+    Route::post('getbuildingLogs','BuildingController@getbuildingLogs');
     //Building
 
 

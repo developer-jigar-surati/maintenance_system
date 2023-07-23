@@ -11,6 +11,7 @@ use App\Common;
 class Building extends Model
 {
     const main_tbl = 'tbl_buildings';
+    // const main_log_tbl = 'tbl_buildings_update_log';
     public function __construct($request){
         $this->request = $request;
     }
@@ -120,6 +121,7 @@ class Building extends Model
                     $tempRow['is_active'] = ($value->is_active==1)?'Active':'In active';
                     $tempRow['deleted_on'] = 'Delete';
                     $tempRow['building_id'] = $value->building_id;
+                    $tempRow['last_data_log'] = ($value->last_data_log != '' && $value->last_data_log != null) ? 1 : 0;
                     $rows[] = $tempRow;
                 }
             }
@@ -242,6 +244,7 @@ class Building extends Model
         try {
             Log::info("Building => updatebuilding Method Called ");
             $inputarr = $this->request->input();
+            $inputArrForCheckLog = $inputarr;
             $input_arr = Common::clean_input($inputarr);
             
             $validator = Validator::make($input_arr, [
@@ -257,9 +260,35 @@ class Building extends Model
             
             $conditions = [];
             $conditions['building_id'] = $input_arr['building_id'];
-            $category = DB::connection()->table(self::main_tbl)->where($conditions)->whereNull('deleted_on')->first();
+            $buidingData = DB::connection()->table(self::main_tbl)
+                            ->select('building_name', 'total_flats', 'maintenance', 'description', 'is_active', 'building_id', 'last_data_log')
+                            ->where($conditions)
+                            ->whereNull('deleted_on')
+                            ->first();
+            // maintain log start                
+            // want to check diff so clone existing variable and unset it for check two array
+            $buidingDataForCheckLog = (array) $buidingData;
+            unset($buidingDataForCheckLog['last_data_log']);
+            unset($inputArrForCheckLog['_token']);
+
+            $uniqueElements = array_diff_assoc($buidingDataForCheckLog, $inputArrForCheckLog);
+            $uniqueElementsNew = array_diff_assoc($inputArrForCheckLog, $buidingDataForCheckLog);
             
-            if($category){
+            $jsonLogData = $buidingData->last_data_log;
+            $existingDataJson = $buidingData->last_data_log != '' ? json_decode($buidingData->last_data_log) : [];
+            $logArr = [];
+            $cnt = count($existingDataJson);
+            if (!empty($uniqueElements)) {
+                $logArr[$cnt]['oldData'] = $uniqueElements;
+                $logArr[$cnt]['newData'] = $uniqueElementsNew;
+                $logArr[$cnt]["added_on"] = date('Y-m-d H:i:s');
+                $logArr[$cnt]["added_by"] = $this->request->session()->get('z_adminid_pk');
+                
+                $jsonLogData = json_encode(array_merge($existingDataJson, $logArr)); 
+            }
+            // maintain log end
+
+            if($buidingData){
                 $checkname = DB::connection()->table(self::main_tbl)
                             ->where([['building_name','=',$input_arr['building_name']],['building_id','!=',$input_arr['building_id']]])
                             ->whereNull('deleted_on')->count();
@@ -272,10 +301,27 @@ class Building extends Model
                     "total_flats" => $input_arr['total_flats'],
                     "maintenance" => $input_arr['maintenance'],
                     "is_active" => $input_arr['is_active'],
+                    "last_data_log" => $jsonLogData,
                     "modified_on" => date('Y-m-d H:i:s'),
                     "modified_by" => $this->request->session()->get('z_adminid_pk')
                 ];
                 DB::connection()->table(self::main_tbl)->where('building_id',$input_arr['building_id'])->update($update_arr);
+
+                /* on every update store data in log file and in future list maintenance log year wise or complare last and new */
+                // $logInsertArr = [
+                //     "bindinglog_id" => md5($input_arr['building_name'].date('Y-m-d H:i:s')),
+                //     "binding_id" => $input_arr['building_id'],
+                //     "building_name" => $input_arr['building_name'],
+                //     "description" => $input_arr['description'],
+                //     "total_flats" => $input_arr['total_flats'],
+                //     "maintenance" => $input_arr['maintenance'],
+                //     "is_active" => $input_arr['is_active'],
+                //     "added_on" => date('Y-m-d H:i:s'),
+                //     "added_by" => $this->request->session()->get('z_adminid_pk')
+                // ];
+                // DB::connection()->table(self::main_log_tbl)->insert($logInsertArr);
+                /* on every update store data in log file and in future list maintenance log year wise or complare last and new */
+
                 return response()->json(["Success"=> "true","Message" => "Building Update Successfully","data"=>""]);
             } else {
                 return response()->json(["Success"=> "false","Message" => "Building Not Found","data"=>""]);
@@ -305,6 +351,34 @@ class Building extends Model
             return response()->json(["Success"=> "true","Message" => "Get buldings","data"=>$buildingres]);
         } catch (\Exception $e){
             Log::info("Building => getbuldingsforflatholder Method Exception Caught => ");
+            Log::info($e->getMessage());
+            return response()->json(["Success"=> "false","Message" => "Exception Caught","data"=>$e->getMessage()]);
+        }
+        
+    }
+
+    public function getbuildingLogs()
+    {
+        try {
+            Log::info("Building => getbuildingLogs Method Called ");
+            $inputarr = $this->request->input();
+            $input_arr = Common::clean_input($inputarr);
+
+            $buidingDetails = DB::connection()->table(self::main_tbl)
+                        ->select('last_data_log')
+                        ->where('building_id','=',$input_arr['building_id'])
+                        ->first();
+            $logsData = json_decode($buidingDetails->last_data_log);
+            $logsDataArr = [];
+            foreach($logsData as $key => $val) {
+                $logsDataArr[$key]['Old Data'] = $val->oldData;
+                $logsDataArr[$key]['New Data'] = $val->newData;
+                $logsDataArr[$key]['Modified On'] = $val->added_on;
+                $logsDataArr[$key]['Modified By'] = $this->request->session()->get('name');
+            }
+            return response()->json(["Success"=> "true","Message" => "Get buiding details","data"=> $logsDataArr]);
+        } catch (\Exception $e){
+            Log::info("Building => getbuildingLogs Method Exception Caught => ");
             Log::info($e->getMessage());
             return response()->json(["Success"=> "false","Message" => "Exception Caught","data"=>$e->getMessage()]);
         }

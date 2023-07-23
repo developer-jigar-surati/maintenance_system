@@ -131,6 +131,28 @@
         <!-- [ Main Content ] end -->
     </div>
 </div>
+
+<!-- show details modal -->
+<div id="buidingDetailsModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="d-flex modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Buiding Update Logs</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" onclick="handlebuidingDetailsModalClose()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="col-md-12" id="buildingDetailstable">
+                    
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="handlebuidingDetailsModalClose()" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- show details modal -->
+
 @include('partials.footer')
 <script>
     $(document).ready(function() {
@@ -261,25 +283,37 @@
                         "targets": 5,
                         "render": function(data, type, row) {
                             if (row['is_active'].toString().toLowerCase() == "active") {
-                                return '<div>'+
-                                            '<div title="Status" class="flex text-theme-9" style="cursor:pointer;;float:left;padding-left:5px;" onClick="changestatus(\'' + row.building_id + '\',1)">'+
-                                                '<i class="text-success feather icon-check fa-2x"></i>'+
-                                            '</div>'+
+                                let html = '';
+                                if (row.last_data_log == 1) {
+                                    html += '<div title="change logs" class="flex" style="cursor:pointer;float:left;padding-left:5px;" onClick="showbuildingLogs(\'' + row.building_id + '\')">'+
+                                                '<i class="text-secondary feather icon-info fa-2x"></i>'+
+                                            '</div>';
+                                }
+                                return '<div>'+ html +
                                             '<div title="Edit" class="flex" style="cursor:pointer;float:left;padding-left:5px;" onClick="editbuilding(\'' + row.building_id + '\')">'+
                                                 '<i class="text-primary feather icon-edit-2 fa-2x"></i>'+
                                             '</div>' +
+                                            '<div title="Status" class="flex text-theme-9" style="cursor:pointer;;float:left;padding-left:5px;" onClick="changestatus(\'' + row.building_id + '\',1)">'+
+                                                '<i class="text-success feather icon-check fa-2x"></i>'+
+                                            '</div>'+
                                             '<div title="Delete" class="flex text-theme-6" style="cursor:pointer;float:left;padding-left:5px;" onClick="deletebuilding(\'' + row.building_id + '\')">'+
                                                 '<i class="text-danger feather icon-trash-2 fa-2x"></i>'+
                                             '</div>' +
                                         '</div>';
                             } else if (row['is_active'].toString().toLowerCase() == "in active") {
-                                return '<div>'+
-                                            '<div title="Status" class="flex text-theme-6" style="cursor:pointer;float:left;padding-left:5px;" onClick="changestatus(\'' + row.building_id + '\',0)">'+
-                                                '<i class="text-danger feather icon-x fa-2x"></i>'+
-                                            '</div>'+
+                                let html = '';
+                                if (row.last_data_log == 1) {
+                                    html += '<div title="change logs" class="flex" style="cursor:pointer;float:left;padding-left:5px;" onClick="showbuildingLogs(\'' + row.building_id + '\')">'+
+                                                '<i class="text-secondary feather icon-info fa-2x"></i>'+
+                                            '</div>';
+                                }
+                                return '<div>'+ html +
                                             '<div title="Edit" class="flex" style="cursor:pointer;float:left;padding-left:5px;" onClick="editbuilding(\'' + row.building_id + '\')">'+
                                                 '<i class="text-primary feather icon-edit-2 fa-2x"></i>'+
                                             '</div>' +
+                                            '<div title="Status" class="flex text-theme-6" style="cursor:pointer;float:left;padding-left:5px;" onClick="changestatus(\'' + row.building_id + '\',0)">'+
+                                                '<i class="text-danger feather icon-x fa-2x"></i>'+
+                                            '</div>'+
                                             '<div title="Delete" class="flex text-theme-6" style="cursor:pointer;float:left;padding-left:5px;" onClick="deletebuilding(\'' + row.building_id + '\')">'+
                                                 '<i class="text-danger feather icon-trash-2 fa-2x"></i>'+
                                             '</div>' +
@@ -446,5 +480,50 @@
                 alertify.error(res.Message)   
             }
         });
+    }
+
+    function showbuildingLogs(building_id) {
+        showloader();
+        $.ajax({
+            type: 'post',
+            url: 'getbuildingLogs',
+            data: {
+                "building_id": building_id,
+                "_token": '{{ csrf_token() }}'
+            },
+            success: function(res) {
+                hideloader();
+                if (res.Success == "true") {
+                    $("#buidingDetailsModal").modal('show');
+                    const resData = res.data;
+                    console.log('resData', resData);
+                    let html = '';
+                    resData.map((val) => {
+                        console.log('val', val);
+                        html += `
+                            <tr>
+                                <th>${val}</th>
+                                <td>${val}</td>
+                            </tr>
+                        `;
+                    });
+                    $("#buildingDetailstable").html(html);
+                } else {
+                    alertify.error(res.Message);
+                }
+            },
+            error: function(jqXHR, res, errorThrown) {
+                hideloader();
+                console.log("error");
+                console.log(jqXHR);
+                console.log(res);
+                console.log(errorThrown);
+                alertify.error(res.Message)
+            }
+        });
+    }
+
+    function handlebuidingDetailsModalClose() {
+        $("#buidingDetailsModal").modal('hide');
     }
 </script>
