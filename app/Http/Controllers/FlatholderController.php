@@ -119,4 +119,18 @@ class FlatholderController extends Controller
             return response()->json(["Success"=> "false","Message" => "Exception Caught","data"=>$e->getMessage()]);
         }
     }
+
+    public function getRentDetails(Request $request)
+    {
+        try{
+            Log::info("FlatholderController => getRentDetails Method ");
+            $catobj = new Flatholder($request);
+            $res = $catobj->getRentDetails();
+            return $res;
+        } catch (\Exception $e){
+            Log::info("FlatholderController => getRentDetails Method Exception Caught => ");
+            Log::info($e->getMessage());
+            return response()->json(["Success"=> "false","Message" => "Exception Caught","data"=>$e->getMessage()]);
+        }
+    }
 }

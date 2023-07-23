@@ -43,7 +43,7 @@
                                 <tr>
                                     <th style="color:white;background-color:#6865cc !important;">Cr</th>
                                     <th class="bg-danger" style="color:white">Dr</th>
-                                    <th class="bg-info" style="color:white">Total</th>
+                                    <th class="bg-info" style="color:white">Balance</th>
                                     
                                 </tr>
                                 <tr>
@@ -118,7 +118,7 @@
                                         </div>
                                         <div class="col-sm-6">
                                             <div class="form-group">
-                                                <label for="pay_document">Document </label>
+                                                <label for="pay_document">Document <small>(<strong>Note:</strong> Allow only jpeg, jpg, png, pdf)</small></label>
                                                 <input type="file" class="form-control" id="pay_document" onChange="imagechange(event)" name="pay_document">
                                                 <img src="" id="appenddocument" style="height: 100px;width: 100px;display:none;float:left">
                                                 <i onClick="crossimgclick()" id="crossimg" style="display:none;float:left" class="feather icon-x fa-2x"></i>
@@ -164,8 +164,6 @@
                                         </table>
                                     </div>
                                 </div>
-
-
                             </div>
                         </div>
                     </div>
@@ -431,32 +429,41 @@
 
     var imagechange = function(event) {
         var input = event.target;
-        var fileExtension = ['image/jpeg', 'image/jpg', 'image/png'];
+        var fileExtension = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
         if(typeof input.files[0] != 'undefined'  && typeof input.files[0].type != 'undefined' && $.inArray(input.files[0].type, fileExtension) !== -1){
-            var reader = new FileReader();
-            reader.onload = function() {
-                var dataURL = reader.result;
-                var extarr = dataURL.split("/");
-                var output = document.getElementById('appenddocument');
-                output.src = dataURL;
-            };
-            
-            console.log(input.files[0]);
-            if (input.files[0] != 'undefined') {
-                reader.readAsDataURL(input.files[0]);
-                $('#appenddocument').show();
-                $('#crossimg').show();
-            } else {
-                $('#pay_document').val('');
-                $('#appenddocument').attr('src', '');
-                $('#appenddocument').hide();
-                $('#crossimg').hide();
+
+            if(input.files[0].size > 10485760) {
+                alertify.error("Not allow file more than 10MB.");
+                $("#pay_document").val('');
+                return false;
+            }
+
+            if (input.files[0].type !== 'application/pdf') {
+                var reader = new FileReader();
+                reader.onload = function() {
+                    var dataURL = reader.result;
+                    var extarr = dataURL.split("/");
+                    var output = document.getElementById('appenddocument');
+                    output.src = dataURL;
+                };
+                
+                if (input.files[0] != 'undefined') {
+                    reader.readAsDataURL(input.files[0]);
+                    $('#appenddocument').show();
+                    $('#crossimg').show();
+                } else {
+                    $('#pay_document').val('');
+                    $('#appenddocument').attr('src', '');
+                    $('#appenddocument').hide();
+                    $('#crossimg').hide();
+                }
             }
         } else {
             $('#appenddocument').attr('src', '');
             $('#appenddocument').hide();
             $('#crossimg').hide();
-            console.log('document not an image');
+            $("#pay_document").val('');
+            alertify.error("Invalid File Type");
         }
     };
 

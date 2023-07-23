@@ -4,8 +4,8 @@
         <a class="mobile-menu" id="mobile-collapse" href="javascript:void(0);"><span></span></a>
         <a href="javascript:void(0);" class="b-brand">
             <!-- ========   change your logo hear   ============ -->
-            <img src="{{ url('assets/images/logo.png') }}" style="width: 68px;height:28px;" alt="" class="logo">
-            <img src="{{ url('assets/images/logo-dark.png') }}" alt="" class="logo-thumb">
+            <img src="{{ url('assets/images/new-logo.png') }}" style="width: 68px;height:28px;" alt="" class="logo">
+            <img src="{{ url('assets/images/new-logo.png') }}" alt="" class="logo-thumb">
         </a>
         <a href="javascript:void(0);" class="mob-toggler">
             <i class="feather icon-more-vertical"></i>

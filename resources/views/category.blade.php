@@ -42,7 +42,7 @@
                                             <option value="0">Please Select</option>
                                             <option value="1">Dr</option>
                                             <option value="2">Cr</option>
-                                            <option value="3">Both</option>
+                                            <!-- <option value="3">Both</option> -->
                                         </select>
                                     </div>
 
@@ -68,6 +68,7 @@
                                     <input type="hidden" id="category_id" name="category_id" value="0">
                                     <input type="hidden" id="_token" name="_token" value="{{ csrf_token() }}">
                                     <button type="submit" class="btn btn-primary" id="categorybtn">Submit</button>
+                                    <button type="reset" class="btn btn-secondary d-none cancelbtn">Cancel</button>
                                 </form>
                             </div>
                             <div class="col-md-9 categorylist">
@@ -125,7 +126,7 @@
         $('#datatable').DataTable({
             "responsive": true,
             "lengthChange": true,
-            "processing": false,
+            "processing": true,
             "serverSide": true,
             "destroy": true,
             "order": [],
@@ -258,59 +259,74 @@
     });
 
     function changestatus(cat_id,status) {
-        showloader();
-        $.ajax({
-            type: 'post',
-            url: 'changecategorystatus',
-            data: {"is_active":status,"categoryid":cat_id,"_token": '{{ csrf_token() }}' },
-            success: function (res) {
-                hideloader();
-                if(res.Success == "true"){
-                    refreshdata();
-                    alertify.success(res.Message);
-                } else {
-                    alertify.error(res.Message);
+        alertify.confirm('Change Status', 'Are you sure you want to change status?',
+        function() {
+            showloader();
+            $.ajax({
+                type: 'post',
+                url: 'changecategorystatus',
+                data: {"is_active":status,"categoryid":cat_id,"_token": '{{ csrf_token() }}' },
+                success: function (res) {
+                    hideloader();
+                    if(res.Success == "true"){
+                        refreshdata();
+                        alertify.success(res.Message);
+                    } else {
+                        alertify.error(res.Message);
+                    }
+                },
+                error: function (jqXHR,res,errorThrown) {
+                    hideloader();
+                    console.log("error");
+                    console.log(jqXHR);
+                    console.log(res);
+                    console.log(errorThrown);
+                    alertify.error(res.Message)   
                 }
-            },
-            error: function (jqXHR,res,errorThrown) {
-                hideloader();
-                console.log("error");
-                console.log(jqXHR);
-                console.log(res);
-                console.log(errorThrown);
-                alertify.error(res.Message)   
-            }
+            });
+        },
+        function() {
+            console.log('Confirm status close.'); 
+            // alertify.error('Cancel')
         });
     }
 
     function deletecategory(cat_id) {
-        showloader();
-        $.ajax({
-            type: 'post',
-            url: 'deletecategory',
-            data: {"categoryid":cat_id,"_token": '{{ csrf_token() }}' },
-            success: function (res) {
-                hideloader();
-                if(res.Success == "true"){
-                    refreshdata();
-                    alertify.success(res.Message);
-                } else {
-                    alertify.error(res.Message);
+        alertify.confirm('Delete Category', 'Are you sure you want to delete?',
+        function() {
+            showloader();
+            $.ajax({
+                type: 'post',
+                url: 'deletecategory',
+                data: {"categoryid":cat_id,"_token": '{{ csrf_token() }}' },
+                success: function (res) {
+                    hideloader();
+                    if(res.Success == "true"){
+                        refreshdata();
+                        alertify.success(res.Message);
+                    } else {
+                        alertify.error(res.Message);
+                    }
+                },
+                error: function (jqXHR,res,errorThrown) {
+                    hideloader();
+                    console.log("error");
+                    console.log(jqXHR);
+                    console.log(res);
+                    console.log(errorThrown);
+                    alertify.error(res.Message)   
                 }
-            },
-            error: function (jqXHR,res,errorThrown) {
-                hideloader();
-                console.log("error");
-                console.log(jqXHR);
-                console.log(res);
-                console.log(errorThrown);
-                alertify.error(res.Message)   
-            }
+            });
+        },
+        function() {
+            console.log('Confirm delete close.'); 
+            // alertify.error('Cancel')
         });
     }
 
     function editcategory(cat_id) {
         $('.invalid').removeClass('invalid');
+        $('.cancelbtn').removeClass('d-none');
         showloader();
         $.ajax({
             type: 'post',

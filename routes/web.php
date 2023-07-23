@@ -65,6 +65,7 @@ Route::group(['middleware' => ['checkwebadmin']], function () {
     Route::post('updateflatholder','FlatholderController@updateflatholder');
 
     Route::post('saveflatholderasadmin','FlatholderController@saveflatholderasadmin');
+    Route::post('getRentDetails','FlatholderController@getRentDetails');
     //Flat Holders
     
     //Category

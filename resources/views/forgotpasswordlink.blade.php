@@ -7,7 +7,7 @@
                 <div class="col-md-12">
                     <div class="card-body">
                         <form id="forgotpassform">
-                            <img src="{{ url('assets/images/logo-dark.png') }}" alt="" class="img-fluid mb-4">
+                            <img src="{{ url('assets/images/new-logo.png') }}" alt="" class="img-fluid mb-4">
                             <h4 class="mb-3 f-w-400">Forgot Password</h4>
                             <div class="form-group mb-3">
                                 <label class="floating-label" for="Email">Email address</label>

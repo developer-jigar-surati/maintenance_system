@@ -125,6 +125,12 @@
                                                 <input type="date" class="form-control" id="end_date" placeholder="Select Date" name="end_date">
                                             </div>
                                         </div>
+                                        <div class="col-sm-4 ifrentaggrement">
+                                            <div class="form-group">
+                                                <label for="rent_document">Rent Document <small>(<strong>Note:</strong> Allow only jpeg, jpg, png, pdf)</small></label>
+                                                <input type="file" class="form-control" onChange="handleRentDocument(event)" id="rent_document" name="rent_document">
+                                            </div>
+                                        </div>
 
                                         <div class="col-sm-4">
                                             <div class="form-group fill">
@@ -172,9 +178,9 @@
                                                     <th>Mobile No</th>
                                                     <th>Email Id</th>
                                                     <th>Type</th>
+                                                    @if(Session::get('user_role') != 3)
                                                     <th>Created Datetime</th>
                                                     <th>Modified Datetime</th>
-                                                    @if(Session::get('user_role') != 3)
                                                     <th>Action</th>
                                                     @endif
                                                 </tr>
@@ -190,9 +196,9 @@
                                                     <th>Mobile No</th>
                                                     <th>Email Id</th>
                                                     <th>Type</th>
+                                                    @if(Session::get('user_role') != 3)
                                                     <th>Created Datetime</th>
                                                     <th>Modified Datetime</th>
-                                                    @if(Session::get('user_role') != 3)
                                                     <th>Action</th>
                                                     @endif
                                                 </tr>
@@ -212,6 +218,36 @@
         <!-- [ Main Content ] end -->
     </div>
 </div>
+
+<!-- show details modal -->
+<div id="rentDetailsModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="d-flex modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Float Holder Details</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" onclick="handleRentalModalClose()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="col-md-12">
+                    <div class="table-border-style">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered" id="datatable" style="width: 100%;">
+                                <tbody id="rentDetailstable">
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="handleRentalModalClose()" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- show details modal -->
+
 @include('partials.footer')
 
 <script>
@@ -248,7 +284,7 @@
             $('#datatable').DataTable({
                 "responsive": true,
                 "lengthChange": true,
-                "processing": false,
+                "processing": true,
                 "serverSide": true,
                 "destroy": true,
                 "order": [],
@@ -276,7 +312,14 @@
                         "data": "name",
                         "name": "name",
                         "searchable": true,
-                        "sortable": true
+                        "sortable": true,
+                        "render": function(data, type, row) {
+                            var html = '<div class="d-flex"><div>'+row.name+'</div>';
+                            if (row.is_president == 1) {
+                                html += '<div class="ml-1" title="President"><i class="feather icon-award"></i></div></div>';
+                            }
+                            return html;
+                        }
                     },
                     {
                         "data": "mobile_no",
@@ -296,18 +339,18 @@
                         "searchable": false,
                         "sortable": false
                     },
-                    {
-                        "data": "createddatetime",
-                        "name": "createddatetime",
-                        "searchable": false,
-                        "sortable": false
-                    },
-                    {
-                        "data": "modifireddatetime",
-                        "name": "modifireddatetime",
-                        "searchable": false,
-                        "sortable": false
-                    }
+                    // {
+                    //     "data": "createddatetime",
+                    //     "name": "createddatetime",
+                    //     "searchable": false,
+                    //     "sortable": false
+                    // },
+                    // {
+                    //     "data": "modifireddatetime",
+                    //     "name": "modifireddatetime",
+                    //     "searchable": false,
+                    //     "sortable": false
+                    // }
                 ],
                 "columnDefs": [{
                     "targets": 3,
@@ -332,7 +375,7 @@
             $('#datatable').DataTable({
                 "responsive": true,
                 "lengthChange": true,
-                "processing": false,
+                "processing": true,
                 "serverSide": true,
                 "destroy": true,
                 "order": [],
@@ -360,7 +403,14 @@
                         "data": "name",
                         "name": "name",
                         "searchable": true,
-                        "sortable": true
+                        "sortable": true,
+                        "render": function(data, type, row) {
+                            var html = '<div class="d-flex"><div>'+row.name+'</div>';
+                            if (row.is_president == 1) {
+                                html += '<div class="ml-1" title="President"><i class="feather icon-award"></i></div></div>';
+                            }
+                            return html;
+                        }
                     },
                     {
                         "data": "mobile_no",
@@ -378,7 +428,14 @@
                         "data": "flat_type",
                         "name": "flat_type",
                         "searchable": false,
-                        "sortable": false
+                        "sortable": false,
+                        "render": function(data, type, row) {
+                            var html = '<div class="d-flex"><div>'+row.flat_type+'</div>';
+                            if (row.flat_type == 'Rent') {
+                                html += '<div class="ml-1" title="Details" onclick="showRentDetails(\'' + row.fholder_id + '\')" style="cursor:pointer"><i class="feather icon-info"></i></div></div>';
+                            }
+                            return html;
+                        }
                     },
                     {
                         "data": "createddatetime",
@@ -543,61 +600,75 @@
     });
 
     function changestatus(fholder_id, status) {
-        showloader();
-        $.ajax({
-            type: 'post',
-            url: 'changeflatholderstatus',
-            data: {
-                "is_active": status,
-                "fholder_id": fholder_id,
-                "_token": '{{ csrf_token() }}'
-            },
-            success: function(res) {
-                hideloader();
-                if (res.Success == "true") {
-                    refreshdata();
-                    alertify.success(res.Message);
-                } else {
-                    alertify.error(res.Message);
+        alertify.confirm('Change Status', 'Are you sure you want to change status?',
+        function() {
+            showloader();
+            $.ajax({
+                type: 'post',
+                url: 'changeflatholderstatus',
+                data: {
+                    "is_active": status,
+                    "fholder_id": fholder_id,
+                    "_token": '{{ csrf_token() }}'
+                },
+                success: function(res) {
+                    hideloader();
+                    if (res.Success == "true") {
+                        refreshdata();
+                        alertify.success(res.Message);
+                    } else {
+                        alertify.error(res.Message);
+                    }
+                },
+                error: function(jqXHR, res, errorThrown) {
+                    hideloader();
+                    console.log("error");
+                    console.log(jqXHR);
+                    console.log(res);
+                    console.log(errorThrown);
+                    alertify.error(res.Message)
                 }
-            },
-            error: function(jqXHR, res, errorThrown) {
-                hideloader();
-                console.log("error");
-                console.log(jqXHR);
-                console.log(res);
-                console.log(errorThrown);
-                alertify.error(res.Message)
-            }
+            });
+        },
+        function() {
+            console.log('Confirm status close.'); 
+            // alertify.error('Cancel')
         });
     }
 
     function deleteflatholder(fholder_id) {
-        showloader();
-        $.ajax({
-            type: 'post',
-            url: 'deleteflatholder',
-            data: {
-                "fholder_id": fholder_id,
-                "_token": '{{ csrf_token() }}'
-            },
-            success: function(res) {
-                hideloader();
-                if (res.Success == "true") {
-                    refreshdata();
-                    alertify.success(res.Message);
-                } else {
-                    alertify.error(res.Message);
+        alertify.confirm('Delete Flat holder', 'Are you sure you want to delete?',
+        function() {
+            showloader();
+            $.ajax({
+                type: 'post',
+                url: 'deleteflatholder',
+                data: {
+                    "fholder_id": fholder_id,
+                    "_token": '{{ csrf_token() }}'
+                },
+                success: function(res) {
+                    hideloader();
+                    if (res.Success == "true") {
+                        refreshdata();
+                        alertify.success(res.Message);
+                    } else {
+                        alertify.error(res.Message);
+                    }
+                },
+                error: function(jqXHR, res, errorThrown) {
+                    hideloader();
+                    console.log("error");
+                    console.log(jqXHR);
+                    console.log(res);
+                    console.log(errorThrown);
+                    alertify.error(res.Message)
                 }
-            },
-            error: function(jqXHR, res, errorThrown) {
-                hideloader();
-                console.log("error");
-                console.log(jqXHR);
-                console.log(res);
-                console.log(errorThrown);
-                alertify.error(res.Message)
-            }
+            });
+        },
+        function() {
+            console.log('Confirm delete close.'); 
+            // alertify.error('Cancel')
         });
     }
 
@@ -706,7 +777,6 @@
         }
         var generated_pass = generatePassword(8);
         alertify.prompt("Enter Credentials", 'Please Enter Password', generated_pass, function(evt, value) {
-            // alertify.success('You entered: ' + value)
             showloader();
             $.ajax({
                 type: 'post',
@@ -747,5 +817,66 @@
             retVal += charset.charAt(Math.floor(Math.random() * n));
         }
         return retVal;
+    }
+
+    function showRentDetails(fholder_id) {
+        console.log('fholder_id', fholder_id);
+        showloader();
+        $.ajax({
+            type: 'post',
+            url: 'getRentDetails',
+            data: {
+                "fholder_id": fholder_id,
+                "_token": '{{ csrf_token() }}'
+            },
+            success: function(res) {
+                hideloader();
+                if (res.Success == "true") {
+                    $("#rentDetailsModal").modal('show');
+                    const resData = res.data;
+                    console.log('resData', resData);
+                    let html = '';
+                    Object.entries(resData).map((val) => {
+                        console.log('val', val);
+                        html += `
+                            <tr>
+                                <th>${val[0]}</th>
+                                <td>${val[1]}</td>
+                            </tr>
+                        `;
+                    });
+                    $("#rentDetailstable").html(html);
+                } else {
+                    alertify.error(res.Message);
+                }
+            },
+            error: function(jqXHR, res, errorThrown) {
+                hideloader();
+                console.log("error");
+                console.log(jqXHR);
+                console.log(res);
+                console.log(errorThrown);
+                alertify.error(res.Message)
+            }
+        });
+    }
+    
+    function handleRentalModalClose() {
+        $("#rentDetailsModal").modal('hide');
+    }
+
+    function handleRentDocument(event) {
+        var input = event.target;
+        var fileExtension = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+        if(typeof input.files[0] != 'undefined'  && typeof input.files[0].type != 'undefined' && $.inArray(input.files[0].type, fileExtension) !== -1){
+            if(input.files[0].size > 10485760) {
+                $("#rent_document").val('');
+                alertify.error("Not allow file more than 10MB.");
+                return false;
+            }
+        } else {
+            $("#rent_document").val('');
+            alertify.error("Invalid File Type");
+        }
     }
 </script>

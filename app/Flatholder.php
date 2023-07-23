@@ -72,6 +72,12 @@ class Flatholder extends Model
             if($category){
                 return response()->json(["Success"=> "false","Message" => "Mobile No Already Exist","data"=>""]);
             } else {
+                $rentDoc = '';
+                if($files=$this->request->file('rent_document')){
+                    $name=$files->getClientOriginalName();
+                    $files->move(public_path().'/uploads/documents/rent/', date('YmdHis').$name);
+                    $rentDoc = url('/uploads/documents/rent/'. date('YmdHis').$name);
+                }
                 $insert_arr = [
                     "fholder_id" => md5($input_arr['mobile_no'].date('Y-m-d H:i:s')),
                     "building_id" => $input_arr['building'],
@@ -88,6 +94,7 @@ class Flatholder extends Model
                     "is_president" => $input_arr['is_president'],
                     "aggrement_start_date" => ($input_arr['start_date'] != "") ? $input_arr['start_date'] : null,
                     "aggrement_end_date" => ($input_arr['end_date'] != "") ? $input_arr['end_date'] : null,
+                    "rent_document" => $rentDoc,
                     "is_active" => $input_arr['is_active'],
                     "added_on" => date('Y-m-d H:i:s'),
                     "added_by" => $this->request->session()->get('z_adminid_pk')
@@ -176,6 +183,7 @@ class Flatholder extends Model
                     $tempRow['deleted_on'] = 'Delete';
                     $tempRow['is_credentials_send'] = $value->is_credentials_send;
                     $tempRow['fholder_id'] = $value->fholder_id;
+                    $tempRow['is_president'] = $value->is_president;
                     $rows[] = $tempRow;
                 }
             }
@@ -354,6 +362,14 @@ class Flatholder extends Model
                 if($checkname > 0){
                     return response()->json(["Success"=> "false","Message" => "Mobile No Already Exist","data"=>""]);
                 }
+
+                $rentDoc = $fholder->rent_document;
+                if($files=$this->request->file('rent_document')){
+                    $name=$files->getClientOriginalName();
+                    $files->move(public_path().'/uploads/documents/rent/', date('YmdHis').$name);
+                    $rentDoc = url('/uploads/documents/rent/'. date('YmdHis').$name);
+                }
+
                 $update_arr = [
                     "building_id" => $input_arr['building'],
                     "flat_no" => $input_arr['flat_no'],
@@ -369,6 +385,7 @@ class Flatholder extends Model
                     "is_president" => $input_arr['is_president'],
                     "aggrement_start_date" => ($input_arr['start_date'] != "") ? $input_arr['start_date'] : null,
                     "aggrement_end_date" => ($input_arr['end_date'] != "") ? $input_arr['end_date'] : null,
+                    "rent_document" => $rentDoc,
                     "is_active" => $input_arr['is_active'],
                     "modified_on" => date('Y-m-d H:i:s'),
                     "modified_by" => $this->request->session()->get('z_adminid_pk')
@@ -487,5 +504,41 @@ class Flatholder extends Model
             $pass[] = $alphabet[$n];
         }
         return implode($pass); //turn the array into a string
+    }
+
+    public function getRentDetails()
+    {
+        try {
+            Log::info("Flatholder => getRentDetails Method Called ");
+            $inputarr = $this->request->input();
+            $input_arr = Common::clean_input($inputarr);
+
+            $rentDetails = DB::connection()->table(self::main_tbl.' as mt')
+                        ->select('bt.building_name', 'mt.rent_aggrement', 'mt.owner_name', 'mt.owner_mobile_no', 'mt.owner_email', 'mt.owner_address', 'mt.name', 'mt.mobile_no', 'mt.is_president', 'mt.flat_no', 'mt.fholder_id', 'mt.email_id', 'mt.aggrement_start_date', 'mt.aggrement_end_date', 'mt.rent_document', 'mt.added_on', 'mt.modified_on')
+                        ->join(self::building_tbl.' as bt','bt.building_id','=','mt.building_id')
+                        ->where('fholder_id','=',$input_arr['fholder_id'])
+                        ->first();
+            $rentDetailsRes = [];
+            $rentDetailsRes['Flat Number'] = $rentDetails->building_name. ' - ' .$rentDetails->flat_no;
+            $rentDetailsRes['Name'] = $rentDetails->name;
+            $rentDetailsRes['Mobile Number'] = $rentDetails->mobile_no;
+            $rentDetailsRes['Email Id'] = $rentDetails->email_id;
+            $rentDetailsRes['Rent Aggrement'] = ($rentDetails->rent_aggrement == 1) ? 'Yes' : 'No';
+            if ($rentDetails->rent_aggrement == 1) {
+                $rentDetailsRes['Aggrement Start Date'] = $rentDetails->aggrement_start_date;
+                $rentDetailsRes['Aggrement End Date'] = $rentDetails->aggrement_end_date;
+                $rentDetailsRes['Aggrement File'] = ($rentDetails->rent_document != '' && $rentDetails->rent_document != null) ? '<a href="'.$rentDetails->rent_document.'" target="_blank" title="Click to view document">Click here to view</a>' : '';
+            }
+            $rentDetailsRes['Owner Name'] = $rentDetails->owner_name;
+            $rentDetailsRes['Owner Mobile Number'] = $rentDetails->owner_mobile_no;
+            $rentDetailsRes['Owner Email Id'] = $rentDetails->owner_email;
+            $rentDetailsRes['Owner Address'] = $rentDetails->owner_address;
+            return response()->json(["Success"=> "true","Message" => "Get rent details","data"=>$rentDetailsRes]);
+        } catch (\Exception $e){
+            Log::info("Flatholder => getRentDetails Method Exception Caught => ");
+            Log::info($e->getMessage());
+            return response()->json(["Success"=> "false","Message" => "Exception Caught","data"=>$e->getMessage()]);
+        }
+        
     }
 }

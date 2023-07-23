@@ -78,6 +78,7 @@
                                     <input type="hidden" id="building_id" name="building_id" value="0">
                                     <input type="hidden" id="_token" name="_token" value="{{ csrf_token() }}">
                                     <button type="submit" class="btn btn-primary" id="buildingbtn">Submit</button>
+                                    <button type="reset" class="btn btn-secondary d-none cancelbtn">Cancel</button>
                                 </form>
                             </div>
                             <div class="col-md-9 buildinglist">
@@ -136,20 +137,24 @@
         refreshdata();
     });
 
-    function refreshdata() {
+    function resetFromData() {
         $("#building_name").val("");
         $("#description").val("");
         $('#total_flats').val("");
         $('#maintenance').val("");
         $("#building_id").val("0");
         $('#active').prop('checked', true);
+    }
+
+    function refreshdata() {
+        resetFromData();
                        
         var user_role = "{{ Session::get('user_role') }}";
         if(user_role == 3) {
             $('#datatable').DataTable({
                 "responsive": true,
                 "lengthChange": true,
-                "processing": false,
+                "processing": true,
                 "serverSide": true,
                 "destroy": true,
                 "order": [],
@@ -200,7 +205,7 @@
             $('#datatable').DataTable({
                 "responsive": true,
                 "lengthChange": true,
-                "processing": false,
+                "processing": true,
                 "serverSide": true,
                 "destroy": true,
                 "order": [],
@@ -338,59 +343,75 @@
     });
 
     function changestatus(building_id,status) {
-        showloader();
-        $.ajax({
-            type: 'post',
-            url: 'changebuildingstatus',
-            data: {"is_active":status,"building_id":building_id,"_token": '{{ csrf_token() }}' },
-            success: function (res) {
-                hideloader();
-                if(res.Success == "true"){
-                    refreshdata();
-                    alertify.success(res.Message);
-                } else {
-                    alertify.error(res.Message);
-                }
+        alertify.confirm('Change Status', 'Are you sure you want to change status?', 
+            function() {
+                showloader();
+                $.ajax({
+                    type: 'post',
+                    url: 'changebuildingstatus',
+                    data: {"is_active":status,"building_id":building_id,"_token": '{{ csrf_token() }}' },
+                    success: function (res) {
+                        hideloader();
+                        if(res.Success == "true"){
+                            refreshdata();
+                            alertify.success(res.Message);
+                        } else {
+                            alertify.error(res.Message);
+                        }
+                    },
+                    error: function (jqXHR,res,errorThrown) {
+                        hideloader();
+                        console.log("error");
+                        console.log(jqXHR);
+                        console.log(res);
+                        console.log(errorThrown);
+                        alertify.error(res.Message)   
+                    }
+                }); 
             },
-            error: function (jqXHR,res,errorThrown) {
-                hideloader();
-                console.log("error");
-                console.log(jqXHR);
-                console.log(res);
-                console.log(errorThrown);
-                alertify.error(res.Message)   
-            }
-        });
+            function() {
+                console.log('Confirm status close.'); 
+                // alertify.error('Cancel')
+            });
     }
 
     function deletebuilding(building_id) {
-        showloader();
-        $.ajax({
-            type: 'post',
-            url: 'deletebuilding',
-            data: {"building_id":building_id,"_token": '{{ csrf_token() }}' },
-            success: function (res) {
-                hideloader();
-                if(res.Success == "true"){
-                    refreshdata();
-                    alertify.success(res.Message);
-                } else {
-                    alertify.error(res.Message);
+        alertify.confirm('Delete Building', 'Are you sure you want to delete?',
+        function() {
+            showloader();
+            $.ajax({
+                type: 'post',
+                url: 'deletebuilding',
+                data: {"building_id":building_id,"_token": '{{ csrf_token() }}' },
+                success: function (res) {
+                    hideloader();
+                    if(res.Success == "true"){
+                        refreshdata();
+                        alertify.success(res.Message);
+                    } else {
+                        alertify.error(res.Message);
+                    }
+                },
+                error: function (jqXHR,res,errorThrown) {
+                    hideloader();
+                    console.log("error");
+                    console.log(jqXHR);
+                    console.log(res);
+                    console.log(errorThrown);
+                    alertify.error(res.Message)   
                 }
-            },
-            error: function (jqXHR,res,errorThrown) {
-                hideloader();
-                console.log("error");
-                console.log(jqXHR);
-                console.log(res);
-                console.log(errorThrown);
-                alertify.error(res.Message)   
-            }
+            });
+        },
+        function() {
+            console.log('Confirm delete close.'); 
+            // alertify.error('Cancel')
         });
     }
 
     function editbuilding(building_id) {
         $('.invalid').removeClass('invalid');
+        $('.cancelbtn').removeClass('d-none');
+        
         showloader();
         $.ajax({
             type: 'post',
