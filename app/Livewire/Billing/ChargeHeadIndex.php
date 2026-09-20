@@ -44,7 +44,7 @@ class ChargeHeadIndex extends Component
             ->with(['ledgerAccount'])
             ->when($this->search !== '', fn (Builder $q) => $q->where(function (Builder $i) {
                 $i->where('name', 'like', "%{$this->search}%")
-                ->orWhere('code', 'like', "%{$this->search}%");
+                    ->orWhere('code', 'like', "%{$this->search}%");
             }))
             ->when($this->type !== '', fn (Builder $q) => $q->where('type', $this->type))
             ->when($this->fund !== '', fn (Builder $q) => $q->where('fund', $this->fund));

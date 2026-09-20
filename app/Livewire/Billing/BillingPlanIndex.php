@@ -5,6 +5,7 @@ namespace App\Livewire\Billing;
 use App\Enums\Permission;
 use App\Models\BillingPlan;
 use App\Services\Billing\InvoiceGenerator;
+use App\Support\Money;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -36,7 +37,7 @@ class BillingPlanIndex extends Component
 
         $this->dispatch('notify',
             message: $result['created'] > 0
-                ? "{$result['created']} invoices raised, totalling ".\App\Support\Money::format($result['total']).'.'
+                ? "{$result['created']} invoices raised, totalling ".Money::format($result['total']).'.'
                 : 'No new invoices — every unit is already billed for this period.',
             tone: $result['created'] > 0 ? 'positive' : 'info');
     }

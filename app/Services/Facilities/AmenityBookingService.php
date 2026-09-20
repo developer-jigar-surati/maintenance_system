@@ -129,7 +129,10 @@ class AmenityBookingService
                 'guests_count' => $guests,
                 'purpose' => $attributes['purpose'] ?? null,
                 'charge_amount' => $amenity->chargeFor($start, $end, $guests),
-                'deposit_amount' => $amenity->deposit_amount,
+                // An amenity created without a deposit has no attribute set,
+                // and both columns are NOT NULL; a missing deposit means zero,
+                // not a failed booking.
+                'deposit_amount' => (float) ($amenity->deposit_amount ?? 0),
                 'status' => $amenity->requires_approval ? 'pending' : 'approved',
                 'approved_at' => $amenity->requires_approval ? null : now(),
                 'notes' => $attributes['notes'] ?? null,

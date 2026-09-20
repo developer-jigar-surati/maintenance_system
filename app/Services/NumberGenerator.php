@@ -20,16 +20,27 @@ class NumberGenerator
 {
     /** Series keys, also used as the settings key for their configuration. */
     public const INVOICE = 'invoice';
+
     public const RECEIPT = 'receipt';
+
     public const PAYMENT = 'payment';
+
     public const ADJUSTMENT = 'adjustment';
+
     public const EXPENSE = 'expense';
+
     public const VOUCHER = 'voucher';
+
     public const JOURNAL = 'journal';
+
     public const COMPLAINT = 'complaint';
+
     public const WORK_ORDER = 'work_order';
+
     public const GATE_PASS = 'gate_pass';
+
     public const BOOKING = 'booking';
+
     public const MEETING = 'meeting';
 
     /** Prefix and reset cadence used when a series is first touched. */

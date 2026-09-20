@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Role;
 use App\Models\Concerns\BelongsToSociety;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -51,7 +52,7 @@ class Document extends Model
         return match ($this->visibility) {
             'all' => true,
             'owners' => $user->billableUnits()->exists(),
-            'committee' => $user->hasManagementRole() || $user->hasRole(\App\Enums\Role::COMMITTEE_MEMBER),
+            'committee' => $user->hasManagementRole() || $user->hasRole(Role::COMMITTEE_MEMBER),
             'admin_only' => $user->hasManagementRole(),
             'specific_units' => $user->units()
                 ->whereIn('units.id', $this->visibility_meta['unit_ids'] ?? [])->exists(),

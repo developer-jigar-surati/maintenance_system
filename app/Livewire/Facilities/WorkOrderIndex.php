@@ -44,7 +44,7 @@ class WorkOrderIndex extends Component
             ->with(['asset', 'vendor', 'assignee', 'complaint'])
             ->when($this->search !== '', fn (Builder $q) => $q->where(function (Builder $i) {
                 $i->where('work_order_number', 'like', "%{$this->search}%")
-                ->orWhere('title', 'like', "%{$this->search}%");
+                    ->orWhere('title', 'like', "%{$this->search}%");
             }))
             ->when($this->status !== '', fn (Builder $q) => $q->where('status', $this->status))
             ->when($this->priority !== '', fn (Builder $q) => $q->where('priority', $this->priority));

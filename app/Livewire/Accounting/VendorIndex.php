@@ -37,8 +37,8 @@ class VendorIndex extends Component
             ->with([])
             ->when($this->search !== '', fn (Builder $q) => $q->where(function (Builder $i) {
                 $i->where('name', 'like', "%{$this->search}%")
-                ->orWhere('category', 'like', "%{$this->search}%")
-                ->orWhere('phone', 'like', "%{$this->search}%");
+                    ->orWhere('category', 'like', "%{$this->search}%")
+                    ->orWhere('phone', 'like', "%{$this->search}%");
             }));
 
         return view('livewire.accounting.vendor-index', [

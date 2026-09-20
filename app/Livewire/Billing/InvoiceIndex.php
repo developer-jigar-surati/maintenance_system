@@ -6,8 +6,8 @@ use App\Enums\Permission;
 use App\Livewire\Concerns\WithDataTable;
 use App\Models\Block;
 use App\Models\Invoice;
-use App\Support\SocietyContext;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -63,7 +63,7 @@ class InvoiceIndex extends Component
             // Compared as a date range rather than with a driver-specific date
             // function, so this works on SQLite, MySQL and Postgres alike.
             ->when($this->period !== '', function (Builder $q) {
-                $month = \Illuminate\Support\Carbon::createFromFormat('Y-m', $this->period)->startOfMonth();
+                $month = Carbon::createFromFormat('Y-m', $this->period)->startOfMonth();
 
                 $q->whereBetween('period_start', [$month, $month->copy()->endOfMonth()]);
             });

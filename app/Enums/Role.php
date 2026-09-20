@@ -15,19 +15,27 @@ final class Role
     public const SUPER_ADMIN = 'super_admin';
 
     public const SOCIETY_ADMIN = 'society_admin';
+
     public const PRESIDENT = 'president';
+
     public const SECRETARY = 'secretary';
+
     public const TREASURER = 'treasurer';
+
     public const COMMITTEE_MEMBER = 'committee_member';
 
     public const MANAGER = 'manager';
+
     public const ACCOUNTANT = 'accountant';
 
     public const OWNER = 'owner';
+
     public const TENANT = 'tenant';
 
     public const SECURITY_GUARD = 'security_guard';
+
     public const STAFF = 'staff';
+
     public const VENDOR = 'vendor';
 
     /** Roles that run a society day to day and see its money. */

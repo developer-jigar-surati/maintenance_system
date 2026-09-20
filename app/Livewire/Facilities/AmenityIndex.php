@@ -5,6 +5,7 @@ namespace App\Livewire\Facilities;
 use App\Enums\Permission;
 use App\Models\Amenity;
 use App\Models\AmenityBooking;
+use App\Models\Unit;
 use App\Services\Facilities\AmenityBookingService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
@@ -59,7 +60,7 @@ class AmenityIndex extends Component
         ]);
 
         $amenity = Amenity::findOrFail($this->bookingAmenityId);
-        $unit = \App\Models\Unit::findOrFail($this->unitId);
+        $unit = Unit::findOrFail($this->unitId);
 
         $start = Carbon::parse("{$this->date} {$this->startTime}");
         $end = Carbon::parse("{$this->date} {$this->endTime}");

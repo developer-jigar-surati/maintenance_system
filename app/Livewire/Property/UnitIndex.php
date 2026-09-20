@@ -5,6 +5,7 @@ namespace App\Livewire\Property;
 use App\Livewire\Concerns\WithDataTable;
 use App\Models\Block;
 use App\Models\Unit;
+use App\Support\SocietyContext;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -54,7 +55,7 @@ class UnitIndex extends Component
         return view('livewire.property.unit-index', [
             'units' => $this->applySort($query)->paginate($this->perPage),
             'blocks' => Block::orderBy('name')->get(),
-            'society' => app(\App\Support\SocietyContext::class)->check(),
+            'society' => app(SocietyContext::class)->check(),
         ])->title('Units');
     }
 }

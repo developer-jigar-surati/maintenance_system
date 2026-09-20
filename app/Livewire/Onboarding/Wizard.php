@@ -3,8 +3,8 @@
 namespace App\Livewire\Onboarding;
 
 use App\Enums\Permission;
-use App\Models\Block;
 use App\Models\BillingPlan;
+use App\Models\Block;
 use App\Models\ChargeHead;
 use App\Models\Unit;
 use App\Services\SocietyProvisioner;

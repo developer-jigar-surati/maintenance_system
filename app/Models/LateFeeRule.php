@@ -6,6 +6,7 @@ use App\Models\Concerns\BelongsToSociety;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * Interest and penalty policy for overdue bills.
@@ -38,7 +39,7 @@ class LateFeeRule extends Model
     }
 
     /** The date interest starts running, i.e. the due date plus any grace. */
-    public function chargeableFrom(Invoice $invoice): \Illuminate\Support\Carbon
+    public function chargeableFrom(Invoice $invoice): Carbon
     {
         return $invoice->due_date->copy()->addDays((int) $this->grace_days);
     }

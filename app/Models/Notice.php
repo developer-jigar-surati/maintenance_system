@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Role;
 use App\Models\Concerns\BelongsToSociety;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -79,8 +80,8 @@ class Notice extends Model
             'all' => true,
             'owners' => $user->billableUnits()->exists(),
             'tenants' => $user->residencies()->where('relation', 'tenant')->where('status', 'active')->exists(),
-            'committee' => $user->hasManagementRole() || $user->hasRole(\App\Enums\Role::COMMITTEE_MEMBER),
-            'staff' => $user->hasAnyRole([\App\Enums\Role::STAFF, \App\Enums\Role::SECURITY_GUARD]),
+            'committee' => $user->hasManagementRole() || $user->hasRole(Role::COMMITTEE_MEMBER),
+            'staff' => $user->hasAnyRole([Role::STAFF, Role::SECURITY_GUARD]),
             'specific_blocks' => $user->units()
                 ->whereIn('block_id', $this->audience_meta['block_ids'] ?? [])->exists(),
             'specific_units' => $user->units()

@@ -8,6 +8,7 @@ use App\Models\ChargeHead;
 use App\Models\ComplaintCategory;
 use App\Models\FinancialYear;
 use App\Models\LateFeeRule;
+use App\Models\LedgerAccount;
 use App\Models\Society;
 use App\Models\User;
 use App\Services\Accounting\ChartOfAccounts;
@@ -256,7 +257,7 @@ class SocietyProvisioner
 
     private function chartAccountId(Society $society, string $code): ?int
     {
-        return \App\Models\LedgerAccount::withoutGlobalScopes()
+        return LedgerAccount::withoutGlobalScopes()
             ->where('society_id', $society->id)
             ->where('code', $code)
             ->value('id');

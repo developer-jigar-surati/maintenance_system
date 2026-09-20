@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Permission;
 use App\Models\Concerns\BelongsToSociety;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -150,7 +151,7 @@ class Complaint extends Model
 
     public function scopeVisibleTo(Builder $query, User $user): Builder
     {
-        if ($user->can(\App\Enums\Permission::COMPLAINT_VIEW_ALL)) {
+        if ($user->can(Permission::COMPLAINT_VIEW_ALL)) {
             return $query;
         }
 

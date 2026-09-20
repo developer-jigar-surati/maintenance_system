@@ -24,14 +24,23 @@ class LedgerPoster
 {
     /** System account codes, seeded for every society. */
     public const MEMBERS_RECEIVABLE = '1200';
+
     public const CASH_IN_HAND = '1010';
+
     public const BANK = '1020';
+
     public const MAINTENANCE_INCOME = '4000';
+
     public const INTEREST_INCOME = '4900';
+
     public const ADVANCE_FROM_MEMBERS = '2100';
+
     public const SUNDRY_CREDITORS = '2000';
+
     public const GST_PAYABLE = '2200';
+
     public const TDS_PAYABLE = '2300';
+
     public const GENERAL_EXPENSE = '5000';
 
     public function __construct(private NumberGenerator $numbers) {}

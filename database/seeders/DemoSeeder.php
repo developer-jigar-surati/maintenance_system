@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\Role as RoleName;
+use App\Models\AmcContract;
 use App\Models\Amenity;
 use App\Models\Asset;
 use App\Models\BillingPlan;
@@ -25,6 +26,7 @@ use App\Models\Staff;
 use App\Models\Unit;
 use App\Models\UnitResident;
 use App\Models\User;
+use App\Models\Vehicle;
 use App\Models\Vendor;
 use App\Services\Billing\InvoiceGenerator;
 use App\Services\Billing\LateFeeCalculator;
@@ -336,7 +338,7 @@ class DemoSeeder extends Seeder
             [
                 'name' => trim($name),
                 'password' => 'password',
-                'phone' => '98' . str_pad((string) (10000000 + $index * 137), 8, '0', STR_PAD_LEFT),
+                'phone' => '98'.str_pad((string) (10000000 + $index * 137), 8, '0', STR_PAD_LEFT),
                 'email_verified_at' => now(),
             ],
         );
@@ -358,7 +360,7 @@ class DemoSeeder extends Seeder
                 'allotted_on' => now()->subYear(),
             ]);
 
-            \App\Models\Vehicle::create([
+            Vehicle::create([
                 'unit_id' => $unit->id,
                 'parking_slot_id' => $slot->id,
                 'registration_number' => sprintf('GJ05%s%04d', chr(65 + ($i % 26)), 1000 + $i),
@@ -510,7 +512,7 @@ class DemoSeeder extends Seeder
                 'status' => $i === 3 ? 'under_repair' : 'active',
             ]);
 
-            \App\Models\AmcContract::create([
+            AmcContract::create([
                 'asset_id' => $asset->id,
                 'vendor_id' => $asset->vendor_id,
                 'contract_number' => 'AMC-'.str_pad((string) ($i + 1), 3, '0', STR_PAD_LEFT),
@@ -712,7 +714,7 @@ class DemoSeeder extends Seeder
                 ."1. Terrace waterproofing to be completed before 15 June. Quotes received from three vendors; AquaFlow Plumbing selected.\n"
                 ."2. Drain cleaning scheduled for the first week of June.\n"
                 ."3. Diesel generator to be serviced and the fuel tank topped up.\n"
-                ."4. Residents to be reminded to clear their own balcony drains.",
+                .'4. Residents to be reminded to clear their own balcony drains.',
             'minutes_recorded_by' => $people['secretary']->id,
             'minutes_published_at' => now()->subDays(20),
             'created_by' => $people['secretary']->id,

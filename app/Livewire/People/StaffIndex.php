@@ -44,8 +44,8 @@ class StaffIndex extends Component
             ->with(['vendor'])
             ->when($this->search !== '', fn (Builder $q) => $q->where(function (Builder $i) {
                 $i->where('name', 'like', "%{$this->search}%")
-                ->orWhere('employee_code', 'like', "%{$this->search}%")
-                ->orWhere('phone', 'like', "%{$this->search}%");
+                    ->orWhere('employee_code', 'like', "%{$this->search}%")
+                    ->orWhere('phone', 'like', "%{$this->search}%");
             }))
             ->when($this->department !== '', fn (Builder $q) => $q->where('department', $this->department))
             ->when($this->status !== '', fn (Builder $q) => $q->where('status', $this->status));

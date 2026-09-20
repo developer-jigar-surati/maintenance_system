@@ -2,6 +2,7 @@
 
 namespace App\Services\Governance;
 
+use App\Enums\Role;
 use App\Models\Poll;
 use App\Models\PollOption;
 use App\Models\PollVote;
@@ -94,7 +95,7 @@ class VotingService
                 ->whereIn('relation', ['owner', 'co_owner'])
                 ->exists(),
             'committee_only' => $user->hasManagementRole()
-                || $user->hasRole(\App\Enums\Role::COMMITTEE_MEMBER),
+                || $user->hasRole(Role::COMMITTEE_MEMBER),
             default => true,
         };
 

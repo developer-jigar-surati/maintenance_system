@@ -6,6 +6,7 @@ use App\Enums\Permission as PermissionEnum;
 use App\Enums\Role as RoleName;
 use App\Support\SocietyContext;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Spatie\Permission\Models\Role as RoleModel;
@@ -88,7 +89,7 @@ class RoleManager extends Component
         // Grouped by module prefix, so the editor reads as a permission matrix
         // rather than a flat list of sixty checkboxes.
         $grouped = collect(PermissionEnum::all())
-            ->groupBy(fn (string $name) => \Illuminate\Support\Str::before($name, '.'))
+            ->groupBy(fn (string $name) => Str::before($name, '.'))
             ->map(fn ($items) => $items->values());
 
         return view('livewire.settings.role-manager', [

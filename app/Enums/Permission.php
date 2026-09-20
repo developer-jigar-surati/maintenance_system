@@ -12,75 +12,118 @@ final class Permission
 {
     // Society administration
     public const SOCIETY_VIEW = 'society.view';
+
     public const SOCIETY_MANAGE = 'society.manage';
+
     public const SOCIETY_SETTINGS = 'society.settings';
 
     // Property
     public const UNIT_VIEW = 'unit.view';
+
     public const UNIT_MANAGE = 'unit.manage';
+
     public const RESIDENT_VIEW = 'resident.view';
+
     public const RESIDENT_MANAGE = 'resident.manage';
+
     public const DIRECTORY_VIEW = 'directory.view';
 
     // Billing and collection
     public const BILLING_VIEW = 'billing.view';
+
     public const BILLING_MANAGE = 'billing.manage';
+
     public const INVOICE_GENERATE = 'invoice.generate';
+
     public const INVOICE_CANCEL = 'invoice.cancel';
+
     public const PAYMENT_VIEW = 'payment.view';
+
     public const PAYMENT_RECORD = 'payment.record';
+
     public const PAYMENT_APPROVE = 'payment.approve';
+
     public const ADJUSTMENT_APPROVE = 'adjustment.approve';
 
     // Accounting
     public const ACCOUNTING_VIEW = 'accounting.view';
+
     public const ACCOUNTING_MANAGE = 'accounting.manage';
+
     public const EXPENSE_VIEW = 'expense.view';
+
     public const EXPENSE_MANAGE = 'expense.manage';
+
     public const EXPENSE_APPROVE = 'expense.approve';
+
     public const REPORT_VIEW = 'report.view';
+
     public const BUDGET_MANAGE = 'budget.manage';
 
     // Governance
     public const MEETING_VIEW = 'meeting.view';
+
     public const MEETING_MANAGE = 'meeting.manage';
+
     public const MINUTES_PUBLISH = 'minutes.publish';
+
     public const POLL_VIEW = 'poll.view';
+
     public const POLL_MANAGE = 'poll.manage';
+
     public const COMMITTEE_MANAGE = 'committee.manage';
 
     // Helpdesk
     public const COMPLAINT_VIEW_OWN = 'complaint.view_own';
+
     public const COMPLAINT_VIEW_ALL = 'complaint.view_all';
+
     public const COMPLAINT_CREATE = 'complaint.create';
+
     public const COMPLAINT_MANAGE = 'complaint.manage';
 
     // Facilities
     public const ASSET_VIEW = 'asset.view';
+
     public const ASSET_MANAGE = 'asset.manage';
+
     public const WORK_ORDER_VIEW = 'work_order.view';
+
     public const WORK_ORDER_MANAGE = 'work_order.manage';
+
     public const AMENITY_VIEW = 'amenity.view';
+
     public const AMENITY_BOOK = 'amenity.book';
+
     public const AMENITY_MANAGE = 'amenity.manage';
 
     // People
     public const STAFF_VIEW = 'staff.view';
+
     public const STAFF_MANAGE = 'staff.manage';
+
     public const VENDOR_VIEW = 'vendor.view';
+
     public const VENDOR_MANAGE = 'vendor.manage';
 
     // Security
     public const VISITOR_VIEW = 'visitor.view';
+
     public const VISITOR_MANAGE = 'visitor.manage';
+
     public const GATE_OPERATE = 'gate.operate';
+
     public const GATE_PASS_APPROVE = 'gate_pass.approve';
 
     // Communication
     public const NOTICE_VIEW = 'notice.view';
+
     public const NOTICE_MANAGE = 'notice.manage';
+
     public const DOCUMENT_VIEW = 'document.view';
+
     public const DOCUMENT_MANAGE = 'document.manage';
+
     public const AUDIT_VIEW = 'audit.view';
 
     public static function all(): array

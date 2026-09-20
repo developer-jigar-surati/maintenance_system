@@ -3,6 +3,7 @@
 namespace App\Livewire\Property;
 
 use App\Livewire\Concerns\WithDataTable;
+use App\Models\Block;
 use App\Models\Unit;
 use App\Support\SocietyContext;
 use Illuminate\Database\Eloquent\Builder;
@@ -53,7 +54,7 @@ class DirectoryIndex extends Component
 
         return view('livewire.property.directory-index', [
             'units' => $this->applySort($query)->paginate($this->perPage),
-            'blocks' => \App\Models\Block::orderBy('name')->get(),
+            'blocks' => Block::orderBy('name')->get(),
             'showContacts' => $user->hasManagementRole()
                 || (bool) $society->setting('directory.show_phone_to_residents', false),
         ])->title('Directory');

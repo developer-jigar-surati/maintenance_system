@@ -38,7 +38,7 @@ class ReceiptIndex extends Component
             ->with(['unit.block', 'payment', 'issuedBy'])
             ->when($this->search !== '', fn (Builder $q) => $q->where(function (Builder $i) {
                 $i->where('receipt_number', 'like', "%{$this->search}%")
-                ->orWhereHas('unit', fn (Builder $u) => $u->where('unit_number', 'like', "%{$this->search}%"));
+                    ->orWhereHas('unit', fn (Builder $u) => $u->where('unit_number', 'like', "%{$this->search}%"));
             }));
 
         return view('livewire.billing.receipt-index', [

@@ -44,8 +44,8 @@ class AssetIndex extends Component
             ->with(['block', 'vendor', 'amcContracts'])
             ->when($this->search !== '', fn (Builder $q) => $q->where(function (Builder $i) {
                 $i->where('name', 'like', "%{$this->search}%")
-                ->orWhere('code', 'like', "%{$this->search}%")
-                ->orWhere('serial_number', 'like', "%{$this->search}%");
+                    ->orWhere('code', 'like', "%{$this->search}%")
+                    ->orWhere('serial_number', 'like', "%{$this->search}%");
             }))
             ->when($this->category !== '', fn (Builder $q) => $q->where('category', $this->category))
             ->when($this->status !== '', fn (Builder $q) => $q->where('status', $this->status));

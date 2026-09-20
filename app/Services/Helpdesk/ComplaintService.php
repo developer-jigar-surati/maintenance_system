@@ -5,7 +5,6 @@ namespace App\Services\Helpdesk;
 use App\Models\Complaint;
 use App\Models\ComplaintCategory;
 use App\Models\Society;
-use App\Models\Unit;
 use App\Models\User;
 use App\Services\NumberGenerator;
 use Illuminate\Support\Carbon;

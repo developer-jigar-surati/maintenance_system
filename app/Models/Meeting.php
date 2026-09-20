@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * A society meeting: AGM, special general body, or committee sitting.
@@ -97,7 +98,7 @@ class Meeting extends Model
     }
 
     /** The last date notice can go out and still satisfy the notice period. */
-    public function noticeDeadline(): \Illuminate\Support\Carbon
+    public function noticeDeadline(): Carbon
     {
         return $this->scheduled_at->copy()->subDays((int) $this->notice_days);
     }
