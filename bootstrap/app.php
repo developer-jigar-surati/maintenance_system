@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsurePermission;
+use App\Http\Middleware\ResolveSociety;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,7 +14,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Runs on every web request so the active society is in scope before
+        // any controller, Livewire component or model query executes.
+        $middleware->web(append: [
+            ResolveSociety::class,
+        ]);
+
+        $middleware->alias([
+            'permission' => EnsurePermission::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

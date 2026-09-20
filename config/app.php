@@ -65,7 +65,22 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'UTC'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Currency
+    |--------------------------------------------------------------------------
+    |
+    | Platform defaults. Each society may override these on its own record,
+    | which is what lets one deployment serve communities in different
+    | countries without a separate install.
+    |
+    */
+
+    'currency' => env('APP_CURRENCY', 'INR'),
+
+    'currency_symbol' => env('APP_CURRENCY_SYMBOL', '₹'),
 
     /*
     |--------------------------------------------------------------------------
