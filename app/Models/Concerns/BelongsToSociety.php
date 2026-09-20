@@ -32,6 +32,21 @@ trait BelongsToSociety
         return $this->belongsTo(Society::class);
     }
 
+    /**
+     * The owning society, whether or not the relation was eager loaded.
+     *
+     * Services reach for this rather than `$model->society`, because with lazy
+     * loading disabled a plain property read throws on an unloaded relation.
+     */
+    public function resolveSociety(): Society
+    {
+        if (! $this->relationLoaded('society')) {
+            $this->setRelation('society', Society::withoutGlobalScopes()->findOrFail($this->society_id));
+        }
+
+        return $this->getRelation('society');
+    }
+
     /** Escape hatch for reporting that deliberately spans societies. */
     public function scopeAcrossSocieties($query)
     {

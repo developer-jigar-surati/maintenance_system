@@ -2,15 +2,20 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\BelongsToSociety;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * One choice on a poll.
+ *
+ * Not society-scoped: options are only ever reached through their poll, which
+ * is scoped itself, so the table carries no society_id.
+ */
 class PollOption extends Model
 {
-    use BelongsToSociety, HasFactory;
+    use HasFactory;
 
     protected $guarded = ['id'];
 

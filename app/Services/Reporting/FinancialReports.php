@@ -91,7 +91,9 @@ class FinancialReports
             ->with(['block', 'activeResidents.user'])
             ->withSum(['invoices as outstanding' => fn ($q) => $q->open()], 'balance')
             ->withMin(['invoices as oldest_due_date' => fn ($q) => $q->open()], 'due_date')
-            ->having('outstanding', '>', 0)
+            // Filtered with whereHas rather than HAVING: HAVING needs a GROUP BY
+            // on SQLite, and this expresses the same thing portably.
+            ->whereHas('invoices', fn ($q) => $q->open()->where('balance', '>', 0))
             ->orderByDesc('outstanding')
             ->get()
             ->map(function (Unit $unit) {

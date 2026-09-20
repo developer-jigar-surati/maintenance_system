@@ -45,7 +45,7 @@ class ParkingIndex extends Component
             ->when($this->status !== '', fn (Builder $q) => $q->where('status', $this->status));
 
         return view('livewire.property.parking-index', [
-            'slots' => $this->applySort($query)->paginate($this->perPage),
+            'parkingSlots' => $this->applySort($query)->paginate($this->perPage),
         ])->title('Parking');
     }
 }

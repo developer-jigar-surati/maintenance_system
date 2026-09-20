@@ -48,7 +48,7 @@ class InvoiceIndex extends Component
             || $user->can(Permission::PAYMENT_RECORD);
 
         $query = Invoice::query()
-            ->with(['unit.block', 'unit.residents.user'])
+            ->with(['unit.block', 'unit.activeResidents.user'])
             // A resident sees only their own bills; management sees the society's.
             ->when(! $canSeeAll, fn (Builder $q) => $q->whereIn('unit_id', $user->units()->pluck('units.id')))
             ->when($this->search !== '', fn (Builder $q) => $q->where(function (Builder $inner) {

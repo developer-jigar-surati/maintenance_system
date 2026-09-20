@@ -47,7 +47,7 @@ class LedgerPoster
             return null;
         }
 
-        $society = $invoice->society ?? Society::findOrFail($invoice->society_id);
+        $society = $invoice->resolveSociety();
 
         // Each line's income account is read below; load them in one query
         // rather than one per line.
@@ -110,7 +110,7 @@ class LedgerPoster
             return null;
         }
 
-        $society = $payment->society ?? Society::findOrFail($payment->society_id);
+        $society = $payment->resolveSociety();
 
         $allocated = round((float) $payment->amount - (float) $payment->unallocated_amount, 2);
         $advance = round((float) $payment->unallocated_amount, 2);
@@ -164,7 +164,7 @@ class LedgerPoster
             return null;
         }
 
-        $society = $expense->society ?? Society::findOrFail($expense->society_id);
+        $society = $expense->resolveSociety();
 
         $expenseAccount = $expense->ledgerAccount
             ?? $expense->chargeHead?->ledgerAccount
@@ -212,7 +212,7 @@ class LedgerPoster
             return null;
         }
 
-        $society = $payment->society ?? Society::findOrFail($payment->society_id);
+        $society = $payment->resolveSociety();
 
         $lines = [
             [
@@ -310,7 +310,7 @@ class LedgerPoster
     /** Reverses an entry by posting its mirror image, keeping both on record. */
     public function reverse(JournalEntry $entry, ?string $reason = null): JournalEntry
     {
-        $society = $entry->society ?? Society::findOrFail($entry->society_id);
+        $society = $entry->resolveSociety();
 
         $lines = $entry->lines->map(fn ($l) => [
             'account' => $l->ledger_account_id,

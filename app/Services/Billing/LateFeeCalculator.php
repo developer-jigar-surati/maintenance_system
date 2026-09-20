@@ -99,7 +99,7 @@ class LateFeeCalculator
     /** Dr Members receivable / Cr Late payment interest. */
     private function postToLedger(Invoice $invoice, LateFeeRule $rule, InvoiceLine $line, Carbon $on): void
     {
-        $society = $invoice->society ?? Society::findOrFail($invoice->society_id);
+        $society = $invoice->resolveSociety();
         $amount = (float) $line->line_total;
 
         $rule->loadMissing('chargeHead.ledgerAccount');

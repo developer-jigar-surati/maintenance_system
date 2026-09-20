@@ -3,7 +3,7 @@
 
     <x-ui.table
         :headers="['Slot', 'Level', 'For', 'Allotted to', ['label' => 'Monthly', 'align' => 'right'], 'Status']"
-        :is-empty="$slots->isEmpty()"
+        :is-empty="$parkingSlots->isEmpty()"
         empty="No parking slots recorded"
         empty-icon="car"
         caption="Parking slots with level, type and allotment"
@@ -27,29 +27,29 @@
             @endif
         </x-slot:toolbar>
 
-        @foreach ($slots as $slot)
+        @foreach ($parkingSlots as $parkingSlot)
             <x-ui.tr>
                 <x-ui.td label="Slot" primary>
-                    {{ $slot->code }}
+                    {{ $parkingSlot->code }}
                 </x-ui.td>
                 <x-ui.td label="Level">
-                    {{ ucwords(str_replace("_", " ", $slot->level)) }}
+                    {{ ucwords(str_replace("_", " ", $parkingSlot->level)) }}
                 </x-ui.td>
                 <x-ui.td label="For">
-                    {{ ucwords(str_replace("_", " ", $slot->vehicle_type)) }}
+                    {{ ucwords(str_replace("_", " ", $parkingSlot->vehicle_type)) }}
                 </x-ui.td>
                 <x-ui.td label="Allotted to">
-                    {{ $slot->unit?->label ?? ($slot->is_visitor_slot ? "Visitors" : "—") }}
+                    {{ $parkingSlot->unit?->label ?? ($parkingSlot->is_visitor_slot ? "Visitors" : "—") }}
                 </x-ui.td>
                 <x-ui.td label="Monthly" align="right">
-                    @if ($slot->monthly_charge > 0)<x-ui.money :amount="$slot->monthly_charge" />@else<span class="text-muted">Free</span>@endif
+                    @if ($parkingSlot->monthly_charge > 0)<x-ui.money :amount="$parkingSlot->monthly_charge" />@else<span class="text-muted">Free</span>@endif
                 </x-ui.td>
                 <x-ui.td label="Status">
-                    <x-ui.status :value="$slot->status" />
+                    <x-ui.status :value="$parkingSlot->status" />
                 </x-ui.td>
             </x-ui.tr>
         @endforeach
 
-        <x-slot:footer>{{ $slots->links() }}</x-slot:footer>
+        <x-slot:footer>{{ $parkingSlots->links() }}</x-slot:footer>
     </x-ui.table>
 </div>

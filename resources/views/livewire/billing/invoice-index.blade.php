@@ -13,7 +13,7 @@
     </x-ui.page-header>
 
     {{-- Summary of whatever the current filter selects, not just this page. --}}
-    <div class="mb-5 grid grid-cols-3 gap-3">
+    <div class="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
         <x-ui.stat label="Invoices" :value="number_format($summary['count'])" icon="receipt" />
         <x-ui.stat label="Billed" :value="\App\Support\Money::compact($summary['billed'])" icon="banknote" />
         <x-ui.stat
