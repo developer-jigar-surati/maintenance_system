@@ -2,10 +2,13 @@
 
 namespace Tests\Feature\Property;
 
+use App\Enums\Role;
+use App\Livewire\Property\SitePlanView;
 use App\Models\Block;
 use App\Models\Unit;
 use App\Services\Property\SitePlan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class SitePlanTest extends TestCase
@@ -140,6 +143,67 @@ class SitePlanTest extends TestCase
         $this->assertSame('critical', $plan->toneFor($large, 'dues'));
         $this->assertStringContainsString('Nothing outstanding', $plan->meaningFor($paid, 'dues'));
         $this->assertStringContainsString('24,000', $plan->meaningFor($large, 'dues'));
+    }
+
+    public function test_both_views_draw_the_same_buildings_from_the_same_figures(): void
+    {
+        $society = $this->makeSociety();
+        $block = $this->makeBlock($society, 'A');
+        $this->makeUnit($society, ['block_id' => $block->id, 'unit_number' => '101', 'floor' => 1]);
+
+        $officer = $this->makeUser($society, Role::SOCIETY_ADMIN);
+
+        foreach (['2d', '3d'] as $mode) {
+            Livewire::actingAs($officer)
+                ->test(SitePlanView::class)
+                ->set('mode', $mode)
+                ->assertOk()
+                ->assertSee('A');
+        }
+    }
+
+    public function test_a_flat_stays_a_labelled_control_in_the_3d_view(): void
+    {
+        // The whole reason for CSS transforms over a canvas: a flat in the 3D
+        // view is the same button with the same label as in the flat plan, so
+        // it still works by keyboard and still reads out.
+        $society = $this->makeSociety();
+        $block = $this->makeBlock($society, 'A');
+        $this->makeUnit($society, [
+            'block_id' => $block->id, 'unit_number' => '101', 'floor' => 1,
+            'occupancy_status' => 'rented',
+        ]);
+
+        Livewire::actingAs($this->makeUser($society, Role::SOCIETY_ADMIN))
+            ->test(SitePlanView::class)
+            ->set('mode', '3d')
+            ->set('blockId', $block->id)
+            ->assertSee('A-101, 1st floor. Rented.');
+    }
+
+    public function test_an_unknown_view_mode_falls_back_to_the_flat_plan(): void
+    {
+        $society = $this->makeSociety();
+
+        Livewire::actingAs($this->makeUser($society, Role::SOCIETY_ADMIN))
+            ->test(SitePlanView::class)
+            ->set('mode', 'hologram')
+            ->assertSet('mode', '2d');
+    }
+
+    public function test_arranging_buildings_returns_to_the_flat_plan(): void
+    {
+        // Positions are typed against a flat grid; doing it inside a rotated
+        // scene would be guesswork.
+        $society = $this->makeSociety();
+        $this->makeBlock($society, 'A');
+
+        Livewire::actingAs($this->makeUser($society, Role::SOCIETY_ADMIN))
+            ->test(SitePlanView::class)
+            ->set('mode', '3d')
+            ->call('startArranging')
+            ->assertSet('mode', '2d')
+            ->assertSet('arranging', true);
     }
 
     public function test_a_site_plan_shows_only_its_own_societys_buildings(): void

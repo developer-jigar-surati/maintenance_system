@@ -107,8 +107,8 @@ class SitePlan
         // that make the plan readable in the first place.
         $usableHeight = 78;
 
-        $width = (int) max(8, floor((100 - $gap * ($columns + 1)) / $columns));
-        $height = (int) max(8, floor(($usableHeight - $gap * ($rows + 1)) / $rows));
+        $width = (int) max(8, min(28, floor((100 - $gap * ($columns + 1)) / $columns)));
+        $height = (int) max(8, min(24, floor(($usableHeight - $gap * ($rows + 1)) / $rows)));
 
         $slots = [];
 

@@ -189,14 +189,16 @@ class ModuleGuide
 
             'site-plan.index' => [
                 'title' => 'Site plan',
-                'summary' => 'The society drawn out: buildings on the site, flats inside a building.',
+                'summary' => 'The society drawn out: buildings on the site, flats inside a building, flat or in 3D.',
                 'steps' => [
                     'Pick a building to see its floors stacked, top floor first, the way the building stands.',
                     'Tap any flat for who lives there, what it owes and what is open.',
                     'The colour control changes what the plan is showing you: occupancy, dues, or open complaints.',
+                    '3D adds height, so a six-storey block reads as taller than a row of villas. Turn it, tilt it, and pull the floors apart to see into the middle of a tower.',
                 ],
                 'watch' => [
                     'Until somebody arranges them, buildings are on an automatic grid rather than where they actually stand.',
+                    'Arranging is done on the flat plan, because positions are typed rather than dragged so they work with a keyboard.',
                 ],
             ],
 

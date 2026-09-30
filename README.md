@@ -182,13 +182,17 @@ balance, income and expenditure, balance sheet), each exportable as CSV.
 
 **Property** — blocks and wings, units of every type, owners and tenants with
 agreement tracking, parking allotment, vehicles, and a resident directory with
-per-society privacy controls. Occupancy is recorded as moves rather than
+per-society privacy controls. Who used to live in a flat is behind its own
+permission, held by the society administrator, chairman and secretary only.
+Occupancy is recorded as moves rather than
 edits: moving in opens a record, moving out closes one with its date and
 reason, and a sale hands the unit over on a single day, so every unit keeps a
 readable history and a past receipt still names whoever paid it. A unit's
 occupancy status is derived from who lives there, never typed. A **site plan**
 draws the society from above and each building from the side, coloured by
-occupancy, dues or open complaints, with every flat a button.
+occupancy, dues or open complaints, with every flat a button — flat, or in
+**3D**, where buildings are extruded by their floor count and a building's
+floors can be pulled apart to see into the middle of a tower.
 
 **Governance** — committees and office bearers, meetings with agenda, notice
 periods, RSVP, proxy attendance, quorum tracking, minutes and resolutions;
@@ -276,6 +280,14 @@ wire their own labels, hints and errors together through `aria-describedby`,
 status carried by a text label as well as a hue, polite live regions for
 toasts, and `prefers-reduced-motion` and `prefers-contrast` honoured.
 
+**The 3D plan is CSS transforms, not WebGL.** Every building and every flat
+stays a real `<button>` that takes focus and reads out to a screen reader,
+which a canvas cannot do without maintaining a parallel DOM; it costs no
+dependency and runs on the kind of phone a guard actually carries. Roof
+labels are billboarded so they stay upright as the site turns, cells are
+sized so the tilt still leaves a 44px target, and `prefers-reduced-motion`
+removes the transitions.
+
 **Every screen explains itself.** A help control in the topbar opens a panel
 for the screen you are on: what it is for, the steps that matter, and the
 things people get wrong. A detail screen falls back to its list's guide, and
@@ -298,7 +310,7 @@ as production, so anything engine-specific is caught here rather than in
 production. Host and credentials come from `.env`; only the database name is
 overridden in `phpunit.xml`.
 
-155 tests covering the parts that would be expensive to get wrong: tenancy
+170 tests covering the parts that would be expensive to get wrong: tenancy
 isolation, per-square-foot and fixed billing arithmetic, idempotent bill runs,
 simple versus compound interest and the guarantee against double-charging,
 oldest-first payment allocation and overpayment credit, gap-free receipt
@@ -312,7 +324,10 @@ twice in a day, that a template is never executed as code, that every packaged
 template uses only placeholders it declares, that a move-out closes a record
 rather than deleting it and never leaves a unit without a billing contact,
 that the site plan's automatic layout provably never overlaps for 1 to 12
-buildings, and that every help guide points at a route that exists.
+buildings, that every help guide points at a route that exists, and that a
+past resident is never sent to the browser at all for someone without the
+permission — asserted against the raw HTML, because a name hidden behind an
+`@if` is still there to read.
 
 One test turns lazy loading off, which the suite otherwise does not, to catch
 the class of bug where a screen eager loads `residents` and a helper reads

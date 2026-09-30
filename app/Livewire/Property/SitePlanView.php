@@ -31,6 +31,14 @@ class SitePlanView extends Component
     #[Url(except: 'occupancy')]
     public string $view = 'occupancy';
 
+    /**
+     * Flat plan or 3D. Both draw the same data from the same figures; the 3D
+     * view adds height, which is what makes a six-storey block read as taller
+     * than a row of villas.
+     */
+    #[Url(except: '2d', as: 'mode')]
+    public string $mode = '2d';
+
     /** The unit whose details panel is showing. */
     public ?int $selectedUnitId = null;
 
@@ -43,6 +51,13 @@ class SitePlanView extends Component
     {
         if (! array_key_exists($value, SitePlan::VIEWS)) {
             $this->view = 'occupancy';
+        }
+    }
+
+    public function updatedMode(string $value): void
+    {
+        if (! in_array($value, ['2d', '3d'], true)) {
+            $this->mode = '2d';
         }
     }
 
@@ -80,6 +95,7 @@ class SitePlanView extends Component
             ]])
             ->all();
 
+        $this->mode = '2d';
         $this->arranging = true;
     }
 

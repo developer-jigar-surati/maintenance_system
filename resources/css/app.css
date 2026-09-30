@@ -83,6 +83,10 @@
         --accent: var(--color-brand-600);
         --accent-contrast: oklch(1 0 0);
         --accent-soft: var(--color-brand-50);
+
+        /* The two wall shades of a building on the 3D plan. */
+        --wall-near: var(--color-brand-100);
+        --wall-far: var(--color-brand-200);
     }
 
     [data-theme='dark'] {
@@ -104,6 +108,9 @@
         --color-caution-soft: oklch(0.31 0.06 72);
         --color-critical-soft: oklch(0.3 0.062 24);
         --color-info-soft: oklch(0.29 0.052 232);
+
+        --wall-near: oklch(0.34 0.072 277);
+        --wall-far: oklch(0.27 0.058 277);
     }
 
     * {
@@ -266,6 +273,144 @@
     .scrollbar-slim::-webkit-scrollbar-thumb {
         background-color: var(--border-strong);
         border-radius: 999px;
+    }
+}
+
+/*
+ * The 3D site plan.
+ *
+ * CSS transforms rather than WebGL, deliberately: every building and every
+ * flat stays a real <button> that takes focus and reads out to a screen
+ * reader, which a canvas cannot do without maintaining a parallel DOM. It
+ * also costs no dependency and runs on the kind of phone a guard actually
+ * carries.
+ *
+ * The scene is a ground plane tilted away from the viewer; buildings extrude
+ * along +Z, which the tilt turns into "up".
+ */
+@layer components {
+    .scene-3d {
+        perspective: 1400px;
+        perspective-origin: 50% 40%;
+    }
+
+    .scene-world {
+        position: absolute;
+        inset: 0;
+        transform-style: preserve-3d;
+        transform:
+            translateY(var(--pan, 2%))
+            rotateX(var(--tilt, 58deg))
+            rotateZ(var(--spin, 0deg))
+            scale(var(--zoom, 0.95));
+        transition: transform 0.35s ease;
+    }
+
+    /* A building: a footprint in the plane, extruded by --extrude. */
+    .solid-3d {
+        position: absolute;
+        transform-style: preserve-3d;
+    }
+
+    .solid-3d > .face {
+        position: absolute;
+        border: 1px solid var(--accent);
+        background-color: var(--accent-soft);
+    }
+
+    /*
+     * Wall shades are named per theme rather than derived. A `brightness()`
+     * filter on a very pale fill turns it grey, and mixing toward white in
+     * oklch drifts the hue -- indigo walls came out pink.
+     */
+
+    .solid-3d > .face-roof {
+        inset: 0;
+        transform-style: preserve-3d;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.125rem;
+        border-radius: var(--radius-sm);
+        transform: translateZ(var(--extrude, 40px));
+    }
+
+    /* Walls stand up from each edge of the footprint. */
+    .solid-3d > .face-n,
+    .solid-3d > .face-s {
+        left: 0;
+        width: 100%;
+        height: var(--extrude, 40px);
+        transform-origin: top;
+        transform: rotateX(90deg);
+    }
+
+    .solid-3d > .face-n { top: 0; }
+    .solid-3d > .face-s { top: 100%; }
+
+    .solid-3d > .face-w,
+    .solid-3d > .face-e {
+        top: 0;
+        height: 100%;
+        width: var(--extrude, 40px);
+        transform-origin: left;
+        transform: rotateY(-90deg);
+    }
+
+    .solid-3d > .face-w { left: 0; }
+    .solid-3d > .face-e { left: 100%; }
+
+    /* Two shades of wall, so the eye reads a volume rather than a flat blob. */
+    .solid-3d > .face-n,
+    .solid-3d > .face-s {
+        background-color: var(--wall-near);
+    }
+
+    .solid-3d > .face-w,
+    .solid-3d > .face-e {
+        background-color: var(--wall-far);
+    }
+
+    /*
+     * A roof label turns and tips with the building, which leaves it
+     * unreadable at a quarter turn or a low tilt. Undoing the world's
+     * rotation turns the label back to face the reader while the building
+     * itself keeps turning -- the billboarding trick.
+     */
+    .billboard {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.125rem;
+        /* Lifted a hair off the roof so it never z-fights with it. */
+        transform: translateZ(2px) rotateZ(calc(-1 * var(--spin, 0deg))) rotateX(calc(-1 * var(--tilt, 58deg)));
+        transition: transform 0.35s ease;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .billboard {
+            transition: none;
+        }
+    }
+
+    /* A floor slab in the building view, stacked and optionally separated. */
+    .slab-3d {
+        transform-style: preserve-3d;
+        transform: translateZ(calc(var(--level, 0) * var(--slab-gap, 46px)));
+        transition: transform 0.35s ease;
+    }
+
+    /*
+     * Motion is the one thing a 3D view adds that can make somebody ill.
+     * Honour the OS setting by removing the transitions; the view still
+     * rotates, it just arrives there without sliding.
+     */
+    @media (prefers-reduced-motion: reduce) {
+        .scene-world,
+        .slab-3d {
+            transition: none;
+        }
     }
 }
 
