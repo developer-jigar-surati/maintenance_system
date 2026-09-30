@@ -63,6 +63,10 @@
         </div>
     @endif
 
+    {{-- Help for the screen you are on. Committees are volunteers, and an
+         answer on the screen gets read where a manual does not. --}}
+    <x-app.help />
+
     <x-app.theme-toggle />
 
     {{-- Account menu --}}

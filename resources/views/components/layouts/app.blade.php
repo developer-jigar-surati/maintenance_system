@@ -68,6 +68,9 @@
         <x-app.bottom-nav />
     </div>
 
+    {{-- Help for the screen you are on, opened from the topbar. --}}
+    <x-app.help-panel />
+
     {{-- Toasts are announced politely so screen readers hear them. --}}
     <div
         aria-live="polite"
