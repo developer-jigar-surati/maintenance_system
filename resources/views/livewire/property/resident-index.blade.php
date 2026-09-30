@@ -9,7 +9,7 @@
     @endif
 
     <x-ui.table
-        :headers="['Resident', 'Unit', 'Relation', 'Contact', 'Since', 'Agreement ends', 'Status']"
+        :headers="['Resident', 'Unit', 'Relation', 'Contact', 'Since', 'Agreement ends', 'Status', '']"
         :is-empty="$residents->isEmpty()"
         empty="No residents match these filters"
         empty-icon="users"
@@ -63,9 +63,60 @@
                 <x-ui.td label="Status">
                     <x-ui.status :value="$resident->status === 'active' ? 'active' : 'closed'" />
                 </x-ui.td>
+                <x-ui.td label="History">
+                    @if ($resident->user)
+                        <x-ui.button size="sm" variant="ghost"
+                            wire:click="showHistory({{ $resident->user->id }})">History</x-ui.button>
+                    @endif
+                </x-ui.td>
             </x-ui.tr>
         @endforeach
 
         <x-slot:footer>{{ $residents->links() }}</x-slot:footer>
     </x-ui.table>
+    {{-- One person's whole record, which is rarely one unit: people move
+         within a society, and a deposit query three years later needs the
+         dates. --}}
+    <x-ui.modal name="resident-history" :title="$person ? $person->name.' — where they have lived' : 'History'" max-width="xl">
+        @if ($person)
+            @if ($personHistory->isEmpty())
+                <x-ui.empty-state icon="users" title="No occupancy recorded for this person" />
+            @else
+                <ol class="space-y-3">
+                    @foreach ($personHistory as $stay)
+                        @php $past = $stay->status === 'ended'; @endphp
+                        <li @class(['rounded-xl border border-subtle p-4', 'opacity-70' => $past])>
+                            <div class="flex flex-wrap items-start justify-between gap-2">
+                                <div>
+                                    <p class="text-sm font-semibold">{{ $stay->unit?->label ?? 'Unit removed' }}</p>
+                                    <p class="numeric mt-0.5 text-xs text-secondary">
+                                        {{ $stay->start_date?->format('j M Y') ?? '—' }} &rarr;
+                                        {{ $past ? ($stay->end_date?->format('j M Y') ?? 'ended') : 'present' }}
+                                    </p>
+                                </div>
+                                <div class="flex flex-wrap gap-1.5">
+                                    @if ($stay->is_billing_contact)
+                                        <x-ui.badge tone="positive">Bills</x-ui.badge>
+                                    @endif
+                                    <x-ui.badge :tone="$past ? 'neutral' : ($stay->isOwner() ? 'accent' : 'info')">
+                                        {{ ucwords(str_replace('_', ' ', $stay->relation)) }}
+                                    </x-ui.badge>
+                                </div>
+                            </div>
+
+                            @if ($stay->rent_amount)
+                                <p class="mt-1 text-xs text-muted">Rent on file: <x-ui.money :amount="$stay->rent_amount" /></p>
+                            @endif
+                            @if ($past && $stay->move_out_reason)
+                                <p class="mt-1 text-xs text-muted">Left: {{ $stay->move_out_reason }}</p>
+                            @endif
+                            @if ($past && $stay->handover_notes)
+                                <p class="mt-1 text-xs text-secondary">{{ $stay->handover_notes }}</p>
+                            @endif
+                        </li>
+                    @endforeach
+                </ol>
+            @endif
+        @endif
+    </x-ui.modal>
 </div>

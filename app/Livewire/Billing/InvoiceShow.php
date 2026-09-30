@@ -30,7 +30,7 @@ class InvoiceShow extends Component
     {
         $this->authorizeView($invoice);
 
-        $this->invoice = $invoice->load(['lines.chargeHead', 'unit.block', 'unit.residents.user', 'allocations.payment']);
+        $this->invoice = $invoice->load(['lines.chargeHead', 'unit.block', 'unit.activeResidents.user', 'allocations.payment']);
         $this->amount = (string) $invoice->balance;
         $this->paidAt = now()->toDateString();
     }

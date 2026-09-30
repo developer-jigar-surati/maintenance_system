@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 
 /**
  * A billable property: flat, villa, plot, shop or office.
@@ -98,21 +99,45 @@ class Unit extends Model
         return $block ? "{$block->name}-{$this->unit_number}" : (string) $this->unit_number;
     }
 
+    /**
+     * Whoever currently lives here.
+     *
+     * `residents` and `activeResidents` are two names for overlapping rows,
+     * and a caller that eager loaded one used to get a lazy-load violation
+     * from a helper that happened to read the other. Whichever is loaded is
+     * used; only a caller that loaded neither pays for a query.
+     *
+     * @return Collection<int, UnitResident>
+     */
+    public function currentResidents(): Collection
+    {
+        if ($this->relationLoaded('activeResidents')) {
+            return $this->getRelation('activeResidents');
+        }
+
+        if ($this->relationLoaded('residents')) {
+            return $this->getRelation('residents')->where('status', 'active')->values();
+        }
+
+        return $this->activeResidents()->with('user')->get();
+    }
+
     public function owner(): ?UnitResident
     {
-        return $this->activeResidents
+        return $this->currentResidents()
             ->firstWhere(fn (UnitResident $r) => in_array($r->relation, ['owner', 'co_owner'], true));
     }
 
     public function primaryResident(): ?UnitResident
     {
-        return $this->activeResidents->firstWhere('is_primary', true)
-            ?? $this->activeResidents->first();
+        $current = $this->currentResidents();
+
+        return $current->firstWhere('is_primary', true) ?? $current->first();
     }
 
     public function billingContact(): ?UnitResident
     {
-        return $this->activeResidents->firstWhere('is_billing_contact', true)
+        return $this->currentResidents()->firstWhere('is_billing_contact', true)
             ?? $this->primaryResident();
     }
 
