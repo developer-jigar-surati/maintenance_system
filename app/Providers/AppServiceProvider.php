@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use App\Support\SocietyContext;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -27,10 +26,10 @@ class AppServiceProvider extends ServiceProvider
 
         Model::unguard(false);
 
-        // SQLite needs foreign keys switched on per connection.
-        if (DB::connection()->getDriverName() === 'sqlite') {
-            DB::statement('PRAGMA foreign_keys = ON');
-        }
+        // Nothing here may touch the database. boot() runs during
+        // `composer install` (package:discover) and during `config:cache`,
+        // before a freshly cloned project has a database to connect to, so a
+        // query at this point breaks installation outright.
 
         Vite::prefetch(concurrency: 3);
     }

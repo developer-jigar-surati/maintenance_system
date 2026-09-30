@@ -16,7 +16,7 @@ billing basis, and all on one installation.
 
 ## Stack
 
-**Requires PHP 8.3 or newer**, plus Composer 2 and Node 20+.
+**Requires PHP 8.3 or newer, MySQL 8 (or MariaDB 10.6+), Composer 2 and Node 20+.**
 
 | | |
 |---|---|
@@ -25,9 +25,18 @@ billing basis, and all on one installation.
 | Access control | spatie/laravel-permission 8, teams keyed on `society_id` |
 | Documents | dompdf for invoices and receipts, bacon-qr-code for verification |
 | Payments | Razorpay, behind a driver interface |
-| Database | SQLite out of the box; MySQL or PostgreSQL in production |
+| Database | MySQL 8 / MariaDB 10.6+ |
 
 ## Getting started
+
+Create the two databases first — one for the app, one for the test suite:
+
+```sql
+CREATE DATABASE sankul      CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE sankul_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+Then:
 
 ```bash
 composer install
@@ -35,8 +44,8 @@ npm install
 
 cp .env.example .env
 php artisan key:generate
+# set DB_DATABASE, DB_USERNAME and DB_PASSWORD in .env
 
-touch database/database.sqlite
 php artisan migrate
 php artisan db:seed          # two fully populated demo societies
 
@@ -196,6 +205,11 @@ and a table view, so nothing depends on colour alone.
 php artisan test
 ```
 
+The suite runs against the `sankul_test` database on MySQL — the same engine
+as production, so anything engine-specific is caught here rather than in
+production. Host and credentials come from `.env`; only the database name is
+overridden in `phpunit.xml`.
+
 92 tests covering the parts that would be expensive to get wrong: tenancy
 isolation, per-square-foot and fixed billing arithmetic, idempotent bill runs,
 simple versus compound interest and the guarantee against double-charging,
@@ -205,7 +219,7 @@ role-scoped permissions, amenity booking rules, and the scheduled commands.
 
 ## Production notes
 
-Set `DB_CONNECTION=mysql` (or `pgsql`) and fill in the credentials. Then:
+Point `.env` at your production database, then:
 
 ```bash
 composer install --no-dev --optimize-autoloader

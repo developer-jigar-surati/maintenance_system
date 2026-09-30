@@ -450,10 +450,19 @@ class DemoSeeder extends Seeder
                     continue;
                 }
 
+                // Residents pay a little before the due date, but never in the
+                // future: the newest bill is not due yet, so those payments are
+                // pulled back to today rather than dated after it.
+                $paidAt = $invoice->due_date->copy()->subDays(random_int(0, 8));
+
+                if ($paidAt->isFuture()) {
+                    $paidAt = now()->copy()->subDays(random_int(0, 3));
+                }
+
                 $payment = $recorder->recordOffline($invoice->unit, [
                     'amount' => (float) $invoice->total,
                     'method' => ['cash', 'upi', 'neft', 'cheque'][$index % 4],
-                    'paid_at' => $invoice->due_date->copy()->subDays(random_int(0, 8)),
+                    'paid_at' => $paidAt,
                     'reference_number' => 'DEMO-'.Str::upper(Str::random(6)),
                     'invoice_ids' => [$invoice->id],
                 ], $actor);
