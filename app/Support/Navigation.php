@@ -84,6 +84,8 @@ class Navigation
                 'label' => 'Property',
                 'items' => [
                     ['label' => 'Units', 'route' => 'units.index', 'icon' => 'building', 'permission' => Permission::UNIT_VIEW],
+                    ['label' => 'Site plan', 'route' => 'site-plan.index', 'icon' => 'layout',
+                        'permission' => Permission::UNIT_VIEW],
                     ['label' => 'Residents', 'route' => 'residents.index', 'icon' => 'users', 'permission' => Permission::RESIDENT_VIEW],
                     ['label' => 'Directory', 'route' => 'directory.index', 'icon' => 'book', 'permission' => Permission::DIRECTORY_VIEW],
                     ['label' => 'Parking', 'route' => 'parking.index', 'icon' => 'car', 'permission' => Permission::UNIT_VIEW],

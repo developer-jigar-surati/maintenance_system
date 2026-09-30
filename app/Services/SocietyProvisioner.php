@@ -10,6 +10,7 @@ use App\Models\FinancialYear;
 use App\Models\LateFeeRule;
 use App\Models\LedgerAccount;
 use App\Models\ReminderRule;
+use App\Models\SiteFeature;
 use App\Models\Society;
 use App\Models\User;
 use App\Services\Accounting\ChartOfAccounts;
@@ -63,6 +64,7 @@ class SocietyProvisioner
         $this->seedLateFeeRule($society);
         $this->seedComplaintCategories($society);
         $this->seedReminderSchedule($society);
+        $this->seedSiteFeatures($society);
         $this->applyDefaultSettings($society);
     }
 
@@ -269,6 +271,39 @@ class SocietyProvisioner
                 'template_key' => MessageCatalogue::PAYMENT_REMINDER,
                 'channels' => ['email'],
                 'is_active' => true,
+            ]);
+        }
+    }
+
+    /**
+     * The landmarks nearly every Indian society has.
+     *
+     * Seeded so the site plan is orientable from the first visit -- a plan
+     * showing only anonymous rectangles is one nobody can read -- and placed
+     * around the edges, out of the way of the buildings.
+     */
+    private function seedSiteFeatures(Society $society): void
+    {
+        if (SiteFeature::query()->forSociety($society)->exists()) {
+            return;
+        }
+
+        $defaults = [
+            ['Main gate', 'gate', 44, 88, 12, 10],
+            ['Visitor parking', 'parking', 4, 82, 24, 14],
+            ['Garden', 'garden', 72, 80, 24, 16],
+        ];
+
+        foreach ($defaults as $i => [$name, $kind, $x, $y, $w, $h]) {
+            SiteFeature::create([
+                'society_id' => $society->id,
+                'name' => $name,
+                'kind' => $kind,
+                'plan_x' => $x,
+                'plan_y' => $y,
+                'plan_width' => $w,
+                'plan_height' => $h,
+                'sort_order' => $i,
             ]);
         }
     }

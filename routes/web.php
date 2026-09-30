@@ -97,6 +97,7 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('permission:'.Permission::UNIT_VIEW)->group(function () {
         Route::get('/units', Livewire\Property\UnitIndex::class)->name('units.index');
+        Route::get('/site-plan', Livewire\Property\SitePlanView::class)->name('site-plan.index');
         Route::get('/units/{unit}', Livewire\Property\UnitShow::class)->name('units.show');
         Route::get('/parking', Livewire\Property\ParkingIndex::class)->name('parking.index');
     });
