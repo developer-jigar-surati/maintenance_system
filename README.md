@@ -16,9 +16,11 @@ billing basis, and all on one installation.
 
 ## Stack
 
+**Requires PHP 8.3 or newer**, plus Composer 2 and Node 20+.
+
 | | |
 |---|---|
-| Framework | Laravel 13 on PHP 8.4 |
+| Framework | Laravel 13 on PHP 8.3+ |
 | Front end | Livewire 4, Alpine 3, Tailwind 4, Vite 8 |
 | Access control | spatie/laravel-permission 8, teams keyed on `society_id` |
 | Documents | dompdf for invoices and receipts, bacon-qr-code for verification |
@@ -57,6 +59,17 @@ Then sign in at `/login` with any of these (password `password`):
 The seed builds two deliberately different societies: a 72-flat apartment
 complex billed per square foot, and a 16-villa gated community billed a flat
 amount per villa — with five months of real billing history behind both.
+
+### A note on the dependency lock
+
+`composer.json` pins `config.platform.php` to `8.3.0`, so Composer resolves
+dependencies as though running the oldest PHP this project supports. Without
+it, a lock file built on 8.4 pulls in Symfony 8.x, which hard-requires PHP
+8.4.1 and then refuses to install for anyone on 8.3.
+
+Leave the pin in place. It does not stop the app running on 8.4 or later — it
+only keeps the lock file installable across every supported version. If you
+later drop 8.3 support, raise both the pin and the `php` constraint together.
 
 ## How it is put together
 
