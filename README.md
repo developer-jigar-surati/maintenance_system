@@ -182,7 +182,13 @@ balance, income and expenditure, balance sheet), each exportable as CSV.
 
 **Property** — blocks and wings, units of every type, owners and tenants with
 agreement tracking, parking allotment, vehicles, and a resident directory with
-per-society privacy controls.
+per-society privacy controls. Occupancy is recorded as moves rather than
+edits: moving in opens a record, moving out closes one with its date and
+reason, and a sale hands the unit over on a single day, so every unit keeps a
+readable history and a past receipt still names whoever paid it. A unit's
+occupancy status is derived from who lives there, never typed. A **site plan**
+draws the society from above and each building from the side, coloured by
+occupancy, dues or open complaints, with every flat a button.
 
 **Governance** — committees and office bearers, meetings with agenda, notice
 periods, RSVP, proxy attendance, quorum tracking, minutes and resolutions;
@@ -201,6 +207,9 @@ and SOS alerts.
 
 **Communication** — notices with audience targeting and read receipts, a
 document vault with per-role visibility, emergency contacts, and an audit log.
+The **reminder schedule** and the **wording of every automated message** are
+the committee's to edit, and every message sent is recorded against its
+recipient.
 
 ## Automation
 
@@ -214,12 +223,39 @@ One cron entry drives everything:
 |---|---|---|
 | `billing:run` | 02:00 daily | Raises bills for plans that have come due |
 | `billing:accrue-late-fees` | 03:00 daily | Posts interest on overdue bills |
-| `billing:remind` | 10:00 weekdays | Reminds residents on a fixed ladder around the due date |
+| `billing:remind` | 10:00 weekdays | Reminds residents on the society's own schedule around the due date |
 | `helpdesk:escalate` | hourly | Escalates tickets that have missed their SLA |
 | `maintenance:raise-work-orders` | 06:00 daily | Turns preventive schedules into work orders |
 
 Every one is idempotent: a missed run catches up, and a double run changes
-nothing. `billing:run --dry` reports what would be billed without writing.
+nothing. `billing:run --dry` reports what would be billed without writing, and
+`billing:remind --date=` replays a day's schedule without sending twice.
+
+### Reminders and message wording
+
+The reminder ladder is rows in the database, edited under **Settings →
+Reminders & messages**, not a constant in the code. A step is a signed number
+of days relative to the due date — `-3` is three days before, `7` is a week
+after — and reminders go out only on the days a society names. A new society
+starts with `-3, 0, 7, 21, 45`, which a committee can then add to, switch off
+or delete.
+
+Eight messages carry editable templates: maintenance reminder, payment
+receipt, new bill, notice published, meeting notice, minutes circulated,
+complaint update, and visitor at the gate. Each declares the placeholders it
+supplies; the editor previews the finished text against sample data and warns
+about a placeholder that is mistyped. A society with no override gets the
+packaged wording, so the system communicates correctly before anyone opens the
+editor, and reverting is a delete.
+
+Substitution is a plain `{{ token }}` replacement, deliberately not Blade:
+these are edited in a textarea by committee members, and rendering user-edited
+Blade would run whatever they typed.
+
+Everything leaves by one door, which records what was sent, to whom and when,
+and a unique dedupe key stops a duplicate in the database rather than in each
+caller. Email is delivered; SMS and WhatsApp are recorded as queued until a
+provider is connected, rather than reported as sent.
 
 ## Interface
 
@@ -240,6 +276,12 @@ wire their own labels, hints and errors together through `aria-describedby`,
 status carried by a text label as well as a hue, polite live regions for
 toasts, and `prefers-reduced-motion` and `prefers-contrast` honoured.
 
+**Every screen explains itself.** A help control in the topbar opens a panel
+for the screen you are on: what it is for, the steps that matter, and the
+things people get wrong. A detail screen falls back to its list's guide, and
+the guides are tested against the router so one keyed on a route that no
+longer exists fails the build.
+
 Dashboard charts use a two-hue categorical palette validated against the app's
 own card surfaces — worst-pair colour-vision-deficiency ΔE 24.7 in light and
 26.8 in dark, against a target of 8 — and ship with a legend, hover tooltips
@@ -256,13 +298,25 @@ as production, so anything engine-specific is caught here rather than in
 production. Host and credentials come from `.env`; only the database name is
 overridden in `phpunit.xml`.
 
-106 tests covering the parts that would be expensive to get wrong: tenancy
+155 tests covering the parts that would be expensive to get wrong: tenancy
 isolation, per-square-foot and fixed billing arithmetic, idempotent bill runs,
 simple versus compound interest and the guarantee against double-charging,
 oldest-first payment allocation and overpayment credit, gap-free receipt
 numbering across financial years, ledger balance and statement integrity,
-role-scoped permissions, amenity booking rules, the scheduled commands, and the platform console -- including that a
-society's unit count is read per row rather than per active society.
+role-scoped permissions, amenity booking rules, the scheduled commands, and
+the platform console — including that a society's unit count is read per row
+rather than per active society.
+
+Also: that a reminder goes out only on a day the schedule names and never
+twice in a day, that a template is never executed as code, that every packaged
+template uses only placeholders it declares, that a move-out closes a record
+rather than deleting it and never leaves a unit without a billing contact,
+that the site plan's automatic layout provably never overlaps for 1 to 12
+buildings, and that every help guide points at a route that exists.
+
+One test turns lazy loading off, which the suite otherwise does not, to catch
+the class of bug where a screen eager loads `residents` and a helper reads
+`activeResidents`.
 
 ## Production notes
 
