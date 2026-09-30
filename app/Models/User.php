@@ -131,6 +131,18 @@ class User extends Authenticatable
         return ! $this->isSuperAdmin() && ! $this->hasManagementRole();
     }
 
+    /**
+     * A guard whose whole job is the gate: no committee role, no platform
+     * access. Their landing screen is the gate console rather than a
+     * dashboard of figures they cannot act on.
+     */
+    public function isGateOnly(): bool
+    {
+        return ! $this->isSuperAdmin()
+            && $this->hasRole(RoleName::SECURITY_GUARD)
+            && ! $this->hasManagementRole();
+    }
+
     public function switchTo(Society $society): void
     {
         $this->forceFill(['current_society_id' => $society->id])->save();

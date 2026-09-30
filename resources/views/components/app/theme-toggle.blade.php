@@ -16,7 +16,7 @@
     <button
         type="button"
         @click="cycle()"
-        class="rounded-xl border border-subtle p-2 text-secondary hover:surface-inset hover:text-primary"
+        class="flex size-11 items-center justify-center rounded-xl border border-subtle text-secondary hover:surface-inset hover:text-primary"
         :aria-label="'Theme: ' + preference + '. Activate to change.'"
     >
         <x-ui.icon name="sun" class="size-5" x-show="preference === 'light'" />

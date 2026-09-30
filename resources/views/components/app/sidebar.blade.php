@@ -21,7 +21,7 @@
             <button
                 type="button"
                 @click="sidebarOpen = false"
-                class="rounded-lg p-1.5 text-secondary hover:surface-inset lg:hidden"
+                class="flex size-11 items-center justify-center rounded-lg text-secondary hover:surface-inset lg:hidden"
             >
                 <x-ui.icon name="close" class="size-5" />
                 <span class="sr-only">Close navigation</span>
@@ -40,7 +40,7 @@
                                 <a
                                     href="{{ route($item['route']) }}"
                                     @if ($item['active']) aria-current="page" @endif
-                                    class="group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors
+                                    class="group flex min-h-11 items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors
                                         {{ $item['active']
                                             ? 'accent-soft-bg accent-text'
                                             : 'text-secondary hover:surface-inset hover:text-primary' }}"

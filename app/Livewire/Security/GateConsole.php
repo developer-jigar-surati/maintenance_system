@@ -12,28 +12,174 @@ use Livewire\Component;
 /**
  * The guard's screen.
  *
- * Built for one-handed use on a phone at the gate: a code lookup, a short
- * walk-in form, and a live list of who is inside.
+ * Designed for one hand, on a phone, at a gate, often in poor light and by
+ * someone who is not a confident typist. Every common entry is reachable in
+ * three taps and needs no typing at all:
+ *
+ *     who is it  ->  which flat  ->  done
+ *
+ * Deliveries are the most frequent arrival by a wide margin, so the couriers
+ * a society actually sees are preset buttons rather than a text field. The
+ * resident's own approval, where the society requires it, happens on their
+ * phone; the guard never waits on a form.
  */
 #[Layout('components.layouts.app')]
 class GateConsole extends Component
 {
-    public string $passCode = '';
+    /** Which step of the entry flow is showing: purpose, who, unit, done. */
+    public string $step = 'purpose';
 
-    public ?int $foundLogId = null;
+    public string $purpose = '';
 
-    /** Walk-in form. */
     public string $visitorName = '';
 
     public string $phone = '';
 
-    public string $purpose = 'guest';
-
     public ?int $unitId = null;
+
+    public string $unitSearch = '';
 
     public string $vehicleNumber = '';
 
     public int $accompanying = 0;
+
+    /** Set once an entry is logged, so the guard gets a clear confirmation. */
+    public ?int $lastLoggedId = null;
+
+    public string $passCode = '';
+
+    public ?int $foundLogId = null;
+
+    /**
+     * The couriers and ride services a society in India actually sees. One tap
+     * instead of spelling out "Amazon" on a phone keypad at the gate.
+     */
+    public const DELIVERY_COMPANIES = [
+        'Amazon', 'Flipkart', 'Swiggy', 'Zomato', 'Blinkit',
+        'Zepto', 'BigBasket', 'Meesho', 'Delhivery', 'India Post',
+    ];
+
+    public const CAB_COMPANIES = ['Uber', 'Ola', 'Rapido', 'Namma Yatri'];
+
+    public const SERVICE_KINDS = [
+        'Plumber', 'Electrician', 'Carpenter', 'AC service',
+        'Pest control', 'Gas delivery', 'Milk', 'Newspaper',
+    ];
+
+    // --- the entry flow ---------------------------------------------------
+
+    public function choosePurpose(string $purpose): void
+    {
+        $this->purpose = $purpose;
+        $this->reset(['visitorName', 'phone', 'vehicleNumber', 'accompanying', 'unitId', 'unitSearch']);
+
+        // A guest has no preset list, so skip straight to naming them.
+        $this->step = 'who';
+    }
+
+    /** Picks a preset company or trade, which doubles as the visitor's name. */
+    public function chooseWho(string $name): void
+    {
+        $this->visitorName = $name;
+        $this->step = 'unit';
+    }
+
+    public function confirmName(): void
+    {
+        $this->validate(['visitorName' => 'required|string|min:2|max:120']);
+
+        $this->step = 'unit';
+    }
+
+    public function chooseUnit(int $unitId, GateService $gate): void
+    {
+        $this->unitId = $unitId;
+        $this->log($gate);
+    }
+
+    /** Deliveries to the gate desk, common when nobody is home. */
+    public function logWithoutUnit(GateService $gate): void
+    {
+        $this->unitId = null;
+        $this->log($gate);
+    }
+
+    private function log(GateService $gate): void
+    {
+        $society = app(SocietyContext::class)->check();
+
+        $log = $gate->logArrival($society, [
+            'visitor_name' => $this->visitorName ?: ucfirst($this->purpose),
+            'phone' => $this->phone ?: null,
+            'purpose' => $this->purpose,
+            'unit_id' => $this->unitId,
+            'vehicle_number' => $this->vehicleNumber ?: null,
+            'accompanying_count' => $this->accompanying,
+        ], auth()->user());
+
+        // A visit with nobody to ask is allowed straight through; the society
+        // setting only governs visits addressed to a unit.
+        if ($this->unitId === null && $log->status === 'pending_approval') {
+            $gate->approveEntry($log, auth()->user());
+        }
+
+        $this->lastLoggedId = $log->id;
+        $this->step = 'done';
+    }
+
+    public function startOver(): void
+    {
+        $this->reset(['step', 'purpose', 'visitorName', 'phone', 'unitId', 'unitSearch',
+            'vehicleNumber', 'accompanying', 'lastLoggedId']);
+        $this->step = 'purpose';
+    }
+
+    public function back(): void
+    {
+        $this->step = match ($this->step) {
+            'unit' => $this->hasPresetList() ? 'who' : 'who',
+            'who' => 'purpose',
+            default => 'purpose',
+        };
+    }
+
+    // --- one-tap actions on the lists -------------------------------------
+
+    public function allowIn(int $logId, GateService $gate): void
+    {
+        $log = VisitorLog::findOrFail($logId);
+
+        if ($log->status === 'pending_approval') {
+            $gate->approveEntry($log, auth()->user());
+            $log->refresh();
+        }
+
+        try {
+            $gate->checkIn($log, auth()->user());
+        } catch (\DomainException $e) {
+            $this->dispatch('notify', message: $e->getMessage(), tone: 'critical');
+
+            return;
+        }
+
+        $this->dispatch('notify', message: "{$log->visitor_name} checked in.", tone: 'positive');
+    }
+
+    public function checkOut(int $logId, GateService $gate): void
+    {
+        $log = VisitorLog::findOrFail($logId);
+        $gate->checkOut($log, auth()->user());
+
+        $this->dispatch('notify', message: "{$log->visitor_name} checked out.", tone: 'positive');
+    }
+
+    public function deny(int $logId, GateService $gate): void
+    {
+        $log = VisitorLog::findOrFail($logId);
+        $gate->denyEntry($log, auth()->user(), 'Turned away at the gate');
+
+        $this->dispatch('notify', message: "{$log->visitor_name} turned away.", tone: 'positive');
+    }
 
     public function lookup(GateService $gate): void
     {
@@ -51,75 +197,71 @@ class GateConsole extends Component
         $this->foundLogId = $log->id;
     }
 
-    public function checkIn(int $logId, GateService $gate): void
+    // --- helpers -----------------------------------------------------------
+
+    public function hasPresetList(): bool
     {
-        try {
-            $gate->checkIn(VisitorLog::findOrFail($logId), auth()->user());
-        } catch (\DomainException $e) {
-            $this->dispatch('notify', message: $e->getMessage(), tone: 'critical');
-
-            return;
-        }
-
-        $this->reset(['passCode', 'foundLogId']);
-        $this->dispatch('notify', message: 'Visitor checked in.', tone: 'positive');
+        return in_array($this->purpose, ['delivery', 'cab', 'service'], true);
     }
 
-    public function checkOut(int $logId, GateService $gate): void
+    /** @return array<int, string> */
+    public function presetList(): array
     {
-        $gate->checkOut(VisitorLog::findOrFail($logId), auth()->user());
-        $this->dispatch('notify', message: 'Visitor checked out.', tone: 'positive');
+        return match ($this->purpose) {
+            'delivery' => self::DELIVERY_COMPANIES,
+            'cab' => self::CAB_COMPANIES,
+            'service' => self::SERVICE_KINDS,
+            default => [],
+        };
     }
 
-    public function logWalkIn(GateService $gate): void
+    public function purposeLabel(): string
     {
-        $validated = $this->validate([
-            'visitorName' => 'required|string|min:2|max:120',
-            'phone' => 'nullable|string|max:20',
-            'purpose' => 'required|in:guest,delivery,cab,service,vendor,staff,courier,interview,other',
-            'unitId' => 'nullable|exists:units,id',
-            'vehicleNumber' => 'nullable|string|max:20',
-            'accompanying' => 'integer|min:0|max:50',
-        ]);
-
-        $log = $gate->logArrival(app(SocietyContext::class)->check(), [
-            'visitor_name' => $validated['visitorName'],
-            'phone' => $validated['phone'] ?: null,
-            'purpose' => $validated['purpose'],
-            'unit_id' => $validated['unitId'],
-            'vehicle_number' => $validated['vehicleNumber'] ?: null,
-            'accompanying_count' => $validated['accompanying'],
-        ], auth()->user());
-
-        $this->reset(['visitorName', 'phone', 'vehicleNumber', 'accompanying', 'unitId']);
-        $this->dispatch('close-modal', 'walk-in');
-        $this->dispatch('notify',
-            message: $log->status === 'approved'
-                ? 'Logged. The visitor may enter.'
-                : 'Logged and sent to the resident for approval.',
-            tone: 'positive');
+        return match ($this->purpose) {
+            'delivery' => 'Delivery',
+            'cab' => 'Cab',
+            'guest' => 'Guest',
+            'service' => 'Service visit',
+            'staff' => 'Staff',
+            default => ucfirst($this->purpose),
+        };
     }
 
     public function render()
     {
         $society = app(SocietyContext::class)->check();
 
+        // The unit picker is a search, not a dropdown of hundreds: a guard
+        // types two or three characters of the flat number at most.
+        $units = Unit::query()
+            ->with('block')
+            ->when($this->unitSearch !== '', fn ($q) => $q->search($this->unitSearch))
+            ->orderBy('unit_number')
+            ->limit($this->unitSearch === '' ? 60 : 40)
+            ->get();
+
         return view('livewire.security.gate-console', [
-            'found' => $this->foundLogId ? VisitorLog::with('unit.block')->find($this->foundLogId) : null,
-            'inside' => app(GateService::class)->currentlyInside($society),
-            'awaitingApproval' => VisitorLog::query()
+            'units' => $units,
+            'society' => $society,
+            'lastLogged' => $this->lastLoggedId
+                ? VisitorLog::with('unit.block')->find($this->lastLoggedId)
+                : null,
+            'found' => $this->foundLogId
+                ? VisitorLog::with('unit.block')->find($this->foundLogId)
+                : null,
+            'inside' => VisitorLog::query()->inside()->with('unit.block')->orderByDesc('entered_at')->get(),
+            'waiting' => VisitorLog::query()
                 ->where('status', 'pending_approval')
                 ->with('unit.block')
                 ->latest()
                 ->get(),
             'expected' => VisitorLog::query()
                 ->whereIn('status', ['expected', 'approved'])
-                ->whereDate('expected_at', '<=', now()->addDay())
+                ->where(fn ($q) => $q->whereNull('expected_until')->orWhere('expected_until', '>=', now()))
                 ->with('unit.block')
                 ->orderBy('expected_at')
-                ->take(20)
+                ->limit(25)
                 ->get(),
-            'units' => Unit::with('block')->orderBy('unit_number')->get(),
         ])->title('Gate');
     }
 }

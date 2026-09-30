@@ -19,12 +19,18 @@
         'positive' => 'bg-[var(--color-positive)] text-white hover:opacity-90',
     ];
 
+    /*
+     * Minimum heights rather than padding alone, so a target never depends on
+     * how tall its label happens to render. WCAG 2.2 asks for 24px; the
+     * default here is 44, which is the size a thumb actually hits. `sm` is
+     * reserved for dense table rows, where 36px is still comfortably above
+     * the requirement.
+     */
     $sizes = [
-        'sm' => 'px-3 py-1.5 text-xs',
-        'md' => 'px-4 py-2.5 text-sm',
-        'lg' => 'px-5 py-3 text-base',
-        // Square icon-only sizes keep a 44px touch target on phones.
-        'icon' => 'size-10',
+        'sm' => 'min-h-9 px-3 py-1.5 text-xs',
+        'md' => 'min-h-11 px-4 py-2.5 text-sm',
+        'lg' => 'min-h-13 px-5 py-3 text-base',
+        'icon' => 'size-11',
     ];
 
     $classes = trim($base.' '.($variants[$variant] ?? $variants['primary']).' '.($sizes[$size] ?? $sizes['md']));

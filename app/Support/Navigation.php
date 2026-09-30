@@ -38,7 +38,8 @@ class Navigation
     public static function primary(): Collection
     {
         return collect([
-            ['label' => 'Home', 'route' => 'dashboard', 'icon' => 'home', 'permission' => null],
+            ['label' => 'Home', 'route' => 'dashboard', 'icon' => 'home', 'permission' => null, 'hide_from_gate_only' => true],
+            ['label' => 'Gate', 'route' => 'gate.index', 'icon' => 'shield', 'permission' => null, 'gate_only' => true],
             ['label' => 'Bills', 'route' => 'invoices.index', 'icon' => 'receipt', 'permission' => Permission::BILLING_VIEW],
             ['label' => 'Helpdesk', 'route' => 'complaints.index', 'icon' => 'lifebuoy', 'permission' => Permission::COMPLAINT_CREATE],
             ['label' => 'Notices', 'route' => 'notices.index', 'icon' => 'megaphone', 'permission' => Permission::NOTICE_VIEW],
@@ -62,7 +63,8 @@ class Navigation
             [
                 'label' => 'Overview',
                 'items' => [
-                    ['label' => 'Dashboard', 'route' => 'dashboard', 'icon' => 'home', 'permission' => null],
+                    ['label' => 'Dashboard', 'route' => 'dashboard', 'icon' => 'home', 'permission' => null,
+                        'hide_from_gate_only' => true],
                 ],
             ],
             [
@@ -142,6 +144,16 @@ class Navigation
         // society administrators.
         if ($item['super_admin_only'] ?? false) {
             return $user->isSuperAdmin();
+        }
+
+        // A guard is sent to the gate console on sign-in, so a dashboard link
+        // would only bounce them back. Their bottom bar gets the gate instead.
+        if ($item['hide_from_gate_only'] ?? false) {
+            if ($user->isGateOnly()) {
+                return false;
+            }
+        } elseif (($item['gate_only'] ?? false) && ! $user->isGateOnly()) {
+            return false;
         }
 
         $permission = $item['permission'] ?? null;

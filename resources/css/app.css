@@ -126,6 +126,60 @@
     }
 
     /*
+     * Cursors.
+     *
+     * Tailwind 4's Preflight deliberately sets `button { cursor: default }` to
+     * match the browser default, which leaves every button in the app showing
+     * an arrow. Restore the pointer on things that act like controls, and make
+     * the disabled and text cases explicit so the cursor always says what the
+     * element will do.
+     */
+    button:not(:disabled),
+    [role='button']:not([aria-disabled='true']),
+    [role='tab'],
+    [role='menuitem'],
+    [role='option'],
+    a[href],
+    label[for],
+    summary,
+    select:not(:disabled),
+    input[type='checkbox']:not(:disabled),
+    input[type='radio']:not(:disabled),
+    input[type='file']:not(:disabled),
+    input[type='submit']:not(:disabled),
+    input[type='reset']:not(:disabled),
+    input[type='color']:not(:disabled) {
+        cursor: pointer;
+    }
+
+    button:disabled,
+    select:disabled,
+    textarea:disabled,
+    input:disabled,
+    [aria-disabled='true'] {
+        cursor: not-allowed;
+    }
+
+    input[type='text'],
+    input[type='email'],
+    input[type='password'],
+    input[type='search'],
+    input[type='tel'],
+    input[type='url'],
+    input[type='number'],
+    input[type='date'],
+    input[type='time'],
+    input[type='datetime-local'],
+    textarea {
+        cursor: text;
+    }
+
+    /* Rows that navigate on click should advertise it. */
+    [data-clickable-row] {
+        cursor: pointer;
+    }
+
+    /*
      * A single, consistent focus ring on every interactive element. Visible
      * keyboard focus is the difference between a usable and an unusable
      * interface for anyone not using a mouse.

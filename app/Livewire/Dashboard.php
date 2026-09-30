@@ -26,6 +26,18 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class Dashboard extends Component
 {
+    /**
+     * A guard has no use for a dashboard: their whole job is the gate. Send
+     * them straight there rather than showing a screen of figures they cannot
+     * act on and mostly cannot see.
+     */
+    public function mount()
+    {
+        if (auth()->user()->isGateOnly()) {
+            return $this->redirect(route('gate.index'), navigate: true);
+        }
+    }
+
     public function render()
     {
         $society = app(SocietyContext::class)->check();

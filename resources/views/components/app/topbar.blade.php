@@ -7,7 +7,7 @@
     <button
         type="button"
         @click="sidebarOpen = true"
-        class="-ml-1 rounded-lg p-2 text-secondary hover:surface-inset lg:hidden"
+        class="-ml-1 flex size-11 items-center justify-center rounded-lg text-secondary hover:surface-inset lg:hidden"
     >
         <x-ui.icon name="menu" />
         <span class="sr-only">Open navigation</span>
@@ -72,7 +72,7 @@
             @click="open = !open"
             :aria-expanded="open"
             aria-haspopup="menu"
-            class="flex items-center gap-2 rounded-full p-0.5 hover:surface-inset"
+            class="flex size-11 items-center justify-center rounded-full hover:surface-inset"
         >
             <span class="flex size-9 items-center justify-center rounded-full accent-soft-bg text-xs font-bold accent-text">
                 {{ $user?->initials() }}

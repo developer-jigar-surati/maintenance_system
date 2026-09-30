@@ -34,7 +34,7 @@
         @if ($title)
             <div class="flex items-center justify-between gap-3 border-b border-subtle px-5 py-4">
                 <h2 class="text-base font-semibold">{{ $title }}</h2>
-                <button type="button" x-on:click="open = false" class="rounded-lg p-1.5 text-secondary hover:surface-inset">
+                <button type="button" x-on:click="open = false" class="flex size-11 items-center justify-center rounded-lg text-secondary hover:surface-inset">
                     <x-ui.icon name="close" class="size-5" />
                     <span class="sr-only">Close</span>
                 </button>
