@@ -120,6 +120,8 @@ class Navigation
                 'label' => 'Administration',
                 'items' => [
                     ['label' => 'Society settings', 'route' => 'settings.index', 'icon' => 'cog', 'permission' => Permission::SOCIETY_SETTINGS],
+                    ['label' => 'Reminders & messages', 'route' => 'settings.communication', 'icon' => 'megaphone',
+                        'permission' => Permission::SOCIETY_SETTINGS],
                     ['label' => 'Roles & access', 'route' => 'settings.roles', 'icon' => 'key', 'permission' => Permission::SOCIETY_MANAGE],
                     ['label' => 'Audit log', 'route' => 'audit.index', 'icon' => 'clipboard', 'permission' => Permission::AUDIT_VIEW],
                 ],

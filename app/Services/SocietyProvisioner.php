@@ -9,9 +9,11 @@ use App\Models\ComplaintCategory;
 use App\Models\FinancialYear;
 use App\Models\LateFeeRule;
 use App\Models\LedgerAccount;
+use App\Models\ReminderRule;
 use App\Models\Society;
 use App\Models\User;
 use App\Services\Accounting\ChartOfAccounts;
+use App\Support\MessageCatalogue;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission as PermissionModel;
@@ -60,6 +62,7 @@ class SocietyProvisioner
         $this->seedChargeHeads($society);
         $this->seedLateFeeRule($society);
         $this->seedComplaintCategories($society);
+        $this->seedReminderSchedule($society);
         $this->applyDefaultSettings($society);
     }
 
@@ -230,6 +233,43 @@ class SocietyProvisioner
                     'sort_order' => $i,
                 ],
             );
+        }
+    }
+
+    /**
+     * The reminder ladder a society starts with.
+     *
+     * Chosen to be firm without being noise: a heads-up before the bill is
+     * due, a note on the day, then a widening gap afterwards. A committee
+     * edits, adds or deletes these steps in Settings; seeding only runs when
+     * the schedule is empty, so re-provisioning never undoes their choices.
+     */
+    private function seedReminderSchedule(Society $society): void
+    {
+        $existing = ReminderRule::query()->forSociety($society)->forEvent('invoice_due')->exists();
+
+        if ($existing) {
+            return;
+        }
+
+        $ladder = [
+            [-3, 'Three days before the due date'],
+            [0, 'On the due date'],
+            [7, 'A week overdue'],
+            [21, 'Three weeks overdue'],
+            [45, 'Six weeks overdue'],
+        ];
+
+        foreach ($ladder as [$offset, $label]) {
+            ReminderRule::create([
+                'society_id' => $society->id,
+                'event' => 'invoice_due',
+                'label' => $label,
+                'offset_days' => $offset,
+                'template_key' => MessageCatalogue::PAYMENT_REMINDER,
+                'channels' => ['email'],
+                'is_active' => true,
+            ]);
         }
     }
 

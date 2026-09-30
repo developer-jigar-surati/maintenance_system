@@ -5,6 +5,7 @@ namespace App\Livewire\Community;
 use App\Enums\Permission;
 use App\Livewire\Concerns\WithDataTable;
 use App\Models\Notice;
+use App\Services\Messaging\Announcer;
 use App\Support\SocietyContext;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Gate;
@@ -57,9 +58,15 @@ class NoticeIndex extends Component
             'created_by' => auth()->id(),
         ]);
 
+        $sent = app(Announcer::class)->noticePublished($notice);
+
         $this->reset(['title', 'body', 'pinned']);
         $this->dispatch('close-modal', 'new-notice');
-        $this->dispatch('notify', message: 'Notice published.', tone: 'positive');
+        $this->dispatch('notify',
+            message: $sent > 0
+                ? "Notice published and sent to {$sent} residents."
+                : 'Notice published.',
+            tone: 'positive');
     }
 
     public function markRead(int $noticeId): void

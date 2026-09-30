@@ -159,6 +159,9 @@ Route::middleware('auth')->group(function () {
     Route::middleware('permission:'.Permission::SOCIETY_SETTINGS)
         ->get('/settings', Livewire\Settings\SocietySettings::class)->name('settings.index');
 
+    Route::middleware('permission:'.Permission::SOCIETY_SETTINGS)
+        ->get('/settings/communication', Livewire\Settings\Communication::class)->name('settings.communication');
+
     Route::middleware('permission:'.Permission::SOCIETY_MANAGE)
         ->get('/settings/roles', Livewire\Settings\RoleManager::class)->name('settings.roles');
 

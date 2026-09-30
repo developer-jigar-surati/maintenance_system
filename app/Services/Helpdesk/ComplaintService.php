@@ -6,6 +6,7 @@ use App\Models\Complaint;
 use App\Models\ComplaintCategory;
 use App\Models\Society;
 use App\Models\User;
+use App\Services\Messaging\Announcer;
 use App\Services\NumberGenerator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -17,7 +18,10 @@ use Illuminate\Support\Facades\DB;
  */
 class ComplaintService
 {
-    public function __construct(private NumberGenerator $numbers) {}
+    public function __construct(
+        private NumberGenerator $numbers,
+        private Announcer $announcer,
+    ) {}
 
     /**
      * Raises a ticket. SLA deadlines come from the category, so a lift
@@ -121,6 +125,13 @@ class ComplaintService
 
         $complaint->forceFill($changes)->save();
         $this->log($complaint, $from, $to, $by, $notes);
+
+        // Not knowing whether anyone has looked at a complaint is most of why
+        // residents stop raising them, so every real move is announced.
+        $this->announcer->complaintUpdated(
+            $complaint->load(['unit.block', 'raisedBy', 'assignee']),
+            (string) $notes,
+        );
 
         return $complaint;
     }

@@ -4,6 +4,7 @@ namespace App\Services\Payments;
 
 use App\Models\Payment;
 use App\Models\Receipt;
+use App\Services\Messaging\Announcer;
 use App\Services\NumberGenerator;
 use Illuminate\Support\Facades\DB;
 
@@ -16,7 +17,10 @@ use Illuminate\Support\Facades\DB;
  */
 class ReceiptIssuer
 {
-    public function __construct(private NumberGenerator $numbers) {}
+    public function __construct(
+        private NumberGenerator $numbers,
+        private Announcer $announcer,
+    ) {}
 
     /** Idempotent: a payment has exactly one receipt, however often this runs. */
     public function issueFor(Payment $payment, ?int $issuedBy = null): Receipt
@@ -35,7 +39,7 @@ class ReceiptIssuer
             );
         }
 
-        return DB::transaction(function () use ($payment, $issuedBy) {
+        $receipt = DB::transaction(function () use ($payment, $issuedBy) {
             $society = $payment->society;
             $unit = $payment->unit;
 
@@ -53,6 +57,14 @@ class ReceiptIssuer
                 'issued_by' => $issuedBy ?? $payment->approved_by ?? $payment->recorded_by,
             ]);
         });
+
+        // The receipt reaching the resident is the whole point of replacing a
+        // paper rasid, so it is sent here rather than left to each caller.
+        // Sending is outside the transaction: a mail failure must not undo a
+        // receipt that has already been numbered from a gap-free series.
+        $this->announcer->receiptIssued($receipt->load(['unit.block', 'payment']));
+
+        return $receipt;
     }
 
     /**

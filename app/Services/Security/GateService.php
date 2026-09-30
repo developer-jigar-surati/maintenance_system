@@ -8,6 +8,7 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Models\Visitor;
 use App\Models\VisitorLog;
+use App\Services\Messaging\Announcer;
 use App\Services\NumberGenerator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +19,10 @@ use Illuminate\Support\Facades\DB;
  */
 class GateService
 {
-    public function __construct(private NumberGenerator $numbers) {}
+    public function __construct(
+        private NumberGenerator $numbers,
+        private Announcer $announcer,
+    ) {}
 
     /**
      * A resident pre-approves someone, so the guard can wave them through
@@ -63,7 +67,7 @@ class GateService
     {
         $requiresApproval = (bool) $society->setting('visitors.require_resident_approval', true);
 
-        return DB::transaction(function () use ($society, $attributes, $guard, $requiresApproval) {
+        $log = DB::transaction(function () use ($society, $attributes, $guard, $requiresApproval) {
             $visitor = $this->rememberVisitor($society, $attributes);
 
             return VisitorLog::create([
@@ -82,6 +86,14 @@ class GateService
                 'recorded_by' => $guard?->id,
             ]);
         });
+
+        // The guard should not be standing at the gate phoning the flat. A
+        // visit addressed to a unit tells that unit itself.
+        if ($log->unit_id !== null) {
+            $this->announcer->visitorWaiting($log->load('unit.block'));
+        }
+
+        return $log;
     }
 
     public function approveEntry(VisitorLog $log, User $approver): VisitorLog

@@ -9,9 +9,21 @@
     keyboard users cannot tab out into hidden content.
 --}}
 <div
-    x-data="{ open: false }"
-    x-on:open-modal.window="if ($event.detail === '{{ $name }}') { open = true; $nextTick(() => $refs.panel?.focus()) }"
-    x-on:close-modal.window="if ($event.detail === '{{ $name }}') open = false"
+    x-data="{
+        open: false,
+        /* A name from Alpine is a string; one from Livewire is {0: name} or {name}. */
+        modalName(e) {
+            const d = e.detail
+            return typeof d === 'string' ? d : (d?.name ?? d?.[0] ?? null)
+        },
+    }"
+    {{--
+        Alpine's own $dispatch sends the name as a bare string, while a dispatch
+        from a Livewire component arrives wrapped in its parameter object. Both
+        are read, so a modal can be opened from the server as well as the page.
+    --}}
+    x-on:open-modal.window="if (modalName($event) === '{{ $name }}') { open = true; $nextTick(() => $refs.panel?.focus()) }"
+    x-on:close-modal.window="if (modalName($event) === '{{ $name }}') open = false"
     x-on:keydown.escape.window="open = false"
     x-show="open"
     x-bind:class="open || 'hidden'"

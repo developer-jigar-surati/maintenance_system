@@ -5,6 +5,7 @@ namespace App\Livewire\Governance;
 use App\Enums\Permission;
 use App\Models\Meeting;
 use App\Models\MeetingAttendee;
+use App\Services\Messaging\Announcer;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -58,6 +59,29 @@ class MeetingShow extends Component
         $this->dispatch('notify', message: 'Your response has been recorded.', tone: 'positive');
     }
 
+    /**
+     * Circulates the formal notice of the meeting.
+     *
+     * Most societies are bound by their bye-laws to give a minimum number of
+     * days' notice and to be able to show they did, so the dispatch record is
+     * as much the point as the message.
+     */
+    public function sendNotice(Announcer $announcer): void
+    {
+        Gate::authorize(Permission::MEETING_MANAGE);
+
+        $sent = $announcer->meetingNotice($this->meeting);
+
+        $this->meeting->forceFill(['notice_sent_at' => now()])->save();
+        $this->meeting->refresh();
+
+        $this->dispatch('notify',
+            message: $sent > 0
+                ? "Notice of the meeting sent to {$sent} members."
+                : 'Everyone has already been sent this notice.',
+            tone: 'positive');
+    }
+
     public function saveMinutes(): void
     {
         Gate::authorize(Permission::MINUTES_PUBLISH);
@@ -72,7 +96,10 @@ class MeetingShow extends Component
         ])->save();
 
         $this->meeting->refresh()->load('minutesRecordedBy');
-        $this->dispatch('notify', message: 'Minutes published.', tone: 'positive');
+
+        app(Announcer::class)->minutesCirculated($this->meeting);
+
+        $this->dispatch('notify', message: 'Minutes published and circulated.', tone: 'positive');
     }
 
     /** Marks attendance and re-checks quorum from the new count. */

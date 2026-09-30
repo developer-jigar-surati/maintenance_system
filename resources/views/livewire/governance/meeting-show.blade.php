@@ -10,7 +10,23 @@
             {{ $meeting->typeLabel() }} · {{ $meeting->scheduled_at->format('l, j F Y \a\t g:i A') }}
             @if ($meeting->venue) · {{ $meeting->venue }} @endif
         </x-slot:description>
-        <x-slot:actions><x-ui.status :value="$meeting->status" /></x-slot:actions>
+        <x-slot:actions>
+            {{-- Giving notice, and being able to show it was given, is a
+                 bye-law obligation for most societies. --}}
+            @if ($canManage && $meeting->isUpcoming())
+                <x-ui.button
+                    size="sm"
+                    :variant="$meeting->notice_sent_at ? 'ghost' : 'secondary'"
+                    icon="megaphone"
+                    wire:click="sendNotice"
+                    wire:confirm="Send the notice of this meeting to every member?"
+                >{{ $meeting->notice_sent_at ? 'Send notice again' : 'Send notice' }}</x-ui.button>
+            @endif
+            @if ($meeting->notice_sent_at)
+                <x-ui.badge tone="positive" dot>Notice given {{ $meeting->notice_sent_at->format('j M') }}</x-ui.badge>
+            @endif
+            <x-ui.status :value="$meeting->status" />
+        </x-slot:actions>
     </x-ui.page-header>
 
     {{-- RSVP: the one thing a resident is here to do. --}}
