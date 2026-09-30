@@ -145,7 +145,7 @@
                 @if ($selected?->rules)
                     <div class="rounded-lg surface-inset p-3">
                         <p class="text-xs font-semibold uppercase tracking-wide text-muted">House rules</p>
-                        <p class="mt-1 whitespace-pre-line text-xs text-secondary">{{ $selected->rules }}</p>
+                        <p class="mt-1 selectable whitespace-pre-line text-xs text-secondary">{{ $selected->rules }}</p>
                     </div>
                 @endif
             </form>

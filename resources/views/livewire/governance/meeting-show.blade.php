@@ -132,7 +132,7 @@
                         </x-ui.button>
                     </form>
                 @elseif ($meeting->hasMinutes())
-                    <p class="whitespace-pre-line text-sm leading-relaxed">{{ $meeting->minutes }}</p>
+                    <p class="selectable whitespace-pre-line text-sm leading-relaxed">{{ $meeting->minutes }}</p>
                     @if ($meeting->minutes_published_at)
                         <p class="mt-4 border-t border-subtle pt-3 text-xs text-muted">
                             Recorded by {{ $meeting->minutesRecordedBy?->name }} ·

@@ -20,7 +20,7 @@
 
     @if ($poll->description)
         <x-ui.card class="mb-6">
-            <p class="whitespace-pre-line text-sm leading-relaxed">{{ $poll->description }}</p>
+            <p class="selectable whitespace-pre-line text-sm leading-relaxed">{{ $poll->description }}</p>
         </x-ui.card>
     @endif
 

@@ -27,7 +27,7 @@
     <div class="grid gap-6 lg:grid-cols-3">
         <div class="space-y-6 lg:col-span-2">
             <x-ui.card>
-                <p class="whitespace-pre-line text-sm leading-relaxed">{{ $complaint->description }}</p>
+                <p class="selectable whitespace-pre-line text-sm leading-relaxed">{{ $complaint->description }}</p>
                 @if ($complaint->location)
                     <p class="mt-4 text-sm text-secondary">
                         <span class="font-medium">Location:</span> {{ $complaint->location }}
@@ -61,7 +61,7 @@
                                             <x-ui.badge tone="caution">Internal note</x-ui.badge>
                                         @endif
                                     </p>
-                                    <p class="mt-1 whitespace-pre-line text-sm text-secondary">{{ $comment->body }}</p>
+                                    <p class="mt-1 selectable whitespace-pre-line text-sm text-secondary">{{ $comment->body }}</p>
                                 </div>
                             </li>
                         @endforeach

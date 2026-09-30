@@ -252,7 +252,7 @@
                     <p class="mb-1.5 text-sm font-medium">What a resident will see</p>
                     <div class="rounded-xl border border-subtle surface-sunken p-4">
                         <p class="text-sm font-semibold">{{ $preview['subject'] ?: '(no subject)' }}</p>
-                        <p class="mt-2 whitespace-pre-line text-sm text-secondary">{{ $preview['body'] }}</p>
+                        <p class="mt-2 selectable whitespace-pre-line text-sm text-secondary">{{ $preview['body'] }}</p>
                     </div>
                 </div>
 

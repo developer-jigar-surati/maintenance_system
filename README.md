@@ -299,6 +299,17 @@ own card surfaces — worst-pair colour-vision-deficiency ΔE 24.7 in light and
 26.8 in dark, against a target of 8 — and ship with a legend, hover tooltips
 and a table view, so nothing depends on colour alone.
 
+### A note on the compiled assets
+
+`public/build` is committed. This app is normally run straight from a clone
+with `php artisan serve`, and a pull that brings new templates but not the CSS
+they depend on does not look like a missing build step — it looks like a
+broken interface. Committing the output means `git pull` is enough.
+
+If you change anything under `resources/css` or `resources/js`, run
+`npm run build` and commit the result with your change. If you add a deploy
+pipeline that builds on the server, re-ignore the directory.
+
 ## Tests
 
 ```bash

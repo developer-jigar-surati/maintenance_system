@@ -135,17 +135,33 @@
     /*
      * Cursors.
      *
-     * Tailwind 4's Preflight deliberately sets `button { cursor: default }` to
-     * match the browser default, which leaves every button in the app showing
-     * an arrow. Restore the pointer on things that act like controls, and make
-     * the disabled and text cases explicit so the cursor always says what the
-     * element will do.
+     * The browser default is `auto`, which shows a text I-beam over anything
+     * containing text -- including a header, a menu label and an account
+     * name, none of which anyone is trying to select. An application should
+     * read as an application: an arrow over its chrome, a hand over what can
+     * be clicked, and an I-beam only where words can actually be typed or are
+     * genuinely there to be copied.
+     *
+     * Tailwind's Preflight also sets `button { cursor: default }`, which would
+     * otherwise leave every button in the app showing an arrow.
      */
+    body {
+        cursor: default;
+    }
+
+    /* Anything that acts like a control. */
     button:not(:disabled),
     [role='button']:not([aria-disabled='true']),
     [role='tab'],
     [role='menuitem'],
+    [role='menuitemcheckbox'],
+    [role='menuitemradio'],
     [role='option'],
+    [role='switch'],
+    [role='link'],
+    [role='checkbox'],
+    [role='radio'],
+    [role='combobox'],
     a[href],
     label[for],
     summary,
@@ -155,30 +171,66 @@
     input[type='file']:not(:disabled),
     input[type='submit']:not(:disabled),
     input[type='reset']:not(:disabled),
-    input[type='color']:not(:disabled) {
+    input[type='button']:not(:disabled),
+    input[type='image']:not(:disabled),
+    input[type='color']:not(:disabled),
+    input[type='range']:not(:disabled),
+    /*
+     * Livewire and Alpine can make anything clickable, and a div that acts
+     * like a button has to say so. The colon is escaped because it is part of
+     * the attribute name, not a pseudo-class.
+     */
+    [wire\:click]:not([disabled]),
+    [x-on\:click]:not([disabled]),
+    [\@click]:not([disabled]) {
         cursor: pointer;
     }
 
+    /* Anything that cannot be used right now. */
     button:disabled,
     select:disabled,
     textarea:disabled,
     input:disabled,
-    [aria-disabled='true'] {
+    fieldset:disabled,
+    [aria-disabled='true'],
+    [aria-busy='true'] {
         cursor: not-allowed;
     }
 
-    input[type='text'],
-    input[type='email'],
-    input[type='password'],
-    input[type='search'],
-    input[type='tel'],
-    input[type='url'],
-    input[type='number'],
-    input[type='date'],
-    input[type='time'],
-    input[type='datetime-local'],
-    textarea {
+    /* Only where words are actually typed. */
+    input:not([type]):not(:disabled),
+    input[type='text']:not(:disabled),
+    input[type='email']:not(:disabled),
+    input[type='password']:not(:disabled),
+    input[type='search']:not(:disabled),
+    input[type='tel']:not(:disabled),
+    input[type='url']:not(:disabled),
+    input[type='number']:not(:disabled),
+    input[type='date']:not(:disabled),
+    input[type='time']:not(:disabled),
+    input[type='month']:not(:disabled),
+    input[type='week']:not(:disabled),
+    input[type='datetime-local']:not(:disabled),
+    textarea:not(:disabled),
+    [contenteditable]:not([contenteditable='false']),
+    [role='textbox'],
+    /* And where text is plainly there to be read and copied. */
+    pre,
+    code,
+    kbd,
+    samp,
+    .selectable,
+    .selectable * {
         cursor: text;
+    }
+
+    /* A control wins over the text it happens to contain. */
+    button *,
+    a[href] *,
+    label[for] *,
+    summary *,
+    [role='button'] * {
+        cursor: inherit;
     }
 
     /* Rows that navigate on click should advertise it. */
@@ -292,6 +344,15 @@
     .scene-3d {
         perspective: 1400px;
         perspective-origin: 50% 40%;
+
+        /*
+         * Every child of the scene is absolutely positioned, so without a
+         * height of its own the box collapses to nothing and the plan reads
+         * as an empty strip. The aspect ratio normally supplies that height;
+         * this is the floor under it, for a browser that does not support
+         * `aspect-ratio` or a stylesheet that arrives incomplete.
+         */
+        min-height: 20rem;
     }
 
     .scene-world {

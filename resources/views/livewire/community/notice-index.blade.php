@@ -55,7 +55,7 @@
                         @endif
                     </div>
 
-                    <div class="mt-2 whitespace-pre-line text-sm leading-relaxed text-secondary">{{ $notice->body }}</div>
+                    <div class="mt-2 selectable whitespace-pre-line text-sm leading-relaxed text-secondary">{{ $notice->body }}</div>
 
                     <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-subtle pt-3">
                         <p class="text-xs text-muted">
