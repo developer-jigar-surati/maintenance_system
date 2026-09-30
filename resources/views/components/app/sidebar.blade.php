@@ -28,7 +28,12 @@
             </button>
         </div>
 
-        <nav class="scrollbar-slim flex-1 space-y-6 overflow-y-auto px-3 py-5">
+        {{-- Scrolled down to Administration and clicked something? It stays
+             there. See resources/js/ui/scroll-memory.js. --}}
+        <nav
+            class="scrollbar-slim flex-1 space-y-6 overflow-y-auto px-3 py-5"
+            data-scroll-memory="sidebar"
+        >
             @foreach ($sections as $section)
                 <div>
                     <h2 class="px-3 pb-2 text-[0.6875rem] font-semibold uppercase tracking-wider text-muted">

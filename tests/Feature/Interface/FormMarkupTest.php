@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Interface;
 
+use App\Enums\Role;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -13,6 +15,8 @@ use Tests\TestCase;
  */
 class FormMarkupTest extends TestCase
 {
+    use RefreshDatabase;
+
     /** @return array<int, string> */
     private function views(): array
     {
@@ -119,6 +123,66 @@ class FormMarkupTest extends TestCase
         }
 
         $this->assertSame([], $broken);
+    }
+
+    /**
+     * Only one sidebar item lights up.
+     *
+     * The prefix fallback that makes `invoices.show` highlight Invoices also
+     * made every item under one prefix highlight together: opening one
+     * settings page lit up all three.
+     */
+    public function test_exactly_one_menu_item_is_marked_current(): void
+    {
+        $society = $this->makeSociety();
+        $admin = $this->makeUser($society, Role::SOCIETY_ADMIN);
+
+        $pages = [
+            'settings.index', 'settings.communication', 'settings.roles',
+            'invoices.index', 'units.index', 'notices.index', 'dashboard',
+        ];
+
+        foreach ($pages as $routeName) {
+            $response = $this->actingAs($admin)->get(route($routeName));
+            $response->assertOk();
+
+            $current = $this->currentItemsInSidebar($response->getContent());
+
+            $this->assertSame(1, $current,
+                "On {$routeName} the sidebar marks {$current} items as current.");
+        }
+    }
+
+    /** A detail page still belongs to its list. */
+    public function test_a_detail_page_highlights_the_list_it_belongs_to(): void
+    {
+        $society = $this->makeSociety();
+        $unit = $this->makeUnit($society, ['unit_number' => '101']);
+        $admin = $this->makeUser($society, Role::SOCIETY_ADMIN);
+
+        $response = $this->actingAs($admin)->get(route('units.show', $unit));
+
+        $response->assertOk();
+        $this->assertSame(1, $this->currentItemsInSidebar($response->getContent()));
+    }
+
+    /**
+     * How many sidebar items claim to be the current page.
+     *
+     * Counted inside the sidebar alone: the phone tab bar marks the same page
+     * and is right to, so counting the whole document would always find two.
+     */
+    private function currentItemsInSidebar(string $html): int
+    {
+        $start = strpos($html, '<aside');
+
+        if ($start === false) {
+            return 0;
+        }
+
+        $end = strpos($html, '</aside>', $start);
+
+        return substr_count(substr($html, $start, $end - $start), 'aria-current="page"');
     }
 
     public function test_no_em_dashes_are_left_in_the_interface(): void

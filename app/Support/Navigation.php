@@ -169,12 +169,50 @@ class Navigation
         return $user->isSuperAdmin() || $user->can($permission);
     }
 
+    /**
+     * Which menu item the current page belongs to.
+     *
+     * An exact match always wins. The prefix fallback exists so that
+     * `invoices.show` lights up `Invoices`, but on its own it also made every
+     * item under one prefix light up together: opening `settings.communication`
+     * highlighted Society settings, Reminders and Roles all at once, because
+     * all three start `settings.`.
+     */
     private static function isActive(string $route): bool
     {
+        if (request()->routeIs($route)) {
+            return true;
+        }
+
+        // A sibling owns this page, so this item does not.
+        if (self::currentRouteIsAnItemExactly()) {
+            return false;
+        }
+
         $base = str_contains($route, '.')
             ? substr($route, 0, strrpos($route, '.'))
             : $route;
 
-        return request()->routeIs($route) || request()->routeIs($base.'.*');
+        return request()->routeIs($base.'.*');
+    }
+
+    /** Does some item in the menu name the current route outright? */
+    private static function currentRouteIsAnItemExactly(): bool
+    {
+        static $answer = null;
+        static $forRoute = null;
+
+        $current = Route::currentRouteName();
+
+        if ($answer !== null && $forRoute === $current) {
+            return $answer;
+        }
+
+        $forRoute = $current;
+        $answer = collect(self::definition())
+            ->flatMap(fn (array $section) => $section['items'])
+            ->contains(fn (array $item) => $item['route'] === $current);
+
+        return $answer;
     }
 }

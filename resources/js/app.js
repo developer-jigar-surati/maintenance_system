@@ -2,6 +2,8 @@ import Alpine from 'alpinejs';
 import Chart from 'chart.js/auto';
 
 import confirmDialog, { installConfirmInterceptor } from './ui/confirm';
+import { installScrollMemory } from './ui/scroll-memory';
+import customSelect from './ui/select';
 import sitePlanArranger from './ui/site-plan';
 import toastStack from './ui/toasts';
 import { installValidation } from './ui/validation';
@@ -28,6 +30,7 @@ document.addEventListener('alpine:init', () => {
     window.Alpine.data('toastStack', toastStack);
     window.Alpine.data('confirmDialog', confirmDialog);
     window.Alpine.data('sitePlanArranger', sitePlanArranger);
+    window.Alpine.data('customSelect', customSelect);
 });
 
 /*
@@ -36,6 +39,7 @@ document.addEventListener('alpine:init', () => {
  */
 installConfirmInterceptor();
 installValidation();
+installScrollMemory();
 
 /**
  * Theme handling.
