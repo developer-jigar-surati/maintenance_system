@@ -6,8 +6,8 @@ use App\Enums\Permission;
 use App\Models\BillingPlan;
 use App\Models\Block;
 use App\Models\ChargeHead;
-use App\Models\ChargeRate;
 use App\Models\Unit;
+use App\Services\Billing\RateWriter;
 use App\Services\SocietyProvisioner;
 use App\Support\SocietyContext;
 use Illuminate\Support\Facades\DB;
@@ -65,6 +65,14 @@ class Wizard extends Component
 
     /** Amounts keyed by configuration, when a 2BHK and a 3BHK differ. */
     public array $sizeAmounts = [];
+
+    /**
+     * Amounts keyed "blockId|configuration", when both matter at once.
+     *
+     * The case this was missing: A at 12,000, B at 11,000, the GHI block at
+     * 8,000, and inside each of them the 2BHK and the 3BHK differ again.
+     */
+    public array $gridAmounts = [];
 
     /** The rate per unit of area, when billed by area. */
     public ?float $areaRate = null;
@@ -132,11 +140,12 @@ class Wizard extends Component
                 'unitPattern' => 'nullable|string|max:2000',
             ]),
             3 => $this->validate([
-                'rateBasis' => 'required|in:flat,by_block,by_size,by_area',
+                'rateBasis' => 'required|in:flat,by_block,by_size,by_block_and_size,by_area',
                 'flatAmount' => 'required_if:rateBasis,flat|nullable|numeric|min:0|max:10000000',
                 'areaRate' => 'required_if:rateBasis,by_area|nullable|numeric|min:0|max:100000',
                 'blockAmounts.*' => 'nullable|numeric|min:0|max:10000000',
                 'sizeAmounts.*' => 'nullable|numeric|min:0|max:10000000',
+                'gridAmounts.*' => 'nullable|numeric|min:0|max:10000000',
                 'advanceAmount' => 'nullable|numeric|min:0|max:100000000',
                 'cycle' => 'required|in:monthly,bi_monthly,quarterly,half_yearly,yearly',
                 'dueAfterDays' => 'required|integer|min:1|max:120',
@@ -322,55 +331,20 @@ class Wizard extends Component
             'by_area' => (float) $this->areaRate > 0,
             'by_block' => collect($this->blockAmounts)->filter(fn ($v) => (float) $v > 0)->isNotEmpty(),
             'by_size' => collect($this->sizeAmounts)->filter(fn ($v) => (float) $v > 0)->isNotEmpty(),
+            'by_block_and_size' => collect($this->gridAmounts)->filter(fn ($v) => (float) $v > 0)->isNotEmpty(),
             default => false,
         };
     }
 
     private function applyMaintenance($society, ChargeHead $head): void
     {
-        // Start clean: changing the answer should not leave the previous
-        // answer's rates behind quietly billing people.
-        ChargeRate::query()->where('charge_head_id', $head->id)->delete();
-
-        $head->forceFill([
-            'basis' => $this->rateBasis === 'by_area' ? 'per_sqft' : 'fixed_per_unit',
-            'default_rate' => match ($this->rateBasis) {
-                'flat' => (float) $this->flatAmount,
-                'by_area' => (float) $this->areaRate,
-                // A fallback for anything the committee left blank.
-                'by_block' => (float) collect($this->blockAmounts)->filter()->avg(),
-                'by_size' => (float) collect($this->sizeAmounts)->filter()->avg(),
-                default => 0.0,
-            },
-        ])->save();
-
-        if ($this->rateBasis === 'by_block') {
-            foreach ($this->blockAmounts as $blockId => $amount) {
-                if ((float) $amount > 0) {
-                    ChargeRate::create([
-                        'society_id' => $society->id,
-                        'charge_head_id' => $head->id,
-                        'scope' => 'block',
-                        'block_id' => (int) $blockId,
-                        'rate' => (float) $amount,
-                    ]);
-                }
-            }
-        }
-
-        if ($this->rateBasis === 'by_size') {
-            foreach ($this->sizeAmounts as $configuration => $amount) {
-                if ((float) $amount > 0) {
-                    ChargeRate::create([
-                        'society_id' => $society->id,
-                        'charge_head_id' => $head->id,
-                        'scope' => 'configuration',
-                        'configuration' => $configuration,
-                        'rate' => (float) $amount,
-                    ]);
-                }
-            }
-        }
+        app(RateWriter::class)->write($society, $head, [
+            'basis' => $this->rateBasis,
+            'flat' => $this->rateBasis === 'by_area' ? $this->areaRate : $this->flatAmount,
+            'blocks' => $this->blockAmounts,
+            'sizes' => $this->sizeAmounts,
+            'grid' => $this->gridAmounts,
+        ]);
     }
 
     /**
@@ -414,6 +388,7 @@ class Wizard extends Component
             'flat' => (float) $this->flatAmount,
             'by_block' => (float) collect($this->blockAmounts)->filter()->avg(),
             'by_size' => (float) collect($this->sizeAmounts)->filter()->avg(),
+            'by_block_and_size' => (float) collect($this->gridAmounts)->filter()->avg(),
             default => 0.0,
         };
     }

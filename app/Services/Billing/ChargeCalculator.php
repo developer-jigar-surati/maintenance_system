@@ -15,7 +15,17 @@ use Illuminate\Support\Carbon;
  * The rate is resolved from the most specific thing that says something about
  * this unit down to the most general:
  *
- *     this flat  ->  its size of home  ->  its building  ->  the plan  ->  the head
+ *     this flat
+ *       ->  its building and size together
+ *       ->  its size of home
+ *       ->  its building
+ *       ->  the plan
+ *       ->  the head
+ *
+ * The pair matters because real societies use it. One has A at 12,000, B at
+ * 11,000 and the GHI block at 8,000, and inside each of those the 2BHK and
+ * the 3BHK differ again. Treating building and size as alternatives loses
+ * whichever one you did not pick.
  *
  * which is how a committee actually decides: one amount for the society, a
  * different one for the wing with the lift, and a handful of flats settled
@@ -104,32 +114,51 @@ class ChargeCalculator
     }
 
     /**
-     * A rate set for this unit's configuration or its building.
+     * A rate set for the slice of the society this unit falls in.
      *
-     * Configuration wins: "3BHK pays more" is a more deliberate statement
-     * about this flat than "B wing pays more".
+     * Taken in order of how much each one is saying about this particular
+     * flat. "A wing, 3BHK" is the most deliberate statement anyone can make
+     * short of naming the flat itself, so it is preferred over "3BHK
+     * anywhere", which in turn is preferred over "anything in A wing".
      */
     private function scopedRateFor(Unit $unit, ChargeHead $head, Carbon $on): ?float
     {
+        $block = $unit->block_id;
+        $size = $unit->configuration;
+
+        if ($block === null && $size === null) {
+            return null;
+        }
+
         $rates = ChargeRate::query()
             ->where('charge_head_id', $head->id)
             ->inForceOn($on)
-            ->where(function ($q) use ($unit) {
-                $q->where(fn ($i) => $i->where('scope', 'block')->where('block_id', $unit->block_id))
-                    ->orWhere(fn ($i) => $i->where('scope', 'configuration')
-                        ->where('configuration', $unit->configuration));
+            ->where(function ($q) use ($block, $size) {
+                $q->where(function ($i) use ($block, $size) {
+                    $i->where('scope', 'block_configuration')
+                        ->where('block_id', $block)
+                        ->where('configuration', $size);
+                })
+                    ->orWhere(fn ($i) => $i->where('scope', 'configuration')->where('configuration', $size))
+                    ->orWhere(fn ($i) => $i->where('scope', 'block')->where('block_id', $block));
             })
             ->get();
 
-        $byConfiguration = $rates->firstWhere('scope', 'configuration');
+        $preference = [
+            'block_configuration' => $block !== null && $size !== null,
+            'configuration' => $size !== null,
+            'block' => $block !== null,
+        ];
 
-        if ($byConfiguration && $unit->configuration !== null) {
-            return (float) $byConfiguration->rate;
+        foreach ($preference as $scope => $applies) {
+            $match = $applies ? $rates->firstWhere('scope', $scope) : null;
+
+            if ($match !== null) {
+                return (float) $match->rate;
+            }
         }
 
-        $byBlock = $rates->firstWhere('scope', 'block');
-
-        return $byBlock && $unit->block_id !== null ? (float) $byBlock->rate : null;
+        return null;
     }
 
     /** The multiplier the rate is applied to, per the head's billing basis. */

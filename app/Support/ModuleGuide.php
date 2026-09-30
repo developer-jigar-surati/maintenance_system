@@ -126,11 +126,13 @@ class ModuleGuide
                 'steps' => [
                     'Each head has a basis - a fixed amount per flat, a rate per square foot, or per member - and that decides how it is worked out.',
                     'A per-square-foot head multiplies its rate by the unit\'s area, so a larger flat pays more.',
-                    'Maintenance can differ by building or by size of home. The most specific rate wins: this flat, then its size, then its building, then the society default.',
+                    'Maintenance can differ by building, by size of home, or by both at once. Set them with "Set rates" on the head.',
+                    'The most specific rate wins: this flat, then its building and size together, then its size, then its building, then the society default.',
                     'A single flat that is charged differently gets an override on the flat itself, not a new head.',
                 ],
                 'watch' => [
-                    'Changing a rate affects bills raised from now on. It does not rewrite bills already issued.',
+                    'Changing a rate affects bills raised from now on. It does not rewrite bills already issued, which is why an old receipt still adds up.',
+                    'A head split by building or size shows how many rates it has rather than a single number, because there is no single number.',
                 ],
             ],
 

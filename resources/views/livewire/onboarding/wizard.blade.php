@@ -98,103 +98,14 @@
                 way. They decide an amount, and then whether it differs by
                 building or by size of home.
             --}}
-            <fieldset class="mt-6">
-                <legend class="sr-only">How maintenance is worked out</legend>
-                <div class="grid gap-3 sm:grid-cols-2">
-                    @foreach ([
-                        'flat' => ['The same for every home', 'One amount, whatever the flat. This is what most societies do.'],
-                        'by_block' => ['Different for each building', 'A wing with a lift pays more than one without.'],
-                        'by_size' => ['Different by size of home', 'A 3BHK pays more than a 2BHK.'],
-                        'by_area' => ['By area', 'A rate for every '.$society->areaUnitLabel().' of the flat.'],
-                    ] as $key => [$title, $why])
-                        <button
-                            type="button"
-                            wire:click="$set('rateBasis', '{{ $key }}')"
-                            aria-pressed="{{ $rateBasis === $key ? 'true' : 'false' }}"
-                            @class([
-                                'rounded-xl border p-4 text-left transition-colors',
-                                'border-[var(--accent)] accent-soft-bg' => $rateBasis === $key,
-                                'border-subtle surface-raised hover:border-strong' => $rateBasis !== $key,
-                            ])
-                        >
-                            <span class="flex items-center gap-2">
-                                <span @class([
-                                    'flex size-4 shrink-0 items-center justify-center rounded-full border-2',
-                                    'border-[var(--accent)]' => $rateBasis === $key,
-                                    'border-strong' => $rateBasis !== $key,
-                                ])>
-                                    @if ($rateBasis === $key)
-                                        <span class="size-2 rounded-full accent-bg"></span>
-                                    @endif
-                                </span>
-                                <span class="text-sm font-semibold">{{ $title }}</span>
-                            </span>
-                            <span class="mt-1.5 block pl-6 text-xs text-secondary">{{ $why }}</span>
-                        </button>
-                    @endforeach
-                </div>
-            </fieldset>
-
-            {{-- Then only the numbers that answer it. --}}
-            <div class="mt-6 space-y-3">
-                @if ($rateBasis === 'flat')
-                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-subtle p-4">
-                        <div>
-                            <p class="text-sm font-medium">Every home pays</p>
-                            <p class="text-xs text-muted">per {{ str_replace('_', ' ', $cycle === 'monthly' ? 'month' : $cycle) }}</p>
-                        </div>
-                        <div class="w-40">
-                            <x-ui.input wire:model.live="flatAmount" name="flatAmount" type="number" step="1" min="0"
-                                aria-label="Amount every home pays" placeholder="12000" class="numeric text-right" />
-                        </div>
-                    </div>
-                @endif
-
-                @if ($rateBasis === 'by_block')
-                    @forelse ($blocks as $block)
-                        <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-subtle p-4">
-                            <p class="text-sm font-medium">{{ $block->name }}</p>
-                            <div class="w-40">
-                                <x-ui.input wire:model.live="blockAmounts.{{ $block->id }}" type="number" step="1" min="0"
-                                    :aria-label="'Amount for '.$block->name" placeholder="12000" class="numeric text-right" />
-                            </div>
-                        </div>
-                    @empty
-                        <x-ui.alert tone="caution" title="No buildings yet">
-                            Go back a step and add your buildings, then this asks for an amount for each.
-                        </x-ui.alert>
-                    @endforelse
-                @endif
-
-                @if ($rateBasis === 'by_size')
-                    @forelse ($sizes as $size)
-                        <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-subtle p-4">
-                            <p class="text-sm font-medium">{{ $size }}</p>
-                            <div class="w-40">
-                                <x-ui.input wire:model.live="sizeAmounts.{{ $size }}" type="number" step="1" min="0"
-                                    :aria-label="'Amount for a '.$size" placeholder="12000" class="numeric text-right" />
-                            </div>
-                        </div>
-                    @empty
-                        <x-ui.alert tone="caution" title="No sizes recorded yet">
-                            Your homes do not have a configuration such as 2BHK against them yet. Pick another
-                            way for now; you can set rates by size later under Charge heads.
-                        </x-ui.alert>
-                    @endforelse
-                @endif
-
-                @if ($rateBasis === 'by_area')
-                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-subtle p-4">
-                        <div>
-                            <p class="text-sm font-medium">Rate per {{ $society->areaUnitLabel() }}</p>
-                            <p class="text-xs text-muted">Multiplied by each home's area.</p>
-                        </div>
-                        <div class="w-40">
-                            <x-ui.input wire:model.live="areaRate" name="areaRate" type="number" step="0.01" min="0"
-                                aria-label="Rate per unit of area" placeholder="3.50" class="numeric text-right" />
-                        </div>
-                    </div>
-                @endif
+            <div class="mt-6">
+                <x-billing.rate-question
+                    :basis="$rateBasis"
+                    :blocks="$blocks"
+                    :sizes="$sizes"
+                    :area-unit="$society->areaUnitLabel()"
+                    area-field="areaRate"
+                    :per-label="'per '.($cycle === 'monthly' ? 'month' : str_replace('_', ' ', $cycle))" />
             </div>
 
             {{--

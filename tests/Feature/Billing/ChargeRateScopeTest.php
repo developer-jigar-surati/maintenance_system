@@ -3,6 +3,7 @@
 namespace Tests\Feature\Billing;
 
 use App\Enums\Role;
+use App\Livewire\Billing\ChargeHeadIndex;
 use App\Livewire\Onboarding\Wizard;
 use App\Models\BillingPlan;
 use App\Models\ChargeHead;
@@ -126,6 +127,125 @@ class ChargeRateScopeTest extends TestCase
         ]);
 
         $this->assertSame(500.0, app(ChargeCalculator::class)->for($unit->fresh(), $head)['rate']);
+    }
+
+    public function test_a_building_and_a_size_together_beat_either_on_its_own(): void
+    {
+        // The case this was missing. A at 12,000, B at 11,000 and the GHI
+        // block at 8,000, with the sizes differing inside each of them.
+        $society = $this->makeSociety();
+        $head = $this->maintenance();
+
+        $a = $this->makeBlock($society, 'A');
+        $b = $this->makeBlock($society, 'B');
+        $ghi = $this->makeBlock($society, 'GHI');
+
+        $amounts = [
+            [$a, '2BHK', 12000], [$a, '3BHK', 14000],
+            [$b, '2BHK', 11000], [$b, '3BHK', 13000],
+            [$ghi, '2BHK', 8000], [$ghi, '3BHK', 9500],
+        ];
+
+        foreach ($amounts as [$block, $size, $rate]) {
+            ChargeRate::create([
+                'society_id' => $society->id,
+                'charge_head_id' => $head->id,
+                'scope' => 'block_configuration',
+                'block_id' => $block->id,
+                'configuration' => $size,
+                'rate' => $rate,
+            ]);
+        }
+
+        // And a broader statement that must lose to the pair.
+        ChargeRate::create([
+            'society_id' => $society->id, 'charge_head_id' => $head->id,
+            'scope' => 'configuration', 'configuration' => '3BHK', 'rate' => 99999,
+        ]);
+
+        $calculator = app(ChargeCalculator::class);
+        $number = 100;
+
+        foreach ($amounts as [$block, $size, $expected]) {
+            $unit = $this->makeUnit($society, [
+                'unit_number' => (string) $number++,
+                'block_id' => $block->id,
+                'configuration' => $size,
+            ]);
+
+            $this->assertSame(
+                (float) $expected,
+                $calculator->for($unit, $head)['rate'],
+                "{$block->name} {$size} should be {$expected}",
+            );
+        }
+    }
+
+    public function test_a_flat_the_grid_does_not_name_falls_back_sensibly(): void
+    {
+        $society = $this->makeSociety();
+        $head = $this->maintenance();
+        $block = $this->makeBlock($society, 'A');
+
+        ChargeRate::create([
+            'society_id' => $society->id, 'charge_head_id' => $head->id,
+            'scope' => 'block_configuration', 'block_id' => $block->id,
+            'configuration' => '2BHK', 'rate' => 12000,
+        ]);
+        ChargeRate::create([
+            'society_id' => $society->id, 'charge_head_id' => $head->id,
+            'scope' => 'block', 'block_id' => $block->id, 'rate' => 10000,
+        ]);
+
+        // A 4BHK in A wing: the grid says nothing, so the building's own
+        // amount applies rather than nothing at all.
+        $unit = $this->makeUnit($society, [
+            'unit_number' => '401', 'block_id' => $block->id, 'configuration' => '4BHK',
+        ]);
+
+        $this->assertSame(10000.0, app(ChargeCalculator::class)->for($unit, $head)['rate']);
+    }
+
+    public function test_the_committee_can_revise_rates_after_setup(): void
+    {
+        // Rates change at every general body meeting, so the charge heads
+        // screen asks the same question the wizard did.
+        $society = $this->makeSociety();
+        $head = $this->maintenance();
+        $a = $this->makeBlock($society, 'A');
+        $b = $this->makeBlock($society, 'B');
+
+        Livewire::actingAs($this->makeUser($society, Role::SOCIETY_ADMIN))
+            ->test(ChargeHeadIndex::class)
+            ->call('editRates', $head->id)
+            ->assertSet('rateBasis', 'flat')
+            ->set('rateBasis', 'by_block')
+            ->set('blockAmounts', [$a->id => 12000, $b->id => 11000])
+            ->call('saveRates');
+
+        $rates = ChargeRate::where('charge_head_id', $head->id)->get();
+
+        $this->assertCount(2, $rates);
+        $this->assertSame('12000.0000', (string) $rates->firstWhere('block_id', $a->id)->rate);
+    }
+
+    public function test_reopening_the_editor_reads_the_answer_back(): void
+    {
+        $society = $this->makeSociety();
+        $head = $this->maintenance();
+        $block = $this->makeBlock($society, 'A');
+
+        ChargeRate::create([
+            'society_id' => $society->id, 'charge_head_id' => $head->id,
+            'scope' => 'block_configuration', 'block_id' => $block->id,
+            'configuration' => '3BHK', 'rate' => 14000,
+        ]);
+
+        Livewire::actingAs($this->makeUser($society, Role::SOCIETY_ADMIN))
+            ->test(ChargeHeadIndex::class)
+            ->call('editRates', $head->id)
+            ->assertSet('rateBasis', 'by_block_and_size')
+            ->assertSet('gridAmounts', [$block->id.'|3BHK' => 14000.0]);
     }
 
     public function test_a_rate_for_one_society_never_reaches_another(): void
