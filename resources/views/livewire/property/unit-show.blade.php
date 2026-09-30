@@ -75,8 +75,13 @@
         <div class="space-y-6">
             <x-ui.card title="Who lives here" padded="false">
                 <x-slot:description>
-                    A unit keeps its whole occupancy history: rows are closed, never deleted,
-                    so an old receipt still names whoever actually paid it.
+                    @if ($canSeeHistory)
+                        A unit keeps its whole occupancy history: rows are closed, never deleted,
+                        so an old receipt still names whoever actually paid it.
+                    @else
+                        Who lives here now. Past residents are part of the society&rsquo;s record
+                        &mdash; ask the secretary if you need them.
+                    @endif
                 </x-slot:description>
 
                 @if ($canManageResidents)
@@ -135,7 +140,7 @@
                                     </p>
                                 @endif
 
-                                @if ($past && $resident->move_out_reason)
+                                @if ($past && $canSeeHistory && $resident->move_out_reason)
                                     <p class="mt-1 text-xs text-muted">Left: {{ $resident->move_out_reason }}</p>
                                 @endif
 
@@ -154,7 +159,7 @@
                     </ul>
                 @endif
 
-                @if ($pastCount > 0)
+                @if ($canSeeHistory && $pastCount > 0)
                     <div class="border-t border-subtle px-5 py-3">
                         <x-ui.button size="sm" variant="ghost"
                             wire:click="$toggle('showPastResidents')"

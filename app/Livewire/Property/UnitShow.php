@@ -113,6 +113,16 @@ class UnitShow extends Component
         $this->dispatch('notify', message: "{$user->name} added to {$this->unit->label}.", tone: 'positive');
     }
 
+    /** The past-residents toggle, which is a second way into the same data. */
+    public function updatedShowPastResidents(bool $value): void
+    {
+        if ($value && ! auth()->user()->can(Permission::HISTORY_VIEW)) {
+            $this->showPastResidents = false;
+
+            abort(403);
+        }
+    }
+
     public function startMoveOut(int $residentId): void
     {
         Gate::authorize(Permission::RESIDENT_MANAGE);
@@ -178,7 +188,13 @@ class UnitShow extends Component
     public function render()
     {
         $occupancy = app(Occupancy::class);
-        $history = $occupancy->historyFor($this->unit);
+        $canSeeHistory = auth()->user()->can(Permission::HISTORY_VIEW);
+
+        // Filtered in the query, not the template: a past resident hidden by
+        // an @if is still sent to the browser, where anyone can read it.
+        $history = $canSeeHistory
+            ? $occupancy->historyFor($this->unit)
+            : $occupancy->currentFor($this->unit);
 
         return view('livewire.property.unit-show', [
             'invoices' => $this->unit->invoices()->latest('issue_date')->take(12)->get(),
@@ -188,7 +204,8 @@ class UnitShow extends Component
             'openComplaints' => $this->unit->complaints()->open()->count(),
             'society' => $this->unit->society,
             'history' => $history,
-            'pastCount' => $history->where('status', 'ended')->count(),
+            'pastCount' => $canSeeHistory ? $history->where('status', 'ended')->count() : 0,
+            'canSeeHistory' => $canSeeHistory,
             'canManageResidents' => auth()->user()->can(Permission::RESIDENT_MANAGE),
             'movingOut' => $this->movingOutId
                 ? $history->firstWhere('id', $this->movingOutId)

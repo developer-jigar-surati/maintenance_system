@@ -65,6 +65,34 @@
                 </x-ui.card>
             @endif
 
+            {{-- The voter roll: office bearers only, and never on a secret
+                 ballot, whatever permission the reader holds. --}}
+            @if ($voterRoll->isNotEmpty())
+                <x-ui.card title="Who voted" class="mt-6"
+                    description="Visible to the society's office bearers only, so a disputed vote can be settled from the record.">
+                    <ul class="divide-y divide-[var(--border-subtle)]">
+                        @foreach ($voterRoll as $vote)
+                            <li class="flex flex-wrap items-center justify-between gap-2 py-2.5">
+                                <div class="min-w-0">
+                                    <p class="truncate text-sm font-medium">{{ $vote->user?->name ?? 'Unknown' }}</p>
+                                    <p class="numeric truncate text-xs text-muted">
+                                        {{ $vote->unit?->label ?? '—' }} · {{ $vote->voted_at?->format('j M Y, g:i a') }}
+                                    </p>
+                                </div>
+                                <x-ui.badge tone="accent">{{ $vote->option?->label }}</x-ui.badge>
+                            </li>
+                        @endforeach
+                    </ul>
+                </x-ui.card>
+            @elseif ($canSeeHistory && $poll->is_anonymous)
+                <x-ui.card title="Who voted" class="mt-6">
+                    <p class="text-sm text-secondary">
+                        This poll was set up as a secret ballot, so who voted which way is not
+                        recorded against anyone &mdash; including for office bearers.
+                    </p>
+                </x-ui.card>
+            @endif
+
             @if ($tally !== null)
                 <x-ui.card title="Results" class="{{ $poll->isOpen() && ! $hasVoted ? 'mt-6' : '' }}">
                     <ul class="space-y-4">

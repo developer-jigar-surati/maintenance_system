@@ -28,6 +28,17 @@ final class Permission
 
     public const DIRECTORY_VIEW = 'directory.view';
 
+    /**
+     * Who used to live in a flat, why they left, and who voted which way.
+     *
+     * Deliberately its own permission rather than part of `resident.view`.
+     * Seeing who lives in 402 today is a directory; seeing that the previous
+     * tenant was asked to leave, or how a neighbour voted, is the society's
+     * record and not a neighbour's business. A resident who needs it asks the
+     * secretary, who can answer from the record.
+     */
+    public const HISTORY_VIEW = 'history.view';
+
     // Billing and collection
     public const BILLING_VIEW = 'billing.view';
 
@@ -143,6 +154,7 @@ final class Permission
             Role::SECRETARY => [
                 self::SOCIETY_VIEW, self::UNIT_VIEW, self::UNIT_MANAGE,
                 self::RESIDENT_VIEW, self::RESIDENT_MANAGE, self::DIRECTORY_VIEW,
+                self::HISTORY_VIEW,
                 self::BILLING_VIEW, self::PAYMENT_VIEW, self::REPORT_VIEW,
                 self::MEETING_VIEW, self::MEETING_MANAGE, self::MINUTES_PUBLISH,
                 self::POLL_VIEW, self::POLL_MANAGE, self::COMMITTEE_MANAGE,

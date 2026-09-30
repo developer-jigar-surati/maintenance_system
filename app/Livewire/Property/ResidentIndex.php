@@ -2,11 +2,13 @@
 
 namespace App\Livewire\Property;
 
+use App\Enums\Permission;
 use App\Livewire\Concerns\WithDataTable;
 use App\Models\UnitResident;
 use App\Models\User;
 use App\Services\Property\Occupancy;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -50,6 +52,8 @@ class ResidentIndex extends Component
     /** Opens one person's whole history, across every unit they have had. */
     public function showHistory(int $userId): void
     {
+        Gate::authorize(Permission::HISTORY_VIEW);
+
         $this->historyForUserId = $userId;
 
         $this->dispatch('open-modal', 'resident-history');
@@ -57,6 +61,8 @@ class ResidentIndex extends Component
 
     public function render()
     {
+        $canSeeHistory = auth()->user()->can(Permission::HISTORY_VIEW);
+
         $query = UnitResident::query()
             ->with(['user', 'unit.block'])
             ->when($this->search !== '', fn (Builder $q) => $q
@@ -65,10 +71,16 @@ class ResidentIndex extends Component
                     ->orWhere('phone', 'like', "%{$this->search}%")
                     ->orWhere('email', 'like', "%{$this->search}%"))
                 ->orWhereHas('unit', fn (Builder $x) => $x->where('unit_number', 'like', "%{$this->search}%")))
-            ->when($this->status !== '', fn (Builder $q) => $q->where('status', $this->status))
+            ->when($canSeeHistory, fn (Builder $q) => $q
+                ->when($this->status !== '', fn (Builder $i) => $i->where('status', $this->status)))
+            // A past residency is history. Without the permission this is a
+            // list of who lives here now, whatever the URL asks for.
+            ->unless($canSeeHistory, fn (Builder $q) => $q->where('status', 'active'))
             ->when($this->relation !== '', fn (Builder $q) => $q->where('relation', $this->relation));
 
-        $person = $this->historyForUserId ? User::find($this->historyForUserId) : null;
+        $person = $canSeeHistory && $this->historyForUserId
+            ? User::find($this->historyForUserId)
+            : null;
 
         return view('livewire.property.resident-index', [
             'residents' => $this->applySort($query)->paginate($this->perPage),
@@ -76,6 +88,7 @@ class ResidentIndex extends Component
             'personHistory' => $person
                 ? app(Occupancy::class)->historyForUser($person)
                 : collect(),
+            'canSeeHistory' => $canSeeHistory,
             // Tenancies running out soon, so the committee can chase renewals.
             'expiringSoon' => UnitResident::query()
                 ->active()

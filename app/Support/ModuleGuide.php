@@ -178,11 +178,12 @@ class ModuleGuide
                 'summary' => 'Every flat, villa, shop or plot in the society, and what each one owes.',
                 'steps' => [
                     'A unit belongs to a block or wing, and its area is what per-square-foot charges are worked out from.',
-                    'Opening a unit shows its bills, payments, residents and its whole occupancy history.',
+                    'Opening a unit shows its bills, payments and who lives there.',
                     'A unit that should not be billed — a society office, say — can be marked not billable.',
                 ],
                 'watch' => [
                     'Occupancy is worked out from who lives there, so it is never typed and never drifts.',
+                    'Past residents are shown to the chairman, secretary and society administrator only. Anyone else sees who lives there now.',
                 ],
             ],
 
@@ -204,11 +205,12 @@ class ModuleGuide
                 'summary' => 'Everyone who lives, or has lived, in the society.',
                 'steps' => [
                     'People are moved in and out from the unit itself, which keeps each unit\'s history straight.',
-                    '"History" on any row shows every flat that person has had, with dates.',
                     'Tenancies with an agreement running out in the next 60 days are flagged at the top.',
+                    'The chairman, secretary and society administrator also see past residencies and, on any row, every flat that person has had.',
                 ],
                 'watch' => [
                     'A past resident is kept, not deleted, so an old receipt still names whoever actually paid it.',
+                    'Who used to live in a flat is the society\'s record, not a neighbour\'s business. A resident who needs it asks the secretary.',
                 ],
             ],
 
@@ -394,6 +396,7 @@ class ModuleGuide
                 ],
                 'watch' => [
                     'A poll is not a substitute for a resolution where the bye-laws require a meeting.',
+                    'Who voted which way is shown to the chairman, secretary and society administrator only, so a disputed vote can be settled. A poll set up as a secret ballot stays secret from them too.',
                 ],
             ],
 

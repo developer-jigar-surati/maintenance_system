@@ -26,11 +26,13 @@
                     <option value="{{ $v }}">{{ $l }}</option>
                 @endforeach
             </x-ui.select>
-            <x-ui.select wire:model.live="status" aria-label="Filter by status" class="w-auto min-w-28">
-                <option value="">All</option>
-                <option value="active">Current</option>
-                <option value="ended">Past</option>
-            </x-ui.select>
+            @if ($canSeeHistory)
+                <x-ui.select wire:model.live="status" aria-label="Filter by status" class="w-auto min-w-28">
+                    <option value="">All</option>
+                    <option value="active">Current</option>
+                    <option value="ended">Past</option>
+                </x-ui.select>
+            @endif
             @if ($this->hasActiveFilters())
                 <x-ui.button wire:click="clearFilters" variant="ghost" size="sm" icon="close">Clear</x-ui.button>
             @endif
@@ -64,7 +66,7 @@
                     <x-ui.status :value="$resident->status === 'active' ? 'active' : 'closed'" />
                 </x-ui.td>
                 <x-ui.td label="History">
-                    @if ($resident->user)
+                    @if ($canSeeHistory && $resident->user)
                         <x-ui.button size="sm" variant="ghost"
                             wire:click="showHistory({{ $resident->user->id }})">History</x-ui.button>
                     @endif
