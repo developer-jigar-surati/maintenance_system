@@ -53,6 +53,13 @@ class Navigation
     {
         return [
             [
+                'label' => 'Platform',
+                'items' => [
+                    ['label' => 'All societies', 'route' => 'platform.societies', 'icon' => 'building',
+                        'permission' => null, 'super_admin_only' => true],
+                ],
+            ],
+            [
                 'label' => 'Overview',
                 'items' => [
                     ['label' => 'Dashboard', 'route' => 'dashboard', 'icon' => 'home', 'permission' => null],
@@ -125,15 +132,25 @@ class Navigation
             return false;
         }
 
+        $user = Auth::user();
+
+        if ($user === null) {
+            return false;
+        }
+
+        // Platform-only entries are hidden from everyone else, including
+        // society administrators.
+        if ($item['super_admin_only'] ?? false) {
+            return $user->isSuperAdmin();
+        }
+
         $permission = $item['permission'] ?? null;
 
         if ($permission === null) {
             return true;
         }
 
-        $user = Auth::user();
-
-        return $user !== null && ($user->isSuperAdmin() || $user->can($permission));
+        return $user->isSuperAdmin() || $user->can($permission);
     }
 
     private static function isActive(string $route): bool

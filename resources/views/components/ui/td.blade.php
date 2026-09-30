@@ -30,9 +30,16 @@
         @endif
     @endunless
 
+    {{--
+        On mobile the value sits opposite its label, so it is right-aligned.
+        From `md` up it must defer to the column's own alignment on the <td>.
+        Written as an arbitrary property because Tailwind's `text-inherit`
+        is a colour utility, not an alignment one, and silently left every
+        column right-aligned.
+    --}}
     <span @class([
         'min-w-0 md:block',
-        'text-right md:text-inherit' => ! $hideOnMobile,
+        'text-right md:[text-align:inherit]' => ! $hideOnMobile,
         'font-semibold' => $primary,
     ])>{{ $slot }}</span>
 </td>

@@ -54,6 +54,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', Livewire\Profile\Edit::class)->name('profile.edit');
     Route::post('/societies/{society}/switch', SocietySwitchController::class)->name('societies.switch');
 
+    // --- Platform ---------------------------------------------------
+    // Outside the society-scoped part of the app: a super admin is not a
+    // member of the societies they administer.
+    Route::middleware('super-admin')
+        ->get('/platform/societies', Livewire\Platform\SocietyIndex::class)
+        ->name('platform.societies');
+
     Route::get('/onboarding', Livewire\Onboarding\Wizard::class)
         ->middleware('permission:'.Permission::SOCIETY_SETTINGS)
         ->name('onboarding.index');

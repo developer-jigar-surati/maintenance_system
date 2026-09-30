@@ -87,34 +87,45 @@ class Society extends Model
             ->withTimestamps();
     }
 
+    /*
+     * Every relation below drops the child's society global scope.
+     *
+     * The parent already constrains these rows by society_id, so the scope
+     * adds nothing when reading the active society -- and is actively wrong
+     * when reading any other one, because it narrows the query to whichever
+     * society the request happens to be acting in. That is how a platform
+     * console ends up reporting zero units for every society but the current
+     * one, and how currentFinancialYear() returns null for the rest.
+     */
+
     public function blocks(): HasMany
     {
-        return $this->hasMany(Block::class);
+        return $this->hasMany(Block::class)->withoutGlobalScopes();
     }
 
     public function units(): HasMany
     {
-        return $this->hasMany(Unit::class);
+        return $this->hasMany(Unit::class)->withoutGlobalScopes();
     }
 
     public function financialYears(): HasMany
     {
-        return $this->hasMany(FinancialYear::class);
+        return $this->hasMany(FinancialYear::class)->withoutGlobalScopes();
     }
 
     public function paymentGateways(): HasMany
     {
-        return $this->hasMany(PaymentGateway::class);
+        return $this->hasMany(PaymentGateway::class)->withoutGlobalScopes();
     }
 
     public function invoices(): HasMany
     {
-        return $this->hasMany(Invoice::class);
+        return $this->hasMany(Invoice::class)->withoutGlobalScopes();
     }
 
     public function payments(): HasMany
     {
-        return $this->hasMany(Payment::class);
+        return $this->hasMany(Payment::class)->withoutGlobalScopes();
     }
 
     // Behaviour -----------------------------------------------------------

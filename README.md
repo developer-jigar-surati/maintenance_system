@@ -80,6 +80,52 @@ Leave the pin in place. It does not stop the app running on 8.4 or later — it
 only keeps the lock file installable across every supported version. If you
 later drop 8.3 support, raise both the pin and the `php` constraint together.
 
+## Creating a society
+
+### From the platform console
+
+Sign in as a platform operator and open **Platform → All societies**. That
+screen lists every community on the installation and creates new ones: the
+community's own details, plus its first administrator. Creating a society
+provisions it fully — chart of accounts, default charge heads, helpdesk
+categories with SLA targets, an open financial year and its own copy of every
+role — so it is usable immediately. **Open** jumps into a society; a society
+still onboarding opens its setup wizard instead.
+
+The demo seed ships one operator: `super@sankul.test` / `password`.
+
+### From the command line
+
+For the first society on a fresh installation, when there is no operator to
+sign in as yet:
+
+```bash
+php artisan society:create \
+    --name="Sunrise Enclave" \
+    --type=gated_community \
+    --city=Pune \
+    --admin-name="Priya Kulkarni" \
+    --admin-email=priya@sunrise.test \
+    --payment-mode=both \
+    --super-admin
+```
+
+Run it with no options and it prompts for each one. `--super-admin` also makes
+that administrator a platform operator, which is how you bootstrap access to
+the console. The command prints a generated password when you do not supply
+one.
+
+To promote an existing account later:
+
+```bash
+php artisan user:super-admin you@example.com
+php artisan user:super-admin you@example.com --revoke
+```
+
+A platform operator is not a member of the societies they administer. They can
+reach any of them, but their role is held outside all of them — which is why
+the console lives on its own route rather than inside a society.
+
 ## How it is put together
 
 ### One database, scoped by society
@@ -210,12 +256,13 @@ as production, so anything engine-specific is caught here rather than in
 production. Host and credentials come from `.env`; only the database name is
 overridden in `phpunit.xml`.
 
-92 tests covering the parts that would be expensive to get wrong: tenancy
+106 tests covering the parts that would be expensive to get wrong: tenancy
 isolation, per-square-foot and fixed billing arithmetic, idempotent bill runs,
 simple versus compound interest and the guarantee against double-charging,
 oldest-first payment allocation and overpayment credit, gap-free receipt
 numbering across financial years, ledger balance and statement integrity,
-role-scoped permissions, amenity booking rules, and the scheduled commands.
+role-scoped permissions, amenity booking rules, the scheduled commands, and the platform console -- including that a
+society's unit count is read per row rather than per active society.
 
 ## Production notes
 
