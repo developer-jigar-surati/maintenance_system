@@ -46,7 +46,7 @@
                 </p>
                 <p class="mt-4 text-sm leading-relaxed text-white/70">
                     Maintenance billing, digital receipts, meetings and minutes, helpdesk
-                    and gate management &mdash; for apartments, villas, townships and
+                    and gate management - for apartments, villas, townships and
                     commercial complexes alike.
                 </p>
             </div>

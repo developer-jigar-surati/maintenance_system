@@ -88,7 +88,7 @@ class ModuleGuide
                     'Outstanding is what is left after every payment allocated to that bill.',
                 ],
                 'watch' => [
-                    'A bill nobody can be sent — a unit with no billing contact — still raises. Check under the unit who it is addressed to.',
+                    'A bill nobody can be sent - a unit with no billing contact - still raises. Check under the unit who it is addressed to.',
                     'Interest is added by the late-fee run, once per period, so running it twice does not charge twice.',
                 ],
             ],
@@ -124,7 +124,7 @@ class ModuleGuide
                 'title' => 'Charge heads',
                 'summary' => 'The things a society charges for: maintenance, water, sinking fund, parking.',
                 'steps' => [
-                    'Each head has a basis — a fixed amount per flat, a rate per square foot, or per member — and that decides how it is worked out.',
+                    'Each head has a basis - a fixed amount per flat, a rate per square foot, or per member - and that decides how it is worked out.',
                     'A per-square-foot head multiplies its rate by the unit\'s area, so a larger flat pays more.',
                     'A unit that is charged differently from the rest gets an override on the unit itself, not a new head.',
                 ],
@@ -179,7 +179,7 @@ class ModuleGuide
                 'steps' => [
                     'A unit belongs to a block or wing, and its area is what per-square-foot charges are worked out from.',
                     'Opening a unit shows its bills, payments and who lives there.',
-                    'A unit that should not be billed — a society office, say — can be marked not billable.',
+                    'A unit that should not be billed - a society office, say - can be marked not billable.',
                 ],
                 'watch' => [
                     'Occupancy is worked out from who lives there, so it is never typed and never drifts.',
@@ -331,7 +331,7 @@ class ModuleGuide
                 'summary' => 'The clubhouse, hall and courts residents can book.',
                 'steps' => [
                     'Each amenity sets its own hours, charge and deposit.',
-                    'Two bookings cannot overlap on the same amenity — the system refuses the second.',
+                    'Two bookings cannot overlap on the same amenity - the system refuses the second.',
                     'Bookings that need committee approval sit as pending until somebody decides.',
                 ],
                 'watch' => [
@@ -366,7 +366,7 @@ class ModuleGuide
                 'title' => 'Notices',
                 'summary' => 'Circulars to residents, and proof of who has read them.',
                 'steps' => [
-                    'Choose the audience — everyone, owners, tenants, committee or staff — and only they receive it.',
+                    'Choose the audience - everyone, owners, tenants, committee or staff - and only they receive it.',
                     'Publishing emails it as well as posting it, in the society\'s own wording.',
                     'Read receipts show who has actually seen it.',
                 ],
@@ -379,7 +379,7 @@ class ModuleGuide
                 'title' => 'Meetings',
                 'summary' => 'General body and committee meetings: the notice, the agenda, attendance, resolutions and the minutes.',
                 'steps' => [
-                    'Create the meeting with its agenda, then send the notice — bye-laws usually set a minimum number of days.',
+                    'Create the meeting with its agenda, then send the notice - bye-laws usually set a minimum number of days.',
                     'Attendance is marked on the day, and quorum is worked out from it.',
                     'Record the minutes and the resolutions passed; circulating them sends them to every member.',
                 ],
@@ -407,7 +407,7 @@ class ModuleGuide
                 'summary' => 'The society\'s papers: bye-laws, registration, audited accounts, AGM minutes, agreements.',
                 'steps' => [
                     'Filing under the right category is what makes a document findable two committees later.',
-                    'Visibility decides who can open it — everyone, owners, the committee, or admins only.',
+                    'Visibility decides who can open it - everyone, owners, the committee, or admins only.',
                     'A document with an expiry date is flagged before it lapses.',
                 ],
                 'watch' => [],

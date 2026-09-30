@@ -2,7 +2,7 @@
     <h1 class="text-2xl font-bold tracking-tight">Choose a new password</h1>
     <p class="mt-2 text-sm text-secondary">Pick something you have not used before.</p>
 
-    <form wire:submit="resetPassword" class="mt-8 space-y-5">
+    <form data-validate wire:submit="resetPassword" class="mt-8 space-y-5">
         <x-ui.input wire:model="email" name="email" label="Email address" type="email" required />
         <x-ui.input
             wire:model="password"

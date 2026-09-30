@@ -158,8 +158,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->enum('type', ['single_choice', 'multiple_choice', 'yes_no', 'rating'])->default('single_choice');
 
-            // One vote per person, per unit, or weighted by the unit's area —
-            // the last of which matches how many bye-laws apportion voting rights.
+            // One vote per person, per unit, or weighted by the unit's area - // the last of which matches how many bye-laws apportion voting rights.
             $table->enum('voting_basis', ['per_user', 'per_unit', 'weighted_by_area'])->default('per_unit');
 
             $table->enum('eligibility', ['all_members', 'owners_only', 'committee_only'])->default('all_members');

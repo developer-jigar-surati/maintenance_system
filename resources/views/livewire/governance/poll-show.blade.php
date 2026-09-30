@@ -28,7 +28,7 @@
         <div class="lg:col-span-2">
             @if ($poll->isOpen() && ! $hasVoted)
                 <x-ui.card title="Cast your vote">
-                    <form wire:submit="vote" class="space-y-3">
+                    <form data-validate wire:submit="vote" class="space-y-3">
                         <fieldset>
                             <legend class="sr-only">Choose one option</legend>
                             <div class="space-y-2">
@@ -76,7 +76,7 @@
                                 <div class="min-w-0">
                                     <p class="truncate text-sm font-medium">{{ $vote->user?->name ?? 'Unknown' }}</p>
                                     <p class="numeric truncate text-xs text-muted">
-                                        {{ $vote->unit?->label ?? '—' }} · {{ $vote->voted_at?->format('j M Y, g:i a') }}
+                                        {{ $vote->unit?->label ?? '–' }} · {{ $vote->voted_at?->format('j M Y, g:i a') }}
                                     </p>
                                 </div>
                                 <x-ui.badge tone="accent">{{ $vote->option?->label }}</x-ui.badge>
@@ -88,7 +88,7 @@
                 <x-ui.card title="Who voted" class="mt-6">
                     <p class="text-sm text-secondary">
                         This poll was set up as a secret ballot, so who voted which way is not
-                        recorded against anyone &mdash; including for office bearers.
+                        recorded against anyone - including for office bearers.
                     </p>
                 </x-ui.card>
             @endif
@@ -136,7 +136,9 @@
 
             @if ($canManage && $poll->status === 'open')
                 <x-ui.button variant="secondary" class="w-full" wire:click="close"
-                    wire:confirm="Close this poll and record the result?">
+                    data-confirm="Close this poll?"
+                    data-confirm-detail="Voting stops and the result is recorded against the meeting. It cannot be reopened."
+                    data-confirm-action="Close the poll">
                     Close poll
                 </x-ui.button>
             @endif

@@ -95,7 +95,6 @@ class SitePlanView extends Component
             ]])
             ->all();
 
-        $this->mode = '2d';
         $this->arranging = true;
     }
 
@@ -169,6 +168,6 @@ class SitePlanView extends Component
             'legend' => $plan->legendFor($this->view),
             'views' => SitePlan::VIEWS,
             'canArrange' => auth()->user()->can(Permission::UNIT_MANAGE),
-        ])->title($block ? "Plan — {$block->name}" : 'Site plan');
+        ])->title($block ? "Plan - {$block->name}" : 'Site plan');
     }
 }

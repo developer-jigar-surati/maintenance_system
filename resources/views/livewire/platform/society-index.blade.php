@@ -55,7 +55,7 @@
                 </x-ui.td>
                 <x-ui.td label="Type">{{ $society->typeLabel() }}</x-ui.td>
                 <x-ui.td label="Location">
-                    {{ collect([$society->city, $society->state])->filter()->implode(', ') ?: '—' }}
+                    {{ collect([$society->city, $society->state])->filter()->implode(', ') ?: '–' }}
                 </x-ui.td>
                 <x-ui.td label="Units" align="right">
                     <span class="numeric">{{ number_format($society->units_count) }}</span>
@@ -83,23 +83,23 @@
     </x-ui.table>
 
     <x-ui.modal name="new-society" title="Create a society" max-width="xl">
-        <form wire:submit="create" class="space-y-5" id="new-society-form">
+        <form data-validate wire:submit="create" class="space-y-5" id="new-society-form">
             <div>
                 <h3 class="text-xs font-semibold uppercase tracking-wide text-muted">The community</h3>
                 <div class="mt-3 space-y-4">
                     <x-ui.input wire:model="name" name="name" label="Name"
-                        placeholder="e.g. Shreeji Residency" required />
+                        placeholder="e.g. Shreeji Residency" required minlength="3" maxlength="180" />
 
                     <x-ui.select wire:model="newType" name="newType" label="Type" required
-                        hint="This decides the default unit type — flats, villas, plots, shops.">
+                        hint="This decides the default unit type - flats, villas, plots, shops.">
                         @foreach ($types as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
                     </x-ui.select>
 
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <x-ui.input wire:model="city" name="city" label="City" />
-                        <x-ui.input wire:model="state" name="state" label="State" />
+                        <x-ui.input wire:model="city" name="city" label="City" maxlength="80" />
+                        <x-ui.input wire:model="state" name="state" label="State" maxlength="80" />
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-2">
@@ -136,10 +136,10 @@
                 </p>
 
                 <div class="mt-3 space-y-4">
-                    <x-ui.input wire:model="adminName" name="adminName" label="Name" required />
+                    <x-ui.input wire:model="adminName" name="adminName" label="Administrator name" required />
                     <div class="grid gap-4 sm:grid-cols-2">
                         <x-ui.input wire:model="adminEmail" name="adminEmail" label="Email" type="email" required />
-                        <x-ui.input wire:model="adminPhone" name="adminPhone" label="Mobile" type="tel" />
+                        <x-ui.input wire:model="adminPhone" name="adminPhone" label="Mobile" type="tel" data-rule="phone" />
                     </div>
                     <x-ui.input wire:model="adminPassword" name="adminPassword" label="Password" type="password"
                         hint="Leave blank to set a random one; they can reset it from the sign-in page." />

@@ -59,16 +59,16 @@
 
     @can(\App\Enums\Permission::DOCUMENT_MANAGE)
         <x-ui.modal name="upload-document" title="Upload a document">
-            <form wire:submit="save" class="space-y-4" id="upload-document-form">
-                <x-ui.input wire:model="title" name="title" label="Title" required />
+            <form data-validate wire:submit="save" class="space-y-4" id="upload-document-form">
+                <x-ui.input wire:model="title" name="title" label="Title" required minlength="2" maxlength="180" />
 
-                <x-ui.select wire:model="newCategory" name="newCategory" label="Category">
+                <x-ui.select wire:model="newCategory" name="newCategory" label="Category" required>
                     @foreach (['bye_laws', 'registration', 'audit_report', 'financial_statement', 'agm_minutes', 'circular', 'legal', 'insurance', 'floor_plan', 'noc', 'agreement', 'other'] as $c)
                         <option value="{{ $c }}">{{ ucwords(str_replace('_', ' ', $c)) }}</option>
                     @endforeach
                 </x-ui.select>
 
-                <x-ui.select wire:model="visibility" name="visibility" label="Who can see it">
+                <x-ui.select wire:model="visibility" name="visibility" label="Who can see it" required>
                     <option value="all">Everyone</option>
                     <option value="owners">Owners only</option>
                     <option value="committee">Committee only</option>

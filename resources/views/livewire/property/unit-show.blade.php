@@ -26,7 +26,7 @@
         <x-ui.stat label="Open tickets" :value="$openComplaints" icon="lifebuoy"
             :tone="$openComplaints > 0 ? 'caution' : 'neutral'" />
         <x-ui.stat label="Area"
-            :value="$unit->carpet_area ? rtrim(rtrim(number_format((float) $unit->carpet_area, 2), '0'), '.') : '—'"
+            :value="$unit->carpet_area ? rtrim(rtrim(number_format((float) $unit->carpet_area, 2), '0'), '.') : '–'"
             :hint="$society->areaUnitLabel()" icon="building" />
     </div>
 
@@ -42,7 +42,7 @@
                 @foreach ($invoices as $invoice)
                     <x-ui.tr :href="route('invoices.show', $invoice)">
                         <x-ui.td label="Invoice" primary>{{ $invoice->invoice_number }}</x-ui.td>
-                        <x-ui.td label="Period">{{ $invoice->period_start?->format('M Y') ?? '—' }}</x-ui.td>
+                        <x-ui.td label="Period">{{ $invoice->period_start?->format('M Y') ?? '–' }}</x-ui.td>
                         <x-ui.td label="Due">{{ $invoice->due_date->format('j M Y') }}</x-ui.td>
                         <x-ui.td label="Total" align="right"><x-ui.money :amount="$invoice->total" /></x-ui.td>
                         <x-ui.td label="Balance" align="right">
@@ -80,7 +80,7 @@
                         so an old receipt still names whoever actually paid it.
                     @else
                         Who lives here now. Past residents are part of the society&rsquo;s record
-                        &mdash; ask the secretary if you need them.
+                        - ask the secretary if you need them.
                     @endif
                 </x-slot:description>
 
@@ -136,7 +136,7 @@
                                 @if ($resident->isTenant() && $resident->agreement_end_date && ! $past)
                                     <p class="mt-1 text-xs {{ $resident->agreementExpiringWithin(60) ? 'font-medium text-[var(--color-caution)]' : 'text-muted' }}">
                                         Agreement ends {{ $resident->agreement_end_date->format('j M Y') }}
-                                        @if ($resident->agreementExpiringWithin(60)) — renewal due @endif
+                                        @if ($resident->agreementExpiringWithin(60)) - renewal due @endif
                                     </p>
                                 @endif
 
@@ -201,9 +201,9 @@
     {{-- ------------------------------------------------------------------ --}}
     @if ($canManageResidents)
         <x-ui.modal name="move-in" title="Move someone in" max-width="xl">
-            <form wire:submit="moveIn" class="space-y-4">
+            <form data-validate wire:submit="moveIn" class="space-y-4">
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <x-ui.input wire:model="personName" name="personName" label="Name" required />
+                    <x-ui.input wire:model="personName" name="personName" label="Name" required minlength="2" maxlength="120" />
                     <x-ui.select wire:model.live="relation" name="relation" label="Living here as" required
                         :options="[
                             'owner' => 'Owner',
@@ -213,15 +213,15 @@
                             'occupant' => 'Other occupant',
                         ]" />
                     <x-ui.input wire:model="personEmail" name="personEmail" type="email" label="Email" required
-                        hint="An account with this address is reused, so their history follows them." />
-                    <x-ui.input wire:model="personPhone" name="personPhone" type="tel" label="Phone" />
+                        hint="An account with this address is reused, so their history follows them." maxlength="180" />
+                    <x-ui.input wire:model="personPhone" name="personPhone" type="tel" label="Phone" maxlength="20" data-rule="phone" />
                     <x-ui.input wire:model="startDate" name="startDate" type="date" label="Moving in on" required />
 
                     @if ($relation === 'tenant')
                         <x-ui.input wire:model="agreementEnd" name="agreementEnd" type="date"
                             label="Agreement ends" hint="Used to warn the committee before it runs out." />
                         <x-ui.input wire:model="rentAmount" name="rentAmount" type="number" step="0.01"
-                            label="Monthly rent" hint="Kept on file; it does not affect maintenance." />
+                            label="Monthly rent" hint="Kept on file; it does not affect maintenance." min="0" max="10000000" />
                     @endif
                 </div>
 
@@ -240,7 +240,7 @@
 
         <x-ui.modal name="move-out" title="Record a move-out" max-width="lg">
             @if ($movingOut)
-                <form wire:submit="moveOut" class="space-y-4">
+                <form data-validate wire:submit="moveOut" class="space-y-4">
                     <x-ui.alert tone="info">
                         <strong>{{ $movingOut->user?->name }}</strong> has lived here since
                         {{ $movingOut->start_date?->format('j F Y') }}. Their record is closed, not
@@ -249,10 +249,10 @@
 
                     <x-ui.input wire:model="moveOutDate" name="moveOutDate" type="date" label="Moving out on" required />
                     <x-ui.input wire:model="moveOutReason" name="moveOutReason" label="Reason"
-                        placeholder="e.g. Agreement ended, Unit sold, Relocated" />
+                        placeholder="e.g. Agreement ended, Unit sold, Relocated" maxlength="160" />
                     <x-ui.textarea wire:model="handoverNotes" name="handoverNotes" rows="3"
                         label="Handover notes"
-                        placeholder="Keys returned, deposit settled, meter readings…" />
+                        placeholder="Keys returned, deposit settled, meter readings…" maxlength="2000" />
 
                     <div class="flex justify-end gap-2 pt-2">
                         <x-ui.button variant="ghost" x-on:click="$dispatch('close-modal', 'move-out')">Cancel</x-ui.button>

@@ -38,7 +38,7 @@ class BillingPlanIndex extends Component
         $this->dispatch('notify',
             message: $result['created'] > 0
                 ? "{$result['created']} invoices raised, totalling ".Money::format($result['total']).'.'
-                : 'No new invoices — every unit is already billed for this period.',
+                : 'No new invoices - every unit is already billed for this period.',
             tone: $result['created'] > 0 ? 'positive' : 'info');
     }
 

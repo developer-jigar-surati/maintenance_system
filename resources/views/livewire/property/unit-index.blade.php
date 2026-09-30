@@ -54,7 +54,7 @@
                         <span class="numeric">{{ rtrim(rtrim(number_format((float) $unit->carpet_area, 2), '0'), '.') }}</span>
                         <span class="text-xs text-muted">{{ $society->areaUnitLabel() }}</span>
                     @else
-                        <span class="text-muted">—</span>
+                        <span class="text-muted">–</span>
                     @endif
                 </x-ui.td>
                 <x-ui.td label="Occupancy">

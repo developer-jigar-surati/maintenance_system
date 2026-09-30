@@ -45,7 +45,7 @@
                     </div>
                     <div class="flex justify-between gap-3">
                         <dt class="text-secondary">Unit</dt>
-                        <dd>{{ $receipt->unit?->label ?? '—' }}</dd>
+                        <dd>{{ $receipt->unit?->label ?? '–' }}</dd>
                     </div>
                     <div class="flex justify-between gap-3 border-t border-subtle pt-2">
                         <dt class="font-semibold">Amount</dt>

@@ -83,7 +83,7 @@
                 </x-ui.td>
 
                 <x-ui.td label="Unit">
-                    {{ $invoice->unit?->label ?? '—' }}
+                    {{ $invoice->unit?->label ?? '–' }}
                     @if ($canSeeAll && $invoice->unit?->billingContact()?->user)
                         <span class="block text-xs text-muted">{{ $invoice->unit->billingContact()->user->name }}</span>
                     @endif
@@ -92,9 +92,7 @@
                 <x-ui.td label="Period">
                     @if ($invoice->period_start)
                         {{ $invoice->period_start->format('M Y') }}
-                    @else
-                        —
-                    @endif
+                    @else - @endif
                 </x-ui.td>
 
                 <x-ui.td label="Due">

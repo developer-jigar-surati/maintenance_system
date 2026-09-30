@@ -19,7 +19,10 @@
                     :variant="$meeting->notice_sent_at ? 'ghost' : 'secondary'"
                     icon="megaphone"
                     wire:click="sendNotice"
-                    wire:confirm="Send the notice of this meeting to every member?"
+                    data-confirm="Send the notice to every member?"
+                    data-confirm-detail="Each member is emailed the agenda, and the record of the notice being given is what proves it was."
+                    data-confirm-action="Send it"
+                    data-confirm-tone="caution"
                 >{{ $meeting->notice_sent_at ? 'Send notice again' : 'Send notice' }}</x-ui.button>
             @endif
             @if ($meeting->notice_sent_at)
@@ -122,10 +125,10 @@
             {{-- Minutes --}}
             <x-ui.card title="Minutes">
                 @if ($canPublishMinutes)
-                    <form wire:submit="saveMinutes" class="space-y-3">
+                    <form data-validate wire:submit="saveMinutes" class="space-y-3">
                         <x-ui.textarea wire:model="minutes" name="minutes" rows="10"
                             label="What was discussed and decided"
-                            placeholder="Record the discussion, decisions and who is responsible for what…" />
+                            placeholder="Record the discussion, decisions and who is responsible for what…" required minlength="10" />
                         <x-ui.button type="submit" size="sm">
                             <span wire:loading.remove wire:target="saveMinutes">Publish minutes</span>
                             <span wire:loading wire:target="saveMinutes">Publishing&hellip;</span>

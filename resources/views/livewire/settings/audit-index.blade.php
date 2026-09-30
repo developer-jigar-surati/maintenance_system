@@ -38,7 +38,7 @@
                         <span class="numeric block text-xs text-muted">#{{ $log->auditable_id }}</span>
                     @endif
                 </x-ui.td>
-                <x-ui.td label="IP"><span class="numeric text-xs">{{ $log->ip_address ?? '—' }}</span></x-ui.td>
+                <x-ui.td label="IP"><span class="numeric text-xs">{{ $log->ip_address ?? '–' }}</span></x-ui.td>
             </x-ui.tr>
         @endforeach
 

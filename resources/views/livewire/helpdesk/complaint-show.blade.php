@@ -69,15 +69,15 @@
                 @endif
 
                 <div class="border-t border-subtle p-5">
-                    <form wire:submit="comment" class="space-y-3">
+                    <form data-validate wire:submit="comment" class="space-y-3">
                         <x-ui.textarea wire:model="reply" name="reply" label="Add a reply" rows="3"
-                            placeholder="Share an update…" required />
+                            placeholder="Share an update…" required minlength="2" maxlength="4000" />
 
                         <div class="flex flex-wrap items-center justify-between gap-3">
                             @if ($canManage)
                                 <label class="flex items-center gap-2 text-sm">
                                     <input type="checkbox" wire:model="internal" class="size-4 rounded border-strong accent-[var(--accent)]">
-                                    <span>Internal note &mdash; hidden from the resident</span>
+                                    <span>Internal note - hidden from the resident</span>
                                 </label>
                             @else
                                 <span></span>
@@ -95,7 +95,7 @@
             {{-- Rating, once resolved --}}
             @if ($isOwner && $complaint->isResolved() && $complaint->rating === null)
                 <x-ui.card title="How did we do?">
-                    <form wire:submit="rate" class="space-y-4">
+                    <form data-validate wire:submit="rate" class="space-y-4">
                         <div class="flex items-center gap-2" role="radiogroup" aria-label="Rating out of five">
                             @for ($i = 1; $i <= 5; $i++)
                                 <button type="button" wire:click="$set('rating', {{ $i }})"
@@ -107,7 +107,7 @@
                                 </button>
                             @endfor
                         </div>
-                        <x-ui.textarea wire:model="feedback" name="feedback" label="Anything else?" rows="2" />
+                        <x-ui.textarea wire:model="feedback" name="feedback" label="Anything else?" rows="2" maxlength="1000" />
                         <x-ui.button type="submit" size="sm">Submit feedback</x-ui.button>
                     </form>
                 </x-ui.card>
@@ -127,7 +127,7 @@
                 <dl class="space-y-3 text-sm">
                     <div class="flex justify-between gap-3">
                         <dt class="text-secondary">Category</dt>
-                        <dd>{{ $complaint->category?->name ?? '—' }}</dd>
+                        <dd>{{ $complaint->category?->name ?? '–' }}</dd>
                     </div>
                     <div class="flex justify-between gap-3">
                         <dt class="text-secondary">Unit</dt>

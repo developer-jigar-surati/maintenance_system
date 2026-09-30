@@ -39,7 +39,7 @@
                     {{ ucwords(str_replace("_", " ", $parkingSlot->vehicle_type)) }}
                 </x-ui.td>
                 <x-ui.td label="Allotted to">
-                    {{ $parkingSlot->unit?->label ?? ($parkingSlot->is_visitor_slot ? "Visitors" : "—") }}
+                    {{ $parkingSlot->unit?->label ?? ($parkingSlot->is_visitor_slot ? "Visitors" : "-") }}
                 </x-ui.td>
                 <x-ui.td label="Monthly" align="right">
                     @if ($parkingSlot->monthly_charge > 0)<x-ui.money :amount="$parkingSlot->monthly_charge" />@else<span class="text-muted">Free</span>@endif

@@ -103,7 +103,7 @@ class CreateSociety extends Command
         $this->info("Created {$society->name} ({$society->code}).");
         $this->table(['Setting', 'Value'], [
             ['Type', $society->typeLabel()],
-            ['Financial year', $society->currentFinancialYear()?->name ?? '—'],
+            ['Financial year', $society->currentFinancialYear()?->name ?? '–'],
             ['Collection', ucfirst($society->payment_mode)],
             ['Charge heads', ChargeHead::withoutGlobalScopes()->where('society_id', $society->id)->count()],
             ['Ledger accounts', LedgerAccount::withoutGlobalScopes()->where('society_id', $society->id)->count()],

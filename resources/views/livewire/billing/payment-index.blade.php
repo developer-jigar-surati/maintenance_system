@@ -50,7 +50,7 @@
                         <span class="block text-xs text-muted">ref {{ $payment->reference_number }}</span>
                     @endif
                 </x-ui.td>
-                <x-ui.td label="Unit">{{ $payment->unit?->label ?? '—' }}</x-ui.td>
+                <x-ui.td label="Unit">{{ $payment->unit?->label ?? '–' }}</x-ui.td>
                 <x-ui.td label="Received">{{ $payment->paid_at->format('j M Y') }}</x-ui.td>
                 <x-ui.td label="Method">
                     {{ $payment->methodLabel() }}
@@ -90,9 +90,9 @@
     </x-ui.table>
 
     <x-ui.modal name="reject-payment" title="Reject this payment" max-width="md">
-        <form wire:submit="reject" id="reject-payment-form">
+        <form data-validate wire:submit="reject" id="reject-payment-form">
             <x-ui.textarea wire:model="rejectionReason" name="rejectionReason" label="Reason"
-                hint="Shown to whoever recorded the payment." rows="3" required />
+                hint="Shown to whoever recorded the payment." rows="3" required minlength="3" maxlength="255" />
         </form>
         <x-slot:footer>
             <x-ui.button variant="secondary" x-on:click="$dispatch('close-modal', 'reject-payment')">Cancel</x-ui.button>

@@ -44,8 +44,8 @@
                         <span class="block text-xs text-muted">bill {{ $expense->bill_number }}</span>
                     @endif
                 </x-ui.td>
-                <x-ui.td label="Vendor">{{ $expense->vendor?->name ?? '—' }}</x-ui.td>
-                <x-ui.td label="Head">{{ $expense->chargeHead?->name ?? '—' }}</x-ui.td>
+                <x-ui.td label="Vendor">{{ $expense->vendor?->name ?? '–' }}</x-ui.td>
+                <x-ui.td label="Head">{{ $expense->chargeHead?->name ?? '–' }}</x-ui.td>
                 <x-ui.td label="Bill date">{{ $expense->bill_date->format('j M Y') }}</x-ui.td>
                 <x-ui.td label="Total" align="right"><x-ui.money :amount="$expense->total" /></x-ui.td>
                 <x-ui.td label="Balance" align="right">

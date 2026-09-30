@@ -43,20 +43,20 @@
                 </x-ui.select>
 
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <x-ui.select wire:model="areaUnit" name="areaUnit" label="Area is measured in">
+                    <x-ui.select wire:model="areaUnit" name="areaUnit" label="Area is measured in" required>
                         <option value="sqft">Square feet</option>
                         <option value="sqm">Square metres</option>
                         <option value="sqyd">Square yards</option>
                     </x-ui.select>
 
-                    <x-ui.select wire:model="financialYearStart" name="financialYearStart" label="Financial year starts">
+                    <x-ui.select wire:model="financialYearStart" name="financialYearStart" label="Financial year starts" required min="1" max="12">
                         @foreach (range(1, 12) as $month)
                             <option value="{{ $month }}">{{ \Illuminate\Support\Carbon::create(null, $month)->format('F') }}</option>
                         @endforeach
                     </x-ui.select>
                 </div>
 
-                <x-ui.input wire:model="city" name="city" label="City" />
+                <x-ui.input wire:model="city" name="city" label="City" maxlength="80" />
             </div>
 
         @elseif ($step === 2)
@@ -68,11 +68,11 @@
 
             <div class="mt-6 space-y-4">
                 <x-ui.input wire:model="blockNames" name="blockNames" label="Blocks, wings or towers"
-                    placeholder="A, B, C" hint="Comma separated. Leave blank if there are no blocks." />
+                    placeholder="A, B, C" hint="Comma separated. Leave blank if there are no blocks." maxlength="500" />
 
                 <x-ui.textarea wire:model="unitPattern" name="unitPattern" label="Unit numbers" rows="3"
                     placeholder="101-104, 201-204, 301-304"
-                    hint="Ranges and individual numbers, comma separated. These are created in every block you named." />
+                    hint="Ranges and individual numbers, comma separated. These are created in every block you named." maxlength="2000" />
 
                 @if ($unitCount > 0)
                     <x-ui.alert tone="positive">
@@ -86,7 +86,7 @@
         @elseif ($step === 3)
             <h2 class="text-lg font-semibold">What do you charge?</h2>
             <p class="mt-1 text-sm text-secondary">
-                Set a rate for each head you use. Leave the rest at zero &mdash; only
+                Set a rate for each head you use. Leave the rest at zero - only
                 heads with a rate go onto the bill.
             </p>
 
@@ -118,7 +118,7 @@
                 @endforeach
 
                 <div class="grid gap-4 border-t border-subtle pt-4 sm:grid-cols-2">
-                    <x-ui.select wire:model="cycle" name="cycle" label="Bill every">
+                    <x-ui.select wire:model="cycle" name="cycle" label="Bill every" required>
                         <option value="monthly">Month</option>
                         <option value="bi_monthly">Two months</option>
                         <option value="quarterly">Quarter</option>
@@ -127,7 +127,7 @@
                     </x-ui.select>
 
                     <x-ui.input wire:model="dueAfterDays" name="dueAfterDays" label="Due within (days)"
-                        type="number" min="1" max="120" />
+                        type="number" min="1" max="120" required />
                 </div>
             </div>
 

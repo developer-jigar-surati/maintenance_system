@@ -66,7 +66,7 @@
         </tr>
         <tr>
             <td class="label">Unit</td>
-            <td>{{ $receipt->unit?->label ?? '—' }}</td>
+            <td>{{ $receipt->unit?->label ?? '–' }}</td>
             <td class="label">Mode</td>
             <td>{{ $receipt->payment?->methodLabel() }}</td>
         </tr>
@@ -103,8 +103,8 @@
             <tbody>
                 @foreach ($receipt->payment->allocations as $allocation)
                     <tr>
-                        <td>{{ $allocation->invoice?->invoice_number ?? '—' }}</td>
-                        <td>{{ $allocation->invoice?->period_start?->format('M Y') ?? '—' }}</td>
+                        <td>{{ $allocation->invoice?->invoice_number ?? '–' }}</td>
+                        <td>{{ $allocation->invoice?->period_start?->format('M Y') ?? '–' }}</td>
                         <td class="right">{{ \App\Support\Money::format((float) $allocation->amount) }}</td>
                     </tr>
                 @endforeach

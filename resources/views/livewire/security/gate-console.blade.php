@@ -16,7 +16,7 @@
     </p>
 
     {{-- ---------------------------------------------------------------- --}}
-    {{-- STEP 1 — who is at the gate                                      --}}
+    {{-- STEP 1 - who is at the gate                                      --}}
     {{-- ---------------------------------------------------------------- --}}
     @if ($step === 'purpose')
         <section aria-labelledby="gate-step-1">
@@ -46,7 +46,7 @@
         {{-- Visitor code lookup, for anyone the resident already approved. --}}
         <section class="mt-6" aria-labelledby="gate-code">
             <h2 id="gate-code" class="mb-2 text-sm font-semibold text-secondary">Has a code?</h2>
-            <form wire:submit="lookup" class="flex gap-2">
+            <form data-validate wire:submit="lookup" class="flex gap-2">
                 <input
                     type="text"
                     wire:model="passCode"
@@ -75,7 +75,7 @@
     @endif
 
     {{-- ---------------------------------------------------------------- --}}
-    {{-- STEP 2 — which company, trade, or name                           --}}
+    {{-- STEP 2 - which company, trade, or name                           --}}
     {{-- ---------------------------------------------------------------- --}}
     @if ($step === 'who')
         <section aria-labelledby="gate-step-2">
@@ -102,7 +102,7 @@
                 <p class="my-4 text-center text-sm text-muted">or type a name</p>
             @endif
 
-            <form wire:submit="confirmName" class="flex gap-2">
+            <form data-validate wire:submit="confirmName" class="flex gap-2">
                 <input
                     type="text"
                     wire:model="visitorName"
@@ -122,7 +122,7 @@
     @endif
 
     {{-- ---------------------------------------------------------------- --}}
-    {{-- STEP 3 — which flat                                              --}}
+    {{-- STEP 3 - which flat                                              --}}
     {{-- ---------------------------------------------------------------- --}}
     @if ($step === 'unit')
         <section aria-labelledby="gate-step-3">
@@ -161,7 +161,7 @@
             @endif
 
             <x-ui.button variant="secondary" size="lg" class="mt-4 w-full" wire:click="logWithoutUnit">
-                Left at the gate &mdash; no flat
+                Left at the gate - no flat
             </x-ui.button>
         </section>
     @endif
@@ -220,12 +220,15 @@
                             <div class="min-w-0">
                                 <p class="text-base font-semibold">{{ $log->visitor_name }}</p>
                                 <p class="text-sm text-muted">
-                                    {{ $log->purposeLabel() }} &middot; {{ $log->unit?->label ?? '—' }}
+                                    {{ $log->purposeLabel() }} &middot; {{ $log->unit?->label ?? '–' }}
                                     &middot; {{ $log->created_at->diffForHumans(short: true) }}
                                 </p>
                             </div>
                             <div class="flex shrink-0 gap-2">
                                 <x-ui.button variant="positive" wire:click="allowIn({{ $log->id }})">Let in</x-ui.button>
+                                {{-- No confirmation here on purpose: a guard at a gate with somebody
+                                     waiting needs one tap, and the entry is logged either way.
+                                     The same action from the office asks first. --}}
                                 <x-ui.button variant="secondary" wire:click="deny({{ $log->id }})">Turn away</x-ui.button>
                             </div>
                         </li>
@@ -242,7 +245,7 @@
                             <div class="min-w-0">
                                 <p class="text-base font-semibold">{{ $log->visitor_name }}</p>
                                 <p class="text-sm text-muted">
-                                    {{ $log->unit?->label ?? '—' }}
+                                    {{ $log->unit?->label ?? '–' }}
                                     @if ($log->pass_code)
                                         &middot; code <span class="numeric font-bold">{{ $log->pass_code }}</span>
                                     @endif
@@ -267,7 +270,7 @@
                             <div class="min-w-0">
                                 <p class="text-base font-semibold">{{ $log->visitor_name }}</p>
                                 <p class="text-sm text-muted">
-                                    {{ $log->unit?->label ?? '—' }} &middot; {{ $log->purposeLabel() }}
+                                    {{ $log->unit?->label ?? '–' }} &middot; {{ $log->purposeLabel() }}
                                     &middot; in {{ $log->entered_at?->diffForHumans(short: true) }}
                                 </p>
                             </div>

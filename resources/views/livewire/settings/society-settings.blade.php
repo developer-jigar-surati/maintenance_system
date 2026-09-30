@@ -68,7 +68,7 @@
                 </ul>
             @endif
 
-            <form wire:submit="saveProfile" class="mt-5 border-t border-subtle pt-5">
+            <form data-validate wire:submit="saveProfile" class="mt-5 border-t border-subtle pt-5">
                 <x-ui.select wire:model="profile.payment_mode" name="profile.payment_mode" label="Payment mode"
                     hint="Online requires at least one active gateway above.">
                     <option value="offline">Offline only</option>
@@ -81,7 +81,7 @@
 
         {{-- Profile --}}
         <x-ui.card title="Society details">
-            <form wire:submit="saveProfile" class="space-y-4">
+            <form data-validate wire:submit="saveProfile" class="space-y-4">
                 <div class="grid gap-4 sm:grid-cols-2">
                     <x-ui.input wire:model="profile.name" name="profile.name" label="Name" required />
 
@@ -94,7 +94,7 @@
                     <x-ui.input wire:model="profile.registration_number" name="profile.registration_number" label="Registration number" />
                     <x-ui.input wire:model="profile.gstin" name="profile.gstin" label="GSTIN" class="uppercase" />
                     <x-ui.input wire:model="profile.contact_email" name="profile.contact_email" label="Contact email" type="email" />
-                    <x-ui.input wire:model="profile.contact_phone" name="profile.contact_phone" label="Contact phone" type="tel" />
+                    <x-ui.input wire:model="profile.contact_phone" name="profile.contact_phone" label="Contact phone" type="tel" data-rule="phone" />
                 </div>
 
                 <x-ui.input wire:model="profile.address_line1" name="profile.address_line1" label="Address" />
@@ -135,7 +135,7 @@
 
         {{-- Preferences --}}
         <x-ui.card title="Preferences">
-            <form wire:submit="savePreferences" class="space-y-4">
+            <form data-validate wire:submit="savePreferences" class="space-y-4">
                 <label class="flex items-start gap-3 text-sm">
                     <input type="checkbox" wire:model="preferences.offline_requires_approval"
                         class="mt-0.5 size-4 rounded border-strong accent-[var(--accent)]">
@@ -189,25 +189,25 @@
     </div>
 
     <x-ui.modal name="gateway" title="Add a payment gateway">
-        <form wire:submit="saveGateway" class="space-y-4" id="gateway-form">
+        <form data-validate wire:submit="saveGateway" class="space-y-4" id="gateway-form">
             <x-ui.alert tone="info">
                 Keys are encrypted before they are stored, and verified with the provider
                 before online payment is switched on.
             </x-ui.alert>
 
-            <x-ui.select wire:model="provider" name="provider" label="Provider">
+            <x-ui.select wire:model="provider" name="provider" label="Provider" required>
                 <option value="razorpay">Razorpay</option>
             </x-ui.select>
 
-            <x-ui.select wire:model="environment" name="environment" label="Environment">
+            <x-ui.select wire:model="environment" name="environment" label="Environment" required>
                 <option value="test">Test</option>
                 <option value="live">Live</option>
             </x-ui.select>
 
-            <x-ui.input wire:model="keyId" name="keyId" label="Key ID" required />
-            <x-ui.input wire:model="keySecret" name="keySecret" label="Key secret" type="password" required />
+            <x-ui.input wire:model="keyId" name="keyId" label="Key ID" required maxlength="120" />
+            <x-ui.input wire:model="keySecret" name="keySecret" label="Key secret" type="password" required maxlength="200" />
             <x-ui.input wire:model="webhookSecret" name="webhookSecret" label="Webhook secret" type="password"
-                hint="Optional, but needed to confirm payments when a resident closes the tab early." />
+                hint="Optional, but needed to confirm payments when a resident closes the tab early." maxlength="200" />
         </form>
 
         <x-slot:footer>

@@ -64,7 +64,7 @@ class RunBillingCycle extends Command
                 $totalValue += $result['total'];
 
                 $this->info(sprintf(
-                    '  %s — %s: %d invoices, %s',
+                    '  %s - %s: %d invoices, %s',
                     $society->name,
                     $plan->name,
                     $result['created'],

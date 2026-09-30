@@ -56,7 +56,7 @@
                             @forelse ($plan->chargeHeads as $head)
                                 <x-ui.badge tone="neutral">{{ $head->name }}</x-ui.badge>
                             @empty
-                                <span class="text-sm text-[var(--color-critical)]">None yet — this plan cannot bill.</span>
+                                <span class="text-sm text-[var(--color-critical)]">None yet - this plan cannot bill.</span>
                             @endforelse
                         </div>
                     </div>
@@ -68,7 +68,10 @@
                                     size="sm"
                                     icon="arrow-path"
                                     wire:click="runNow({{ $plan->id }})"
-                                    wire:confirm="Raise bills for every eligible unit under this plan?"
+                                    data-confirm="Raise bills for every unit on this plan?"
+                                    data-confirm-detail="Residents are billed and, if the plan issues automatically, told straight away. A bill already raised for this period is not raised twice."
+                                    data-confirm-action="Raise the bills"
+                                    data-confirm-tone="caution"
                                     wire:loading.attr="disabled"
                                     wire:target="runNow({{ $plan->id }})"
                                 >

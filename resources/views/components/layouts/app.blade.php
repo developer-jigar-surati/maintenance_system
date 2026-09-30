@@ -71,31 +71,10 @@
     {{-- Help for the screen you are on, opened from the topbar. --}}
     <x-app.help-panel />
 
-    {{-- Toasts are announced politely so screen readers hear them. --}}
-    <div
-        aria-live="polite"
-        aria-atomic="true"
-        class="pointer-events-none fixed inset-x-0 bottom-20 z-50 flex flex-col items-center gap-2 px-4 sm:bottom-6"
-        x-data="{ messages: [] }"
-        @notify.window="
-            const id = Date.now();
-            messages.push({ id, text: $event.detail.message, tone: $event.detail.tone || 'info' });
-            setTimeout(() => messages = messages.filter(m => m.id !== id), 5000);
-        "
-    >
-        <template x-for="message in messages" :key="message.id">
-            <div
-                x-transition
-                class="pointer-events-auto max-w-sm rounded-xl border px-4 py-3 text-sm font-medium shadow-[var(--shadow-overlay)] surface-raised"
-                :class="{
-                    'border-[var(--color-positive)] text-[var(--color-positive)]': message.tone === 'positive',
-                    'border-[var(--color-critical)] text-[var(--color-critical)]': message.tone === 'critical',
-                    'border-subtle text-primary': message.tone === 'info',
-                }"
-                x-text="message.text"
-            ></div>
-        </template>
-    </div>
+    <x-app.toasts />
+
+    {{-- Asked before anything destructive happens; see resources/js/ui/confirm.js. --}}
+    <x-app.confirm-dialog />
 
     @livewireScripts
 </body>

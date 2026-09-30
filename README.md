@@ -1,4 +1,4 @@
-# Sankul — Community Maintenance Platform
+# Sankul - Community Maintenance Platform
 
 Maintenance billing, digital receipts, governance and operations for managed
 residential and commercial communities.
@@ -11,7 +11,7 @@ books in double entry so the AGM statements are derived rather than assembled.
 
 Not apartment-only. A society may be an apartment complex, a villa project,
 row houses, a gated community, a township, a plotted development, a commercial
-complex, an office park, student housing or co-living — each with its own
+complex, an office park, student housing or co-living - each with its own
 billing basis, and all on one installation.
 
 ## Stack
@@ -29,7 +29,7 @@ billing basis, and all on one installation.
 
 ## Getting started
 
-Create the two databases first — one for the app, one for the test suite:
+Create the two databases first - one for the app, one for the test suite:
 
 ```sql
 CREATE DATABASE sankul      CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -67,7 +67,7 @@ Then sign in at `/login` with any of these (password `password`):
 
 The seed builds two deliberately different societies: a 72-flat apartment
 complex billed per square foot, and a 16-villa gated community billed a flat
-amount per villa — with five months of real billing history behind both.
+amount per villa - with five months of real billing history behind both.
 
 ### A note on the dependency lock
 
@@ -76,7 +76,7 @@ dependencies as though running the oldest PHP this project supports. Without
 it, a lock file built on 8.4 pulls in Symfony 8.x, which hard-requires PHP
 8.4.1 and then refuses to install for anyone on 8.3.
 
-Leave the pin in place. It does not stop the app running on 8.4 or later — it
+Leave the pin in place. It does not stop the app running on 8.4 or later - it
 only keeps the lock file installable across every supported version. If you
 later drop 8.3 support, raise both the pin and the `php` constraint together.
 
@@ -87,9 +87,9 @@ later drop 8.3 support, raise both the pin and the `php` constraint together.
 Sign in as a platform operator and open **Platform → All societies**. That
 screen lists every community on the installation and creates new ones: the
 community's own details, plus its first administrator. Creating a society
-provisions it fully — chart of accounts, default charge heads, helpdesk
+provisions it fully - chart of accounts, default charge heads, helpdesk
 categories with SLA targets, an open financial year and its own copy of every
-role — so it is usable immediately. **Open** jumps into a society; a society
+role - so it is usable immediately. **Open** jumps into a society; a society
 still onboarding opens its setup wizard instead.
 
 The demo seed ships one operator: `super@sankul.test` / `password`.
@@ -123,7 +123,7 @@ php artisan user:super-admin you@example.com --revoke
 ```
 
 A platform operator is not a member of the societies they administer. They can
-reach any of them, but their role is held outside all of them — which is why
+reach any of them, but their role is held outside all of them - which is why
 the console lives on its own route rather than inside a society.
 
 ## How it is put together
@@ -141,8 +141,8 @@ society and an ordinary resident in another without either leaking.
 
 ### Money
 
-- **`ChargeCalculator`** resolves a rate by specificity — a unit-level override
-  beats the plan's rate, which beats the head's default — and multiplies by
+- **`ChargeCalculator`** resolves a rate by specificity - a unit-level override
+  beats the plan's rate, which beats the head's default - and multiplies by
   whatever the head bills on: area, bedrooms, residents or vehicles.
 - **`InvoiceGenerator`** turns a billing plan into invoices. A run is
   idempotent per unit and period, because bill runs get triggered by both the
@@ -152,8 +152,8 @@ society and an ordinary resident in another without either leaking.
   month cannot charge a resident twice.
 - **`PaymentRecorder`** settles money oldest-bill-first and keeps any surplus
   as unit credit rather than refusing the payment.
-- **`ReceiptIssuer`** produces the numbered digital receipt — the replacement
-  for the hand-written *rasid* — and is idempotent per payment.
+- **`ReceiptIssuer`** produces the numbered digital receipt - the replacement
+  for the hand-written *rasid* - and is idempotent per payment.
 - **`LedgerPoster`** writes the double-entry side of invoices, payments,
   expenses and interest, and refuses to save an unbalanced entry outright.
 
@@ -175,12 +175,12 @@ rather than trusting what the browser posts back.
 
 ## Modules
 
-**Money** — charge heads, billing plans, invoices, payments with an offline
+**Money** - charge heads, billing plans, invoices, payments with an offline
 approval queue, receipts, adjustments and write-offs, expenses and vendor
 bills, double-entry accounting, budgets, and reports (outstanding dues, trial
 balance, income and expenditure, balance sheet), each exportable as CSV.
 
-**Property** — blocks and wings, units of every type, owners and tenants with
+**Property** - blocks and wings, units of every type, owners and tenants with
 agreement tracking, parking allotment, vehicles, and a resident directory with
 per-society privacy controls. Who used to live in a flat is behind its own
 permission, held by the society administrator, chairman and secretary only.
@@ -190,26 +190,26 @@ reason, and a sale hands the unit over on a single day, so every unit keeps a
 readable history and a past receipt still names whoever paid it. A unit's
 occupancy status is derived from who lives there, never typed. A **site plan**
 draws the society from above and each building from the side, coloured by
-occupancy, dues or open complaints, with every flat a button — flat, or in
+occupancy, dues or open complaints, with every flat a button - flat, or in
 **3D**, where buildings are extruded by their floor count and a building's
 floors can be pulled apart to see into the middle of a tower.
 
-**Governance** — committees and office bearers, meetings with agenda, notice
+**Governance** - committees and office bearers, meetings with agenda, notice
 periods, RSVP, proxy attendance, quorum tracking, minutes and resolutions;
 action items; and polls that can be one vote per person, one per unit, or
 weighted by unit area.
 
-**Operations** — a helpdesk with per-category SLA clocks, assignment,
+**Operations** - a helpdesk with per-category SLA clocks, assignment,
 escalation and resident ratings; work orders raised from tickets, preventive
 schedules or by hand; assets with AMC contracts and expiry reminders;
 amenity booking with clash detection and per-unit caps; staff and attendance.
 
-**Security** — a gate console built for one-handed phone use, visitor
+**Security** - a gate console built for one-handed phone use, visitor
 pre-approval with a quotable code, walk-in logging with resident approval,
 material and move-in/out gate passes verified by QR, domestic help records,
 and SOS alerts.
 
-**Communication** — notices with audience targeting and read receipts, a
+**Communication** - notices with audience targeting and read receipts, a
 document vault with per-role visibility, emergency contacts, and an audit log.
 The **reminder schedule** and the **wording of every automated message** are
 the committee's to edit, and every message sent is recorded against its
@@ -239,8 +239,8 @@ nothing. `billing:run --dry` reports what would be billed without writing, and
 
 The reminder ladder is rows in the database, edited under **Settings →
 Reminders & messages**, not a constant in the code. A step is a signed number
-of days relative to the due date — `-3` is three days before, `7` is a week
-after — and reminders go out only on the days a society names. A new society
+of days relative to the due date - `-3` is three days before, `7` is a week
+after - and reminders go out only on the days a society names. A new society
 starts with `-3, 0, 7, 21, 45`, which a committee can then add to, switch off
 or delete.
 
@@ -270,7 +270,7 @@ first paint so there is no flash of the wrong theme.
 
 **Tables become cards on a phone.** From `md` up, a list is an ordinary
 semantic `<table>`. Below that the header row is hidden and each row becomes a
-stacked card with every cell captioned by its own label — one markup, two
+stacked card with every cell captioned by its own label - one markup, two
 presentations, which is what makes an eight-column financial table readable at
 390px without a second template.
 
@@ -295,15 +295,15 @@ the guides are tested against the router so one keyed on a route that no
 longer exists fails the build.
 
 Dashboard charts use a two-hue categorical palette validated against the app's
-own card surfaces — worst-pair colour-vision-deficiency ΔE 24.7 in light and
-26.8 in dark, against a target of 8 — and ship with a legend, hover tooltips
+own card surfaces - worst-pair colour-vision-deficiency ΔE 24.7 in light and
+26.8 in dark, against a target of 8 - and ship with a legend, hover tooltips
 and a table view, so nothing depends on colour alone.
 
 ### A note on the compiled assets
 
 `public/build` is committed. This app is normally run straight from a clone
 with `php artisan serve`, and a pull that brings new templates but not the CSS
-they depend on does not look like a missing build step — it looks like a
+they depend on does not look like a missing build step - it looks like a
 broken interface. Committing the output means `git pull` is enough.
 
 If you change anything under `resources/css` or `resources/js`, run
@@ -316,7 +316,7 @@ pipeline that builds on the server, re-ignore the directory.
 php artisan test
 ```
 
-The suite runs against the `sankul_test` database on MySQL — the same engine
+The suite runs against the `sankul_test` database on MySQL - the same engine
 as production, so anything engine-specific is caught here rather than in
 production. Host and credentials come from `.env`; only the database name is
 overridden in `phpunit.xml`.
@@ -327,7 +327,7 @@ simple versus compound interest and the guarantee against double-charging,
 oldest-first payment allocation and overpayment credit, gap-free receipt
 numbering across financial years, ledger balance and statement integrity,
 role-scoped permissions, amenity booking rules, the scheduled commands, and
-the platform console — including that a society's unit count is read per row
+the platform console - including that a society's unit count is read per row
 rather than per active society.
 
 Also: that a reminder goes out only on a day the schedule names and never
@@ -337,7 +337,7 @@ rather than deleting it and never leaves a unit without a billing contact,
 that the site plan's automatic layout provably never overlaps for 1 to 12
 buildings, that every help guide points at a route that exists, and that a
 past resident is never sent to the browser at all for someone without the
-permission — asserted against the raw HTML, because a name hidden behind an
+permission - asserted against the raw HTML, because a name hidden behind an
 `@if` is still there to read.
 
 One test turns lazy loading off, which the suite otherwise does not, to catch

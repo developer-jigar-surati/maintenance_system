@@ -15,7 +15,7 @@
                             {{ $data['overdueCount'] }} {{ \Illuminate\Support\Str::plural('bill', $data['overdueCount']) }}
                             past the due date.
                         @else
-                            Due shortly &mdash; no bills are overdue yet.
+                            Due shortly - no bills are overdue yet.
                         @endif
                     </p>
                 </div>

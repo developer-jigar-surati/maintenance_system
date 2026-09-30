@@ -25,7 +25,7 @@
                     {{ $receipt->receipt_number }}
                 </x-ui.td>
                 <x-ui.td label="Unit">
-                    {{ $receipt->unit?->label ?? "—" }}
+                    {{ $receipt->unit?->label ?? "-" }}
                 </x-ui.td>
                 <x-ui.td label="Received from">
                     {{ $receipt->received_from }}

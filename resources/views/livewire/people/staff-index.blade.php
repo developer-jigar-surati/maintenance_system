@@ -48,13 +48,13 @@
                     {{ $member->departmentLabel() }}
                 </x-ui.td>
                 <x-ui.td label="Designation">
-                    {{ $member->designation ?? "—" }}
+                    {{ $member->designation ?? "-" }}
                 </x-ui.td>
                 <x-ui.td label="Engaged via">
                     {{ $member->vendor?->name ?? ucwords(str_replace("_", " ", $member->employment_type)) }}
                 </x-ui.td>
                 <x-ui.td label="Phone">
-                    <span class="numeric">{{ $member->phone ?? "—" }}</span>
+                    <span class="numeric">{{ $member->phone ?? "-" }}</span>
                 </x-ui.td>
                 <x-ui.td label="Verified">
                     @if ($member->police_verified)<x-ui.badge tone="positive" dot>Police verified</x-ui.badge>@else<x-ui.badge tone="caution" dot>Pending</x-ui.badge>@endif

@@ -62,9 +62,7 @@
             <td>
                 @if ($invoice->period_start)
                     {{ $invoice->period_start->format('j M Y') }} – {{ $invoice->period_end?->format('j M Y') }}
-                @else
-                    —
-                @endif
+                @else - @endif
             </td>
             <td class="label">Due date</td>
             <td><strong>{{ $invoice->due_date->format('j F Y') }}</strong></td>

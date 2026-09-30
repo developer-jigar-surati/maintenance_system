@@ -53,7 +53,7 @@ class MessageCatalogue
                 'name' => 'Maintenance reminder',
                 'description' => 'Sent on each step of the reminder schedule for an unpaid bill.',
                 'channels' => ['email', 'sms', 'whatsapp'],
-                'subject' => 'Maintenance {{ due_phrase }} — {{ society_name }}',
+                'subject' => 'Maintenance {{ due_phrase }} - {{ society_name }}',
                 'body' => <<<'TXT'
                     Hello {{ resident_name }},
 
@@ -64,9 +64,7 @@ class MessageCatalogue
 
                     You can pay and download your receipt in the app: {{ invoice_link }}
 
-                    If you have already paid, please ignore this message.
-
-                    — {{ society_name }}
+                    If you have already paid, please ignore this message. - {{ society_name }}
                     TXT,
                 'placeholders' => [
                     'invoice_number' => 'The bill number',
@@ -86,7 +84,7 @@ class MessageCatalogue
                 'name' => 'Payment receipt',
                 'description' => 'Sent when a payment is recorded, whether it was made online or at the desk.',
                 'channels' => ['email', 'sms', 'whatsapp'],
-                'subject' => 'Receipt {{ receipt_number }} — {{ society_name }}',
+                'subject' => 'Receipt {{ receipt_number }} - {{ society_name }}',
                 'body' => <<<'TXT'
                     Hello {{ resident_name }},
 
@@ -98,9 +96,7 @@ class MessageCatalogue
 
                     Your receipt: {{ receipt_link }}
 
-                    Thank you.
-
-                    — {{ society_name }}
+                    Thank you. - {{ society_name }}
                     TXT,
                 'placeholders' => [
                     'receipt_number' => 'The receipt number',
@@ -117,7 +113,7 @@ class MessageCatalogue
                 'name' => 'New bill raised',
                 'description' => 'Sent when a billing run raises a new maintenance bill.',
                 'channels' => ['email', 'sms', 'whatsapp'],
-                'subject' => 'Maintenance bill for {{ invoice_period }} — {{ society_name }}',
+                'subject' => 'Maintenance bill for {{ invoice_period }} - {{ society_name }}',
                 'body' => <<<'TXT'
                     Hello {{ resident_name }},
 
@@ -127,9 +123,7 @@ class MessageCatalogue
                     Amount: {{ amount_total }}
                     Due on: {{ due_date }}
 
-                    View and pay: {{ invoice_link }}
-
-                    — {{ society_name }}
+                    View and pay: {{ invoice_link }} - {{ society_name }}
                     TXT,
                 'placeholders' => [
                     'invoice_number' => 'The bill number',
@@ -145,7 +139,7 @@ class MessageCatalogue
                 'name' => 'Notice published',
                 'description' => 'Sent when a circular or notice is published to residents.',
                 'channels' => ['email', 'sms', 'whatsapp'],
-                'subject' => '{{ notice_title }} — {{ society_name }}',
+                'subject' => '{{ notice_title }} - {{ society_name }}',
                 'body' => <<<'TXT'
                     Hello {{ resident_name }},
 
@@ -153,9 +147,7 @@ class MessageCatalogue
 
                     {{ notice_body }}
 
-                    Posted on {{ published_on }}. Read it in the app: {{ notice_link }}
-
-                    — {{ society_name }}
+                    Posted on {{ published_on }}. Read it in the app: {{ notice_link }} - {{ society_name }}
                     TXT,
                 'placeholders' => [
                     'notice_title' => 'The notice heading',
@@ -170,7 +162,7 @@ class MessageCatalogue
                 'name' => 'Meeting notice',
                 'description' => 'The formal notice of a general body or committee meeting, with its agenda.',
                 'channels' => ['email', 'whatsapp'],
-                'subject' => 'Notice of {{ meeting_type }} on {{ meeting_date }} — {{ society_name }}',
+                'subject' => 'Notice of {{ meeting_type }} on {{ meeting_date }} - {{ society_name }}',
                 'body' => <<<'TXT'
                     Hello {{ resident_name }},
 
@@ -185,9 +177,7 @@ class MessageCatalogue
 
                     Members unable to attend may appoint a proxy in writing. Quorum requirements apply.
 
-                    Details: {{ meeting_link }}
-
-                    — {{ society_name }}
+                    Details: {{ meeting_link }} - {{ society_name }}
                     TXT,
                 'placeholders' => [
                     'meeting_title' => 'The meeting title',
@@ -204,7 +194,7 @@ class MessageCatalogue
                 'name' => 'Minutes circulated',
                 'description' => 'Sent when the minutes of a meeting are finalised and circulated.',
                 'channels' => ['email'],
-                'subject' => 'Minutes of {{ meeting_title }} — {{ society_name }}',
+                'subject' => 'Minutes of {{ meeting_title }} - {{ society_name }}',
                 'body' => <<<'TXT'
                     Hello {{ resident_name }},
 
@@ -215,9 +205,7 @@ class MessageCatalogue
                     Resolutions passed:
                     {{ resolutions }}
 
-                    Read the full minutes: {{ meeting_link }}
-
-                    — {{ society_name }}
+                    Read the full minutes: {{ meeting_link }} - {{ society_name }}
                     TXT,
                 'placeholders' => [
                     'meeting_title' => 'The meeting title',
@@ -236,13 +224,11 @@ class MessageCatalogue
                 'body' => <<<'TXT'
                     Hello {{ resident_name }},
 
-                    Your complaint {{ ticket_number }} — {{ ticket_subject }} — is now {{ ticket_status }}.
+                    Your complaint {{ ticket_number }} - {{ ticket_subject }} - is now {{ ticket_status }}.
 
                     {{ ticket_note }}
 
-                    Follow it here: {{ ticket_link }}
-
-                    — {{ society_name }}
+                    Follow it here: {{ ticket_link }} - {{ society_name }}
                     TXT,
                 'placeholders' => [
                     'ticket_number' => 'The complaint reference',
@@ -262,9 +248,7 @@ class MessageCatalogue
                 'body' => <<<'TXT'
                     {{ visitor_name }} ({{ visitor_purpose }}) is at the gate for {{ unit_label }}.
 
-                    Approve or decline in the app: {{ visitor_link }}
-
-                    — {{ society_name }}
+                    Approve or decline in the app: {{ visitor_link }} - {{ society_name }}
                     TXT,
                 'placeholders' => [
                     'visitor_name' => 'Who is at the gate',

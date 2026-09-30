@@ -49,17 +49,17 @@
                 <x-ui.td label="Unit">{{ $resident->unit?->label }}</x-ui.td>
                 <x-ui.td label="Relation">{{ ucwords(str_replace('_', ' ', $resident->relation)) }}</x-ui.td>
                 <x-ui.td label="Contact">
-                    <span class="numeric">{{ $resident->user?->phone ?? '—' }}</span>
+                    <span class="numeric">{{ $resident->user?->phone ?? '–' }}</span>
                     <span class="block truncate text-xs text-muted">{{ $resident->user?->email }}</span>
                 </x-ui.td>
-                <x-ui.td label="Since">{{ $resident->start_date?->format('M Y') ?? '—' }}</x-ui.td>
+                <x-ui.td label="Since">{{ $resident->start_date?->format('M Y') ?? '–' }}</x-ui.td>
                 <x-ui.td label="Agreement ends">
                     @if ($resident->agreement_end_date)
                         <span class="{{ $resident->agreementExpiringWithin(60) ? 'font-semibold text-[var(--color-caution)]' : '' }}">
                             {{ $resident->agreement_end_date->format('j M Y') }}
                         </span>
                     @else
-                        <span class="text-muted">—</span>
+                        <span class="text-muted">–</span>
                     @endif
                 </x-ui.td>
                 <x-ui.td label="Status">
@@ -79,7 +79,7 @@
     {{-- One person's whole record, which is rarely one unit: people move
          within a society, and a deposit query three years later needs the
          dates. --}}
-    <x-ui.modal name="resident-history" :title="$person ? $person->name.' — where they have lived' : 'History'" max-width="xl">
+    <x-ui.modal name="resident-history" :title="$person ? $person->name.' - where they have lived' : 'History'" max-width="xl">
         @if ($person)
             @if ($personHistory->isEmpty())
                 <x-ui.empty-state icon="users" title="No occupancy recorded for this person" />
@@ -92,7 +92,7 @@
                                 <div>
                                     <p class="text-sm font-semibold">{{ $stay->unit?->label ?? 'Unit removed' }}</p>
                                     <p class="numeric mt-0.5 text-xs text-secondary">
-                                        {{ $stay->start_date?->format('j M Y') ?? '—' }} &rarr;
+                                        {{ $stay->start_date?->format('j M Y') ?? '–' }} &rarr;
                                         {{ $past ? ($stay->end_date?->format('j M Y') ?? 'ended') : 'present' }}
                                     </p>
                                 </div>

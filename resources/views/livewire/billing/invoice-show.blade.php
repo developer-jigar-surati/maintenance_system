@@ -195,7 +195,9 @@
                         variant="secondary"
                         class="w-full"
                         wire:click="cancel"
-                        wire:confirm="Cancel this invoice? This cannot be undone."
+                        data-confirm="Cancel this invoice?"
+                        data-confirm-detail="The bill is voided and its ledger entries reversed. This cannot be undone."
+                        data-confirm-action="Cancel the invoice"
                     >
                         Cancel invoice
                     </x-ui.button>
@@ -207,7 +209,7 @@
     {{-- Offline payment capture --}}
     @if ($canRecord)
         <x-ui.modal name="record-payment" title="Record a payment">
-            <form wire:submit="recordPayment" class="space-y-4" id="record-payment-form">
+            <form data-validate wire:submit="recordPayment" class="space-y-4" id="record-payment-form">
                 <x-ui.input wire:model="amount" name="amount" label="Amount received" type="number" step="0.01" min="0.01" required />
 
                 <x-ui.select wire:model="method" name="method" label="Method" required>
@@ -217,8 +219,8 @@
                 </x-ui.select>
 
                 <x-ui.input wire:model="paidAt" name="paidAt" label="Date received" type="date" required />
-                <x-ui.input wire:model="reference" name="reference" label="Reference number" hint="Cheque number, UPI reference, and so on." />
-                <x-ui.textarea wire:model="notes" name="notes" label="Notes" rows="2" />
+                <x-ui.input wire:model="reference" name="reference" label="Reference number" hint="Cheque number, UPI reference, and so on." maxlength="120" />
+                <x-ui.textarea wire:model="notes" name="notes" label="Notes" rows="2" maxlength="500" />
             </form>
 
             <x-slot:footer>

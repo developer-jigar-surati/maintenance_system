@@ -80,24 +80,24 @@
 
     @can(\App\Enums\Permission::NOTICE_MANAGE)
         <x-ui.modal name="new-notice" title="Post a notice" max-width="xl">
-            <form wire:submit="publish" class="space-y-4" id="new-notice-form">
-                <x-ui.input wire:model="title" name="title" label="Title" required />
-                <x-ui.textarea wire:model="body" name="body" label="Message" rows="6" required />
+            <form data-validate wire:submit="publish" class="space-y-4" id="new-notice-form">
+                <x-ui.input wire:model="title" name="title" label="Title" required minlength="4" maxlength="180" />
+                <x-ui.textarea wire:model="body" name="body" label="Message" rows="6" required minlength="10" />
 
                 <div class="grid gap-3 sm:grid-cols-3">
-                    <x-ui.select wire:model="newCategory" name="newCategory" label="Category">
+                    <x-ui.select wire:model="newCategory" name="newCategory" label="Category" required>
                         @foreach (['general', 'urgent', 'maintenance', 'event', 'financial', 'meeting', 'security'] as $c)
                             <option value="{{ $c }}">{{ ucfirst($c) }}</option>
                         @endforeach
                     </x-ui.select>
 
-                    <x-ui.select wire:model="priority" name="priority" label="Priority">
+                    <x-ui.select wire:model="priority" name="priority" label="Priority" required>
                         <option value="normal">Normal</option>
                         <option value="important">Important</option>
                         <option value="critical">Critical</option>
                     </x-ui.select>
 
-                    <x-ui.select wire:model="audience" name="audience" label="Who sees it">
+                    <x-ui.select wire:model="audience" name="audience" label="Who sees it" required>
                         <option value="all">Everyone</option>
                         <option value="owners">Owners only</option>
                         <option value="tenants">Tenants only</option>

@@ -25,7 +25,7 @@ class Wizard extends Component
 {
     public int $step = 1;
 
-    // Step 1 — identity
+    // Step 1 - identity
     public string $type = 'apartment';
 
     public string $areaUnit = 'sqft';
@@ -34,19 +34,19 @@ class Wizard extends Component
 
     public string $city = '';
 
-    // Step 2 — structure
+    // Step 2 - structure
     public string $blockNames = '';
 
     public string $unitPattern = '';
 
-    // Step 3 — charges
+    // Step 3 - charges
     public array $rates = [];
 
     public string $cycle = 'monthly';
 
     public int $dueAfterDays = 15;
 
-    // Step 4 — collection
+    // Step 4 - collection
     public string $paymentMode = 'offline';
 
     public bool $requireApproval = true;

@@ -39,7 +39,9 @@
                     <div class="mt-auto flex gap-2 pt-4">
                         <x-ui.button size="sm" variant="secondary" wire:click="edit({{ $role->id }})">Edit</x-ui.button>
                         <x-ui.button size="sm" variant="ghost" wire:click="resetToDefaults({{ $role->id }})"
-                            wire:confirm="Reset this role to its default permissions?">Reset</x-ui.button>
+                            data-confirm="Reset this role to its defaults?"
+                            data-confirm-detail="Every permission your committee has added or removed on this role is discarded."
+                            data-confirm-action="Reset it">Reset</x-ui.button>
                     </div>
                 </div>
             @endforeach
@@ -49,7 +51,7 @@
     <x-ui.modal name="edit-role"
         :title="$editingRole ? 'Permissions for '.\App\Enums\Role::label($editingRole->name) : 'Edit role'"
         max-width="2xl">
-        <form wire:submit="save" id="edit-role-form" class="space-y-5">
+        <form data-validate wire:submit="save" id="edit-role-form" class="space-y-5">
             @foreach ($groupedPermissions as $module => $permissions)
                 <fieldset>
                     <legend class="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">

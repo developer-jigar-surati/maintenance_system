@@ -26,14 +26,14 @@
                     @if ($vendor->gstin)<span class="block text-xs text-muted">GSTIN {{ $vendor->gstin }}</span>@endif
                 </x-ui.td>
                 <x-ui.td label="Category">
-                    {{ $vendor->category ?? "—" }}
+                    {{ $vendor->category ?? "-" }}
                 </x-ui.td>
                 <x-ui.td label="Contact">
-                    {{ $vendor->contact_person ?? "—" }}
+                    {{ $vendor->contact_person ?? "-" }}
                     @if ($vendor->phone)<span class="numeric block text-xs text-muted">{{ $vendor->phone }}</span>@endif
                 </x-ui.td>
                 <x-ui.td label="Contract ends">
-                    @if ($vendor->contract_end){{ $vendor->contract_end->format("j M Y") }}@if ($vendor->contract_end->isPast())<span class="block text-xs font-medium text-[var(--color-critical)]">Expired</span>@endif @else<span class="text-muted">—</span>@endif
+                    @if ($vendor->contract_end){{ $vendor->contract_end->format("j M Y") }}@if ($vendor->contract_end->isPast())<span class="block text-xs font-medium text-[var(--color-critical)]">Expired</span>@endif @else<span class="text-muted">–</span>@endif
                 </x-ui.td>
                 <x-ui.td label="Status">
                     <x-ui.status :value="$vendor->is_active ? 'active' : 'inactive'" />

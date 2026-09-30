@@ -50,10 +50,10 @@
                     {{ ucwords(str_replace("_", " ", $asset->category)) }}
                 </x-ui.td>
                 <x-ui.td label="Location">
-                    {{ $asset->location ?? $asset->block?->name ?? "—" }}
+                    {{ $asset->location ?? $asset->block?->name ?? "-" }}
                 </x-ui.td>
                 <x-ui.td label="Warranty">
-                    @if ($asset->warranty_expires_on){{ $asset->warranty_expires_on->format("M Y") }}@if ($asset->warranty_expires_on->isPast())<span class="block text-xs text-muted">Expired</span>@endif @else<span class="text-muted">—</span>@endif
+                    @if ($asset->warranty_expires_on){{ $asset->warranty_expires_on->format("M Y") }}@if ($asset->warranty_expires_on->isPast())<span class="block text-xs text-muted">Expired</span>@endif @else<span class="text-muted">–</span>@endif
                 </x-ui.td>
                 <x-ui.td label="AMC">
                     @php $amc = $asset->amcContracts->firstWhere("status", "active"); @endphp

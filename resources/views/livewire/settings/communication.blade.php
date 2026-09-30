@@ -32,7 +32,7 @@
                 Each step is a number of days relative to the due date. A step at
                 <strong>&minus;3</strong> writes to a resident three days before their bill is due;
                 a step at <strong>7</strong> writes a week after it fell due. Reminders go out once
-                a day, and only on the days named here &mdash; a resident reminded every morning
+                a day, and only on the days named here - a resident reminded every morning
                 stops reading reminders.
             </x-ui.alert>
 
@@ -46,7 +46,7 @@
                     <x-ui.empty-state icon="clock" title="No reminders are scheduled"
                         description="Nothing is sent for this event until you add at least one step." />
                 @else
-                    <form wire:submit="saveSchedule" class="space-y-3">
+                    <form data-validate wire:submit="saveSchedule" class="space-y-3">
                         @foreach ($rules as $id => $rule)
                             <div class="rounded-xl border border-subtle p-4">
                                 <div class="flex flex-wrap items-start gap-4">
@@ -107,7 +107,9 @@
                                             variant="ghost"
                                             icon="trash"
                                             wire:click="removeStep({{ $id }})"
-                                            wire:confirm="Remove this reminder step?"
+                                            data-confirm="Remove this reminder step?"
+                                            data-confirm-detail="Residents will no longer be written to on this day. The other steps are unaffected."
+                                            data-confirm-action="Remove it"
                                         ><span class="sr-only">Remove this step</span></x-ui.button>
                                     </div>
                                 </div>
@@ -122,7 +124,7 @@
             </x-ui.card>
 
             <x-ui.card title="Add a step" description="A day, relative to the due date.">
-                <form wire:submit="addStep" class="flex flex-wrap items-end gap-3">
+                <form data-validate wire:submit="addStep" class="flex flex-wrap items-end gap-3">
                     <x-ui.input
                         wire:model="newOffset"
                         name="newOffset"
@@ -131,15 +133,13 @@
                         hint="Negative is before, 0 is the day itself."
                         class="w-48"
                         min="-90"
-                        max="365"
-                    />
+                        max="365" required />
                     <x-ui.input
                         wire:model="newLabel"
                         name="newLabel"
                         label="What it is for (optional)"
                         placeholder="Final notice"
-                        class="min-w-64 flex-1"
-                    />
+                        class="min-w-64 flex-1" maxlength="120" />
                     <x-ui.button type="submit" icon="plus">Add step</x-ui.button>
                 </form>
             </x-ui.card>
@@ -150,7 +150,7 @@
     @if ($tab === 'templates')
         <div id="panel-templates" role="tabpanel" aria-labelledby="tab-templates" class="space-y-4">
             <x-ui.alert tone="info" title="Placeholders">
-                Anything in double braces &mdash; <code>&#123;&#123; resident_name &#125;&#125;</code> &mdash;
+                Anything in double braces - <code>&#123;&#123; resident_name &#125;&#125;</code> -
                 is filled in when the message is sent. Each message offers its own list, and the editor
                 shows you the finished text before you save.
             </x-ui.alert>
@@ -174,7 +174,9 @@
                                 @if ($template['customised'])
                                     <x-ui.button size="sm" variant="ghost"
                                         wire:click="resetTemplate('{{ $template['key'] }}')"
-                                        wire:confirm="Go back to the standard wording for this message?"
+                                        data-confirm="Go back to the standard wording?"
+                                        data-confirm-detail="Your own wording for this message is deleted and cannot be recovered."
+                                        data-confirm-action="Use the standard wording"
                                     >Reset</x-ui.button>
                                 @endif
                                 <x-ui.button size="sm" variant="secondary" icon="pencil"
@@ -201,7 +203,7 @@
                         <x-ui.td label="Message" primary>
                             {{ $dispatch->subject ?: \Illuminate\Support\Str::headline($dispatch->template_key) }}
                         </x-ui.td>
-                        <x-ui.td label="To">{{ $dispatch->user?->name ?? $dispatch->recipient ?? '—' }}</x-ui.td>
+                        <x-ui.td label="To">{{ $dispatch->user?->name ?? $dispatch->recipient ?? '–' }}</x-ui.td>
                         <x-ui.td label="Channel">{{ ucfirst($dispatch->channel) }}</x-ui.td>
                         <x-ui.td label="Status">
                             <x-ui.badge :tone="match ($dispatch->status) {
@@ -220,7 +222,7 @@
     {{-- ---------------------------------------------------------------- --}}
     <x-ui.modal name="edit-template" title="Edit the wording" max-width="2xl">
         @if ($preview)
-            <form wire:submit="saveTemplate" class="space-y-4">
+            <form data-validate wire:submit="saveTemplate" class="space-y-4">
                 <x-ui.input wire:model.live.debounce.400ms="subject" name="subject" label="Subject line" />
 
                 <x-ui.textarea wire:model.live.debounce.400ms="body" name="body" label="Message" rows="12"
@@ -231,8 +233,7 @@
                         {{-- Braces are built from entities: a literal {{ inside an echo would be compiled. --}}
                         @foreach ($preview['unknown'] as $token)
                             <code class="font-mono">&#123;&#123; {{ $token }} &#125;&#125;</code>@if (! $loop->last), @endif
-                        @endforeach
-                        — these are not filled in for this message, and will come out blank.
+                        @endforeach - these are not filled in for this message, and will come out blank.
                     </x-ui.alert>
                 @endif
 

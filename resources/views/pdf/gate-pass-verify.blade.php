@@ -22,7 +22,7 @@
                 </span>
 
                 <h1 class="text-lg font-bold">
-                    {{ $usable ? 'Valid — allow through' : 'Not valid right now' }}
+                    {{ $usable ? 'Valid - allow through' : 'Not valid right now' }}
                 </h1>
                 <p class="mt-1 text-sm text-secondary">
                     {{ $pass->typeLabel() }} · {{ $pass->society->name }}
@@ -39,7 +39,7 @@
                     </div>
                     <div class="flex justify-between gap-3">
                         <dt class="text-secondary">Unit</dt>
-                        <dd>{{ $pass->unit?->label ?? '—' }}</dd>
+                        <dd>{{ $pass->unit?->label ?? '–' }}</dd>
                     </div>
                     <div class="flex justify-between gap-3">
                         <dt class="text-secondary">Valid until</dt>

@@ -1,6 +1,6 @@
 <div>
     <x-ui.page-header
-        :title="$block ? 'Plan — '.$block->name : 'Site plan'"
+        :title="$block ? 'Plan - '.$block->name : 'Site plan'"
         :description="$block
             ? ($floors->isEmpty()
                 ? 'No units recorded in this building yet.'
@@ -78,281 +78,283 @@
 
     {{-- =============================== SITE ============================ --}}
     @if (! $block)
-        @if ($arranging)
-            <x-ui.alert tone="info" class="mb-4" title="Arranging the site">
-                Positions are percentages of the plot: <strong>x</strong> across from the left,
-                <strong>y</strong> down from the top. Type rather than drag, so this works with a
-                keyboard and on a phone. The plan below updates as you go.
-            </x-ui.alert>
-        @endif
+        @php
+            $seed = $blocks->mapWithKeys(fn (array $b) => [$b['id'] => [
+                'x' => $b['x'], 'y' => $b['y'], 'width' => $b['width'], 'height' => $b['height'],
+            ]])->all();
+        @endphp
 
-        @if ($blocks->isEmpty())
-            <x-ui.empty-state icon="building" title="No buildings yet"
-                description="Add blocks or wings under Units, and they will appear on the plan." />
-        @else
-            @php $unarranged = $blocks->where('arranged', false)->count(); @endphp
-
-            @if ($unarranged > 0 && ! $arranging)
-                <x-ui.alert tone="caution" class="mb-4"
-                    title="{{ $unarranged }} {{ \Illuminate\Support\Str::plural('building', $unarranged) }} laid out automatically">
-                    They are on a tidy grid rather than where they actually stand.
-                    @if ($canArrange) Use &ldquo;Arrange buildings&rdquo; to match your site. @endif
+        {{--
+            One component holds the whole site view: where each building sits,
+            and the angle it is seen from. Both modes read from it, so turning
+            the plot while dragging keeps the building under the pointer.
+        --}}
+        <div
+            x-data="sitePlanArranger({
+                positions: {{ Illuminate\Support\Js::from($arranging ? ($positions ?: $seed) : $seed) }},
+                spin: 0,
+                tilt: {{ $mode === '3d' ? 58 : 0 }},
+                zoom: {{ $mode === '3d' ? 0.95 : 1 }},
+            })"
+            x-on:pointermove.window="move($event)"
+            x-on:pointerup.window="end()"
+            x-on:pointercancel.window="end()"
+        >
+            @if ($arranging)
+                <x-ui.alert tone="info" class="mb-4" title="Arranging the site">
+                    Drag a building to move it, or drag the corner handle to resize it.
+                    With a building focused, the arrow keys move it, shift moves it further,
+                    and holding alt resizes. The numbers below stay in step either way.
                 </x-ui.alert>
             @endif
 
-            @if ($mode === '3d')
-            {{--
-                The 3D site.
+            @if ($blocks->isEmpty())
+                <x-ui.empty-state icon="building" title="No buildings yet"
+                    description="Add blocks or wings under Units, and they will appear on the plan." />
+            @else
+                @php $unarranged = $blocks->where('arranged', false)->count(); @endphp
 
-                A ground plane tilted away from the viewer, with each building
-                extruded along +Z by its floor count -- which is what makes a
-                six-storey block read as taller than a row of villas, and what
-                a flat plan cannot show. Every building is still a real button
-                carrying its own label, so the scene works by keyboard and
-                reads out to a screen reader exactly as the flat plan does.
+                @if ($unarranged > 0 && ! $arranging)
+                    <x-ui.alert tone="caution" class="mb-4"
+                        title="{{ $unarranged }} {{ \Illuminate\Support\Str::plural('building', $unarranged) }} laid out automatically">
+                        They are on a tidy grid rather than where they actually stand.
+                        @if ($canArrange) Use &ldquo;Arrange buildings&rdquo; to match your site. @endif
+                    </x-ui.alert>
+                @endif
 
-                Orientation is held in Alpine rather than on the server: a
-                quarter turn should be instant, not a round trip.
-            --}}
-            <div
-                class="surface-card overflow-hidden p-3 sm:p-5"
-                x-data="{
-                    narrow: window.innerWidth < 640,
-                    spin: 0,
-                    tilt: 58,
-                    zoom: window.innerWidth < 640 ? 0.78 : 0.95,
-                    turn(by) { this.spin = (this.spin + by) % 360 },
-                    reset() { this.spin = 0; this.tilt = 58; this.zoom = this.narrow ? 0.78 : 0.95 },
-                }"
-            >
-                <div
-                    class="scene-3d relative aspect-square w-full overflow-hidden rounded-xl surface-sunken sm:aspect-[4/3]"
-                    role="group"
-                    aria-label="Three-dimensional site plan of {{ $society->name }}"
-                >
+                {{-- Where a drag or a key press is read out, since moving a
+                     building is otherwise silent. --}}
+                <p class="sr-only" aria-live="polite" x-text="announcement"></p>
+
+                <div class="surface-card overflow-hidden p-3 sm:p-5">
                     <div
-                        class="scene-world"
-                        x-bind:style="`--spin:${spin}deg; --tilt:${tilt}deg; --zoom:${zoom}`"
+                        @class([
+                            'relative w-full overflow-hidden rounded-xl surface-sunken',
+                            'aspect-square sm:aspect-[4/3]' => $mode === '3d',
+                            'aspect-[4/3]' => $mode === '2d',
+                            'scene-3d' => $mode === '3d',
+                        ])
+                        x-ref="plot"
+                        role="group"
+                        aria-label="{{ $mode === '3d' ? 'Three-dimensional site plan' : 'Site plan' }} of {{ $society->name }}"
                     >
-                        {{-- The plot itself, so buildings stand on something. --}}
-                        <div class="absolute inset-0 rounded-lg surface-inset"
-                            style="background-image:
-                                linear-gradient(to right, var(--border-subtle) 1px, transparent 1px),
-                                linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px);
-                                background-size: 10% 10%"
-                            aria-hidden="true"></div>
-
-                        {{-- Landmarks lie flat on the ground, as they do. --}}
-                        @foreach ($features as $feature)
-                            <div
-                                class="absolute flex items-center justify-center rounded-md border border-dashed border-strong surface-raised/60 text-center"
-                                style="left: {{ $feature->plan_x }}%; top: {{ $feature->plan_y }}%; width: {{ $feature->plan_width }}%; height: {{ $feature->plan_height }}%"
-                                aria-hidden="true"
-                            >
-                                <span class="truncate px-1 text-[0.5rem] font-medium text-muted">{{ $feature->name }}</span>
-                            </div>
-                        @endforeach
-
-                        @foreach ($blocks as $shape)
-                            {{-- Extrusion is the floor count, so height means
-                                 something rather than being decoration. --}}
-                            <div
-                                class="solid-3d"
-                                wire:key="solid-{{ $shape['id'] }}"
-                                style="left: {{ $shape['x'] }}%; top: {{ $shape['y'] }}%; width: {{ $shape['width'] }}%; height: {{ $shape['height'] }}%; --extrude: {{ min(160, max(16, $shape['floors'] * 16)) }}px"
-                            >
-                                <div class="face face-n" aria-hidden="true"></div>
-                                <div class="face face-s" aria-hidden="true"></div>
-                                <div class="face face-w" aria-hidden="true"></div>
-                                <div class="face face-e" aria-hidden="true"></div>
-
-                                {{-- The roof carries the label and the click:
-                                     it is the face that always faces you. --}}
-                                <button
-                                    type="button"
-                                    wire:click="openBlock({{ $shape['id'] }})"
-                                    class="face face-roof cursor-pointer transition-[filter] hover:brightness-95 focus-visible:brightness-95"
-                                    aria-label="{{ $shape['name'] }}: {{ $shape['units'] }} units over {{ $shape['floors'] }} floors. Open its floor plan."
-                                >
-                                    <span class="billboard">
-                                        <span class="truncate text-base font-bold accent-text">{{ $shape['name'] }}</span>
-                                        <span class="numeric truncate text-[0.625rem] font-medium text-secondary">
-                                            {{ $shape['floors'] }}F · {{ $shape['units'] }}U
-                                        </span>
-                                    </span>
-                                </button>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-
-                {{-- Orientation controls. Buttons and a slider rather than
-                     drag, so this works with a keyboard and on a phone. --}}
-                <div class="mt-4 flex flex-wrap items-center gap-4">
-                    <div class="flex items-center gap-2">
-                        <x-ui.button size="icon" variant="secondary" x-on:click="turn(-45)">
-                            <x-ui.icon name="arrow-path" class="size-4 -scale-x-100" />
-                            <span class="sr-only">Turn the site 45 degrees anticlockwise</span>
-                        </x-ui.button>
-                        <x-ui.button size="icon" variant="secondary" x-on:click="turn(45)">
-                            <x-ui.icon name="arrow-path" class="size-4" />
-                            <span class="sr-only">Turn the site 45 degrees clockwise</span>
-                        </x-ui.button>
-                    </div>
-
-                    <div class="flex min-w-48 flex-1 items-center gap-3">
-                        <label for="scene-tilt" class="shrink-0 text-xs font-medium text-secondary">Tilt</label>
-                        <input
-                            id="scene-tilt"
-                            type="range"
-                            min="20"
-                            max="80"
-                            step="1"
-                            x-model.number="tilt"
-                            class="h-11 w-full accent-[var(--accent)]"
-                        >
-                    </div>
-
-                    <div class="flex min-w-40 flex-1 items-center gap-3">
-                        <label for="scene-zoom" class="shrink-0 text-xs font-medium text-secondary">Zoom</label>
-                        <input
-                            id="scene-zoom"
-                            type="range"
-                            min="0.5"
-                            max="1.3"
-                            step="0.02"
-                            x-model.number="zoom"
-                            class="h-11 w-full accent-[var(--accent)]"
-                        >
-                    </div>
-
-                    <x-ui.button size="sm" variant="ghost" x-on:click="reset()">Reset the view</x-ui.button>
-                </div>
-            </div>
-            @endif
-
-            @if ($mode === '2d')
-            {{--
-                The flat plan. A padded square whose children are positioned in
-                percentages, so the whole plan scales with the screen and
-                every building stays a real button: focusable, and announced
-                with its own name and figures.
-            --}}
-            <div class="surface-card overflow-hidden p-3 sm:p-5">
-                <div class="relative w-full overflow-hidden rounded-xl surface-sunken"
-                    style="aspect-ratio: 4 / 3"
-                    role="group"
-                    aria-label="Site plan of {{ $society->name }}">
-
-                    {{-- A faint grid, so the eye has something to measure against. --}}
-                    <div class="pointer-events-none absolute inset-0 opacity-40"
-                        style="background-image:
-                            linear-gradient(to right, var(--border-subtle) 1px, transparent 1px),
-                            linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px);
-                            background-size: 10% 10%"
-                        aria-hidden="true"></div>
-
-                    @foreach ($features as $feature)
                         <div
-                            class="absolute flex flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-strong surface-inset p-1 text-center"
-                            style="left: {{ $feature->plan_x }}%; top: {{ $feature->plan_y }}%; width: {{ $feature->plan_width }}%; height: {{ $feature->plan_height }}%"
+                            @class(['scene-world' => $mode === '3d', 'absolute inset-0' => $mode === '2d'])
+                            @if ($mode === '3d')
+                                x-bind:style="`--spin:${spin}deg; --tilt:${tilt}deg; --zoom:${zoom}; --pan:2%`"
+                            @endif
                         >
-                            <x-ui.icon :name="$feature->icon()" class="size-4 text-muted" />
-                            <span class="truncate text-[0.625rem] font-medium text-muted">{{ $feature->name }}</span>
-                        </div>
-                    @endforeach
+                            {{-- A faint grid, so the eye has something to measure against. --}}
+                            <div class="pointer-events-none absolute inset-0 {{ $mode === '3d' ? 'rounded-lg surface-inset' : 'opacity-40' }}"
+                                style="background-image:
+                                    linear-gradient(to right, var(--border-subtle) 1px, transparent 1px),
+                                    linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px);
+                                    background-size: 10% 10%"
+                                aria-hidden="true"></div>
 
-                    @foreach ($blocks as $shape)
-                        @php
-                            $position = $arranging ? ($positions[$shape['id']] ?? $shape) : $shape;
-                            $x = $position['x'] ?? $shape['x'];
-                            $y = $position['y'] ?? $shape['y'];
-                            $w = $position['width'] ?? $shape['width'];
-                            $h = $position['height'] ?? $shape['height'];
-                        @endphp
-                        <button
-                            type="button"
-                            wire:click="openBlock({{ $shape['id'] }})"
-                            wire:key="block-{{ $shape['id'] }}"
-                            @disabled($arranging)
-                            class="absolute flex flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-[var(--accent)] accent-soft-bg p-2 text-center transition-transform hover:scale-[1.02] focus-visible:scale-[1.02] disabled:hover:scale-100"
-                            style="left: {{ $x }}%; top: {{ $y }}%; width: {{ $w }}%; height: {{ $h }}%"
-                            aria-label="{{ $shape['name'] }}: {{ $shape['units'] }} units over {{ $shape['floors'] }} floors. Open its floor plan."
-                        >
-                            <span class="truncate text-sm font-bold accent-text">{{ $shape['name'] }}</span>
-                            <span class="numeric truncate text-[0.625rem] text-secondary">
-                                {{ $shape['units'] }} {{ \Illuminate\Support\Str::plural('unit', $shape['units']) }}
-                            </span>
-                            <span class="numeric truncate text-[0.625rem] text-muted">
-                                {{ $shape['floors'] }} {{ \Illuminate\Support\Str::plural('floor', $shape['floors']) }}
-                            </span>
-                        </button>
-                    @endforeach
-                </div>
-            </div>
+                            @foreach ($features as $feature)
+                                <div
+                                    class="absolute flex flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-strong {{ $mode === '3d' ? 'surface-raised/60' : 'surface-inset' }} p-1 text-center"
+                                    style="left: {{ $feature->plan_x }}%; top: {{ $feature->plan_y }}%; width: {{ $feature->plan_width }}%; height: {{ $feature->plan_height }}%"
+                                    aria-hidden="true"
+                                >
+                                    @if ($mode === '2d')
+                                        <x-ui.icon :name="$feature->icon()" class="size-4 text-muted" />
+                                    @endif
+                                    <span class="truncate text-[0.625rem] font-medium text-muted">{{ $feature->name }}</span>
+                                </div>
+                            @endforeach
 
-            @endif
+                            @foreach ($blocks as $shape)
+                                @php
+                                    $fallback = "{x:{$shape['x']},y:{$shape['y']},width:{$shape['width']},height:{$shape['height']}}";
+                                    $label = $shape['name'].': '.$shape['units'].' units over '.$shape['floors'].' floors.';
+                                @endphp
 
-            @if ($arranging)
-                <x-ui.card title="Positions" class="mt-5"
-                    description="All four numbers are percentages of the plot.">
-                    <form wire:submit="saveArrangement" class="space-y-3">
-                        @foreach ($blocks as $shape)
-                            <div class="flex flex-wrap items-end gap-3 rounded-xl border border-subtle p-3">
-                                <p class="w-24 shrink-0 text-sm font-semibold">{{ $shape['name'] }}</p>
-                                @foreach ([
-                                    'x' => 'From left',
-                                    'y' => 'From top',
-                                    'width' => 'Width',
-                                    'height' => 'Height',
-                                ] as $field => $label)
-                                    <div class="w-28">
-                                        <x-ui.input
-                                            type="number"
-                                            min="0"
-                                            max="100"
-                                            :label="$label"
-                                            :id="'pos-'.$shape['id'].'-'.$field"
-                                            wire:model.live.debounce.300ms="positions.{{ $shape['id'] }}.{{ $field }}"
-                                        />
+                                @if ($mode === '3d')
+                                    <div
+                                        class="solid-3d"
+                                        wire:key="solid-{{ $shape['id'] }}"
+                                        x-bind:style="styleFor({{ $shape['id'] }}, {{ $fallback }}) + '; --extrude: {{ min(160, max(16, $shape['floors'] * 16)) }}px'"
+                                    >
+                                        <div class="face face-n" aria-hidden="true"></div>
+                                        <div class="face face-s" aria-hidden="true"></div>
+                                        <div class="face face-w" aria-hidden="true"></div>
+                                        <div class="face face-e" aria-hidden="true"></div>
+
+                                        {{-- The roof is the face always turned
+                                             towards you, so it carries the label,
+                                             the click and the drag. --}}
+                                        <button
+                                            type="button"
+                                            @if ($arranging)
+                                                x-on:pointerdown="start($event, {{ $shape['id'] }})"
+                                                x-on:keydown="nudge($event, {{ $shape['id'] }})"
+                                                class="face face-roof touch-none transition-[filter] hover:brightness-95"
+                                                :class="dragging?.id === {{ $shape['id'] }} ? 'cursor-grabbing brightness-90' : 'cursor-grab'"
+                                                aria-label="{{ $label }} Drag to move it, or use the arrow keys."
+                                            @else
+                                                wire:click="openBlock({{ $shape['id'] }})"
+                                                class="face face-roof cursor-pointer transition-[filter] hover:brightness-95"
+                                                aria-label="{{ $label }} Open its floor plan."
+                                            @endif
+                                        >
+                                            <span class="billboard">
+                                                <span class="truncate text-base font-bold accent-text">{{ $shape['name'] }}</span>
+                                                <span class="numeric truncate text-[0.625rem] font-medium text-secondary">
+                                                    {{ $shape['floors'] }}F · {{ $shape['units'] }}U
+                                                </span>
+                                            </span>
+                                        </button>
+
+                                        @if ($arranging)
+                                            <button
+                                                type="button"
+                                                x-on:pointerdown.stop="start($event, {{ $shape['id'] }}, 'resize')"
+                                                class="face face-roof !inset-auto !bottom-0 !right-0 size-6 cursor-nwse-resize touch-none rounded-br-sm border-2 border-[var(--accent)] accent-bg"
+                                                style="transform: translateZ(calc(var(--extrude, 40px) + 1px))"
+                                            ><span class="sr-only">Resize {{ $shape['name'] }}</span></button>
+                                        @endif
                                     </div>
-                                @endforeach
-                            </div>
-                        @endforeach
+                                @else
+                                    <div class="absolute" x-bind:style="styleFor({{ $shape['id'] }}, {{ $fallback }})" wire:key="flat-{{ $shape['id'] }}">
+                                        <button
+                                            type="button"
+                                            @if ($arranging)
+                                                x-on:pointerdown="start($event, {{ $shape['id'] }})"
+                                                x-on:keydown="nudge($event, {{ $shape['id'] }})"
+                                                class="flex size-full touch-none flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-[var(--accent)] accent-soft-bg p-2 text-center"
+                                                :class="dragging?.id === {{ $shape['id'] }} ? 'cursor-grabbing shadow-[var(--shadow-overlay)]' : 'cursor-grab'"
+                                                aria-label="{{ $label }} Drag to move it, or use the arrow keys."
+                                            @else
+                                                wire:click="openBlock({{ $shape['id'] }})"
+                                                class="flex size-full flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-[var(--accent)] accent-soft-bg p-2 text-center transition-transform hover:scale-[1.02] focus-visible:scale-[1.02]"
+                                                aria-label="{{ $label }} Open its floor plan."
+                                            @endif
+                                        >
+                                            <span class="truncate text-sm font-bold accent-text">{{ $shape['name'] }}</span>
+                                            <span class="numeric truncate text-[0.625rem] text-secondary">
+                                                {{ $shape['units'] }} {{ \Illuminate\Support\Str::plural('unit', $shape['units']) }}
+                                            </span>
+                                            <span class="numeric truncate text-[0.625rem] text-muted">
+                                                {{ $shape['floors'] }} {{ \Illuminate\Support\Str::plural('floor', $shape['floors']) }}
+                                            </span>
+                                        </button>
 
-                        <div class="flex flex-wrap justify-end gap-2 pt-2">
-                            <x-ui.button variant="ghost" wire:click="resetArrangement" type="button"
-                                wire:confirm="Put every building back on the automatic grid?">
-                                Reset to the grid
-                            </x-ui.button>
-                            <x-ui.button variant="secondary" wire:click="cancelArranging" type="button">Cancel</x-ui.button>
-                            <x-ui.button type="submit" icon="check">Save the plan</x-ui.button>
+                                        @if ($arranging)
+                                            <button
+                                                type="button"
+                                                x-on:pointerdown.stop="start($event, {{ $shape['id'] }}, 'resize')"
+                                                class="absolute -bottom-1 -right-1 size-6 cursor-nwse-resize touch-none rounded-full border-2 border-white accent-bg shadow-[var(--shadow-card)]"
+                                            ><span class="sr-only">Resize {{ $shape['name'] }}</span></button>
+                                        @endif
+                                    </div>
+                                @endif
+                            @endforeach
                         </div>
-                    </form>
-                </x-ui.card>
-            @endif
+                    </div>
 
-            {{-- The same information as a list. A plan is a picture; some
-                 people need the numbers, and every screen reader does. --}}
-            <details class="mt-5">
-                <summary class="min-h-11 cursor-pointer py-3 text-sm font-medium text-secondary hover:text-primary">
-                    Read the buildings as a list
-                </summary>
-                <ul class="mt-2 space-y-2">
-                    @foreach ($blocks as $shape)
-                        <li class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-subtle p-3">
-                            <span class="text-sm font-semibold">{{ $shape['name'] }}</span>
-                            <span class="numeric text-sm text-secondary">
-                                {{ $shape['units'] }} units · {{ $shape['floors'] }} floors
-                            </span>
-                            <x-ui.button size="sm" variant="ghost" wire:click="openBlock({{ $shape['id'] }})">
-                                Open floor plan
-                            </x-ui.button>
-                        </li>
-                    @endforeach
-                </ul>
-            </details>
-        @endif
+                    {{-- The view controls. Available while arranging as well,
+                         because judging where a building belongs means looking
+                         at it from more than one angle. --}}
+                    @if ($mode === '3d')
+                        <div class="mt-4 flex flex-wrap items-center gap-4">
+                            <div class="flex items-center gap-2">
+                                <x-ui.button size="icon" variant="secondary" x-on:click="turn(-45)">
+                                    <x-ui.icon name="arrow-path" class="size-4 -scale-x-100" />
+                                    <span class="sr-only">Turn the site 45 degrees anticlockwise</span>
+                                </x-ui.button>
+                                <x-ui.button size="icon" variant="secondary" x-on:click="turn(45)">
+                                    <x-ui.icon name="arrow-path" class="size-4" />
+                                    <span class="sr-only">Turn the site 45 degrees clockwise</span>
+                                </x-ui.button>
+                            </div>
+
+                            <div class="flex min-w-44 flex-1 items-center gap-3">
+                                <label for="scene-tilt" class="shrink-0 text-xs font-medium text-secondary">Tilt</label>
+                                <input id="scene-tilt" type="range" min="20" max="80" step="1"
+                                    x-model.number="tilt" class="h-11 w-full accent-[var(--accent)]">
+                            </div>
+
+                            <div class="flex min-w-40 flex-1 items-center gap-3">
+                                <label for="scene-zoom" class="shrink-0 text-xs font-medium text-secondary">Zoom</label>
+                                <input id="scene-zoom" type="range" min="0.5" max="1.4" step="0.02"
+                                    x-model.number="zoom" class="h-11 w-full accent-[var(--accent)]">
+                            </div>
+
+                            <x-ui.button size="sm" variant="ghost" x-on:click="resetView()">Reset the view</x-ui.button>
+                        </div>
+                    @endif
+                </div>
+
+                @if ($arranging)
+                    <x-ui.card title="Positions" class="mt-5"
+                        description="All four numbers are percentages of the plot. Drag the plan above, or type them here.">
+                        <div class="space-y-3">
+                            @foreach ($blocks as $shape)
+                                <div class="flex flex-wrap items-end gap-3 rounded-xl border border-subtle p-3">
+                                    <p class="w-24 shrink-0 text-sm font-semibold">{{ $shape['name'] }}</p>
+                                    @foreach ([
+                                        'x' => 'From left',
+                                        'y' => 'From top',
+                                        'width' => 'Width',
+                                        'height' => 'Height',
+                                    ] as $field => $label)
+                                        <div class="w-28">
+                                            <x-ui.input
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                :label="$label"
+                                                :id="'pos-'.$shape['id'].'-'.$field"
+                                                x-model.number="positions[{{ $shape['id'] }}].{{ $field }}"
+                                            />
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endforeach
+
+                            <div class="flex flex-wrap justify-end gap-2 pt-2">
+                                <x-ui.button variant="ghost" wire:click="resetArrangement" type="button"
+                                    data-confirm="Put every building back on the grid?"
+                                    data-confirm-detail="The positions you have arranged are discarded and every building returns to the automatic layout."
+                                    data-confirm-action="Reset the layout">
+                                    Reset to the grid
+                                </x-ui.button>
+                                <x-ui.button variant="secondary" wire:click="cancelArranging" type="button">Cancel</x-ui.button>
+                                {{-- The dragged positions live in Alpine; they are
+                                     handed to the component just before it saves. --}}
+                                <x-ui.button type="button" icon="check"
+                                    x-on:click="$wire.set('positions', positions, false); $wire.saveArrangement()">
+                                    Save the plan
+                                </x-ui.button>
+                            </div>
+                        </div>
+                    </x-ui.card>
+                @endif
+
+                {{-- The same information as a list. A plan is a picture; some
+                     people need the numbers, and every screen reader does. --}}
+                <details class="mt-5">
+                    <summary class="min-h-11 cursor-pointer py-3 text-sm font-medium text-secondary hover:text-primary">
+                        Read the buildings as a list
+                    </summary>
+                    <ul class="mt-2 space-y-2">
+                        @foreach ($blocks as $shape)
+                            <li class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-subtle p-3">
+                                <span class="text-sm font-semibold">{{ $shape['name'] }}</span>
+                                <span class="numeric text-sm text-secondary">
+                                    {{ $shape['units'] }} units · {{ $shape['floors'] }} floors
+                                </span>
+                                <x-ui.button size="sm" variant="ghost" wire:click="openBlock({{ $shape['id'] }})">
+                                    Open floor plan
+                                </x-ui.button>
+                            </li>
+                        @endforeach
+                    </ul>
+                </details>
+            @endif
+        </div>
     @endif
 
     {{-- ============================== BLOCK ============================= --}}

@@ -191,19 +191,43 @@ class SitePlanTest extends TestCase
             ->assertSet('mode', '2d');
     }
 
-    public function test_arranging_buildings_returns_to_the_flat_plan(): void
+    public function test_buildings_can_be_arranged_from_whichever_view_you_are_in(): void
     {
-        // Positions are typed against a flat grid; doing it inside a rotated
-        // scene would be guesswork.
+        // A drag is projected back through the scene's own rotation, so
+        // arranging works at any angle and no longer forces the flat plan.
         $society = $this->makeSociety();
         $this->makeBlock($society, 'A');
 
+        $officer = $this->makeUser($society, Role::SOCIETY_ADMIN);
+
+        foreach (['2d', '3d'] as $mode) {
+            Livewire::actingAs($officer)
+                ->test(SitePlanView::class)
+                ->set('mode', $mode)
+                ->call('startArranging')
+                ->assertSet('mode', $mode)
+                ->assertSet('arranging', true);
+        }
+    }
+
+    public function test_a_dragged_building_cannot_be_pushed_off_the_plot(): void
+    {
+        // The browser clamps while dragging; this is the same guarantee on
+        // the way in, for a position that arrives some other way.
+        $society = $this->makeSociety();
+        $block = Block::create(['society_id' => $society->id, 'name' => 'A', 'kind' => 'wing']);
+
         Livewire::actingAs($this->makeUser($society, Role::SOCIETY_ADMIN))
             ->test(SitePlanView::class)
-            ->set('mode', '3d')
             ->call('startArranging')
-            ->assertSet('mode', '2d')
-            ->assertSet('arranging', true);
+            ->set('positions', [$block->id => ['x' => 200, 'y' => -50, 'width' => 30, 'height' => 40]])
+            ->call('saveArrangement');
+
+        $saved = $block->fresh();
+
+        $this->assertSame(70, $saved->plan_x, 'a building was left hanging off the right of the plot');
+        $this->assertSame(0, $saved->plan_y);
+        $this->assertLessThanOrEqual(100, $saved->plan_x + $saved->plan_width);
     }
 
     public function test_a_site_plan_shows_only_its_own_societys_buildings(): void

@@ -32,7 +32,7 @@
             <x-ui.tr>
                 <x-ui.td label="Pass" primary>{{ $pass->pass_number }}</x-ui.td>
                 <x-ui.td label="Type">{{ $pass->typeLabel() }}</x-ui.td>
-                <x-ui.td label="Unit">{{ $pass->unit?->label ?? '—' }}</x-ui.td>
+                <x-ui.td label="Unit">{{ $pass->unit?->label ?? '–' }}</x-ui.td>
                 <x-ui.td label="Issued to">
                     {{ $pass->issued_to_name }}
                     @if ($pass->items)
@@ -59,7 +59,7 @@
     </x-ui.table>
 
     <x-ui.modal name="issue-pass" title="Request a gate pass">
-        <form wire:submit="issue" class="space-y-4" id="issue-pass-form">
+        <form data-validate wire:submit="issue" class="space-y-4" id="issue-pass-form">
             <x-ui.select wire:model="type" name="type" label="What is this for?" required>
                 @foreach (['material_out' => 'Taking material out', 'material_in' => 'Bringing material in', 'move_in' => 'Moving in', 'move_out' => 'Moving out', 'contractor' => 'Contractor entry', 'vehicle' => 'Vehicle'] as $v => $l)
                     <option value="{{ $v }}">{{ $l }}</option>
@@ -74,10 +74,10 @@
                 </x-ui.select>
             @endif
 
-            <x-ui.input wire:model="issuedTo" name="issuedTo" label="Who is carrying it out?" required />
-            <x-ui.input wire:model="phone" name="phone" label="Their phone" type="tel" inputmode="numeric" />
+            <x-ui.input wire:model="issuedTo" name="issuedTo" label="Who is carrying it out?" required minlength="2" maxlength="120" />
+            <x-ui.input wire:model="phone" name="phone" label="Their phone" type="tel" inputmode="numeric" maxlength="20" data-rule="phone" />
             <x-ui.textarea wire:model="itemsText" name="itemsText" label="Items" rows="4"
-                hint="One item per line." placeholder="Old sofa&#10;2 cartons" />
+                hint="One item per line." placeholder="Old sofa&#10;2 cartons" maxlength="2000" />
             <x-ui.input wire:model="validTo" name="validTo" label="Valid until" type="datetime-local" required />
         </form>
 

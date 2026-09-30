@@ -54,7 +54,7 @@
                     <span class="numeric">{{ rtrim(rtrim(number_format((float) $head->default_rate, 4), "0"), ".") }}</span>
                 </x-ui.td>
                 <x-ui.td label="Tax" align="right">
-                    @if ($head->is_taxable)<span class="numeric">{{ rtrim(rtrim(number_format((float) $head->tax_rate, 2), "0"), ".") }}%</span>@else<span class="text-muted">—</span>@endif
+                    @if ($head->is_taxable)<span class="numeric">{{ rtrim(rtrim(number_format((float) $head->tax_rate, 2), "0"), ".") }}%</span>@else<span class="text-muted">–</span>@endif
                 </x-ui.td>
                 <x-ui.td label="Status">
                     <x-ui.status :value="$head->is_active ? 'active' : 'inactive'" />

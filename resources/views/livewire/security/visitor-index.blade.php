@@ -20,7 +20,10 @@
                         </div>
                         <div class="flex shrink-0 gap-2">
                             <x-ui.button size="sm" variant="positive" wire:click="approve({{ $log->id }})">Allow</x-ui.button>
-                            <x-ui.button size="sm" variant="danger" wire:click="deny({{ $log->id }})">Decline</x-ui.button>
+                            <x-ui.button size="sm" variant="danger" wire:click="deny({{ $log->id }})"
+                                data-confirm="Turn this visitor away?"
+                                data-confirm-detail="The entry is logged as refused. Letting them in afterwards means a new entry."
+                                data-confirm-action="Turn them away">Decline</x-ui.button>
                         </div>
                     </li>
                 @endforeach
@@ -57,12 +60,12 @@
                     {{ $log->visitor_name }}
                     @if ($log->phone)<span class="numeric block text-xs text-muted">{{ $log->phone }}</span>@endif
                 </x-ui.td>
-                <x-ui.td label="Unit">{{ $log->unit?->label ?? '—' }}</x-ui.td>
+                <x-ui.td label="Unit">{{ $log->unit?->label ?? '–' }}</x-ui.td>
                 <x-ui.td label="Purpose">{{ $log->purposeLabel() }}</x-ui.td>
-                <x-ui.td label="Code"><span class="numeric">{{ $log->pass_code ?? '—' }}</span></x-ui.td>
-                <x-ui.td label="In">{{ $log->entered_at?->format('j M, g:i A') ?? '—' }}</x-ui.td>
+                <x-ui.td label="Code"><span class="numeric">{{ $log->pass_code ?? '–' }}</span></x-ui.td>
+                <x-ui.td label="In">{{ $log->entered_at?->format('j M, g:i A') ?? '–' }}</x-ui.td>
                 <x-ui.td label="Out">
-                    {{ $log->exited_at?->format('j M, g:i A') ?? '—' }}
+                    {{ $log->exited_at?->format('j M, g:i A') ?? '–' }}
                     @if ($log->durationMinutes() !== null)
                         <span class="block text-xs text-muted">{{ $log->durationMinutes() }} min</span>
                     @endif
@@ -75,9 +78,9 @@
     </x-ui.table>
 
     <x-ui.modal name="pre-approve" title="Expect a visitor">
-        <form wire:submit="preApprove" class="space-y-4" id="pre-approve-form">
-            <x-ui.input wire:model="visitorName" name="visitorName" label="Who is coming?" required />
-            <x-ui.input wire:model="phone" name="phone" label="Their phone" type="tel" inputmode="numeric" />
+        <form data-validate wire:submit="preApprove" class="space-y-4" id="pre-approve-form">
+            <x-ui.input wire:model="visitorName" name="visitorName" label="Who is coming?" required minlength="2" maxlength="120" />
+            <x-ui.input wire:model="phone" name="phone" label="Their phone" type="tel" inputmode="numeric" maxlength="20" data-rule="phone" />
 
             <x-ui.select wire:model="purpose" name="purpose" label="Purpose" required>
                 @foreach (['guest' => 'Guest', 'delivery' => 'Delivery', 'cab' => 'Cab', 'service' => 'Service', 'vendor' => 'Vendor', 'courier' => 'Courier', 'other' => 'Other'] as $v => $l)

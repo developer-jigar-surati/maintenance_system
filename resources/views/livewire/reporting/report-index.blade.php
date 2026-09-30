@@ -33,13 +33,13 @@
             @foreach ($data['defaulters'] as $row)
                 <x-ui.tr>
                     <x-ui.td label="Unit" primary>{{ $row['unit']->label }}</x-ui.td>
-                    <x-ui.td label="Contact">{{ $row['contact']?->name ?? '—' }}</x-ui.td>
-                    <x-ui.td label="Phone"><span class="numeric">{{ $row['contact']?->phone ?? '—' }}</span></x-ui.td>
+                    <x-ui.td label="Contact">{{ $row['contact']?->name ?? '–' }}</x-ui.td>
+                    <x-ui.td label="Phone"><span class="numeric">{{ $row['contact']?->phone ?? '–' }}</span></x-ui.td>
                     <x-ui.td label="Outstanding" align="right">
                         <x-ui.money :amount="$row['outstanding']" tone="critical" class="font-semibold" />
                     </x-ui.td>
                     <x-ui.td label="Days overdue" align="right">
-                        <span class="numeric">{{ $row['days_overdue'] ?: '—' }}</span>
+                        <span class="numeric">{{ $row['days_overdue'] ?: '–' }}</span>
                     </x-ui.td>
                 </x-ui.tr>
             @endforeach
@@ -64,10 +64,10 @@
                     <x-ui.td label="Code"><span class="numeric">{{ $row['account']->code }}</span></x-ui.td>
                     <x-ui.td label="Account" primary>{{ $row['account']->name }}</x-ui.td>
                     <x-ui.td label="Debit" align="right">
-                        @if ($row['debit'] > 0)<x-ui.money :amount="$row['debit']" />@else<span class="text-muted">—</span>@endif
+                        @if ($row['debit'] > 0)<x-ui.money :amount="$row['debit']" />@else<span class="text-muted">–</span>@endif
                     </x-ui.td>
                     <x-ui.td label="Credit" align="right">
-                        @if ($row['credit'] > 0)<x-ui.money :amount="$row['credit']" />@else<span class="text-muted">—</span>@endif
+                        @if ($row['credit'] > 0)<x-ui.money :amount="$row['credit']" />@else<span class="text-muted">–</span>@endif
                     </x-ui.td>
                 </x-ui.tr>
             @endforeach

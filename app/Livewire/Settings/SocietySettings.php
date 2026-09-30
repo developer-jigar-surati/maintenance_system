@@ -108,7 +108,7 @@ class SocietySettings extends Component
 
     /**
      * Stores gateway keys, then verifies them against the provider before
-     * activating — so a society never shows residents a checkout that fails.
+     * activating - so a society never shows residents a checkout that fails.
      */
     public function saveGateway(GatewayManager $gateways): void
     {

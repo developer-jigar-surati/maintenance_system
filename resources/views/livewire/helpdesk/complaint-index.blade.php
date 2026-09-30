@@ -14,7 +14,7 @@
                 :tone="$stats['breached'] > 0 ? 'critical' : 'positive'" />
             <x-ui.stat label="Resolved this month" :value="$stats['resolved_this_month']" icon="check" tone="positive" />
             <x-ui.stat label="Avg. resolution"
-                :value="$stats['average_resolution_hours'] ? $stats['average_resolution_hours'].' hrs' : '—'"
+                :value="$stats['average_resolution_hours'] ? $stats['average_resolution_hours'].' hrs' : '–'"
                 icon="clock" />
         </div>
     @endif
@@ -67,7 +67,7 @@
                     <a href="{{ route('complaints.show', $complaint) }}" class="hover:underline">{{ $complaint->title }}</a>
                     <span class="block text-xs text-muted">{{ $complaint->ticket_number }}</span>
                 </x-ui.td>
-                <x-ui.td label="Category">{{ $complaint->category?->name ?? '—' }}</x-ui.td>
+                <x-ui.td label="Category">{{ $complaint->category?->name ?? '–' }}</x-ui.td>
                 <x-ui.td label="Unit">{{ $complaint->unit?->label ?? 'Common area' }}</x-ui.td>
                 <x-ui.td label="Raised">
                     {{ $complaint->created_at->diffForHumans(short: true) }}
@@ -99,9 +99,9 @@
 
     @can(\App\Enums\Permission::COMPLAINT_CREATE)
         <x-ui.modal name="raise-ticket" title="Raise a ticket">
-            <form wire:submit="raise" class="space-y-4" id="raise-ticket-form">
+            <form data-validate wire:submit="raise" class="space-y-4" id="raise-ticket-form">
                 <x-ui.input wire:model="title" name="title" label="What is the problem?"
-                    placeholder="e.g. Lift in B wing is stuck" required />
+                    placeholder="e.g. Lift in B wing is stuck" required minlength="4" maxlength="180" />
 
                 <x-ui.select wire:model="newCategoryId" name="newCategoryId" label="Category"
                     placeholder="Choose a category" required>
@@ -119,9 +119,9 @@
                 @endif
 
                 <x-ui.input wire:model="location" name="location" label="Where exactly?"
-                    hint="Optional — helps whoever attends find it." />
+                    hint="Optional - helps whoever attends find it." maxlength="120" />
 
-                <x-ui.textarea wire:model="description" name="description" label="Describe the issue" rows="4" required />
+                <x-ui.textarea wire:model="description" name="description" label="Describe the issue" rows="4" required minlength="10" maxlength="4000" />
 
                 <x-ui.select wire:model="newPriority" name="newPriority" label="Priority"
                     hint="Leave blank to use the category's default.">

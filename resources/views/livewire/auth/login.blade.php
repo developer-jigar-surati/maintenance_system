@@ -6,7 +6,7 @@
         <x-ui.alert tone="positive" class="mt-6">{{ session('status') }}</x-ui.alert>
     @endif
 
-    <form wire:submit="login" class="mt-8 space-y-5">
+    <form data-validate wire:submit="login" class="mt-8 space-y-5">
         <x-ui.input
             wire:model="identifier"
             name="identifier"

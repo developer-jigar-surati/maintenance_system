@@ -499,8 +499,8 @@ class DemoSeeder extends Seeder
         ]));
 
         $assets = [
-            ['Passenger Lift — A Wing', 'lift', 'A Wing lobby'],
-            ['Passenger Lift — B Wing', 'lift', 'B Wing lobby'],
+            ['Passenger Lift - A Wing', 'lift', 'A Wing lobby'],
+            ['Passenger Lift - B Wing', 'lift', 'B Wing lobby'],
             ['Diesel Generator 125 kVA', 'generator', 'Basement'],
             ['Borewell Pump', 'water_pump', 'Pump room'],
             ['CCTV System (24 cameras)', 'cctv', 'Across the complex'],
@@ -525,7 +525,7 @@ class DemoSeeder extends Seeder
                 'asset_id' => $asset->id,
                 'vendor_id' => $asset->vendor_id,
                 'contract_number' => 'AMC-'.str_pad((string) ($i + 1), 3, '0', STR_PAD_LEFT),
-                'title' => 'Annual maintenance — '.$name,
+                'title' => 'Annual maintenance - '.$name,
                 'start_date' => now()->subMonths(6),
                 'end_date' => now()->addMonths(6),
                 'amount' => random_int(15, 90) * 1000,
@@ -710,7 +710,7 @@ class DemoSeeder extends Seeder
         }
 
         $past = Meeting::create([
-            'title' => 'Committee Meeting — Monsoon Preparedness',
+            'title' => 'Committee Meeting - Monsoon Preparedness',
             'type' => 'committee',
             'scheduled_at' => now()->subDays(22)->setTime(19, 0),
             'venue' => 'Society Office',
@@ -752,7 +752,7 @@ class DemoSeeder extends Seeder
     {
         $notices = [
             [
-                'Annual General Meeting — 18 days from now',
+                'Annual General Meeting - 18 days from now',
                 "The AGM will be held in the Community Hall.\n\nThe agenda, audited accounts and the proposed budget are in the Documents section. Please come prepared with your questions.\n\nIf you cannot attend, you may appoint a proxy.",
                 'meeting', 'important', true,
             ],

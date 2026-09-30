@@ -41,7 +41,7 @@ class AccrueLateFees extends Command
 
                 if ($result['posted'] > 0) {
                     $this->info(sprintf(
-                        '  %s — %s: %d invoices, %s',
+                        '  %s - %s: %d invoices, %s',
                         $society->name,
                         $rule->name,
                         $result['posted'],

@@ -86,7 +86,7 @@ class AmenityIndex extends Component
         $this->dispatch('close-modal', 'book-amenity');
         $this->dispatch('notify',
             message: $booking->status === 'approved'
-                ? "Booked — {$booking->booking_number}."
+                ? "Booked - {$booking->booking_number}."
                 : "Request {$booking->booking_number} sent for approval.",
             tone: 'positive');
     }

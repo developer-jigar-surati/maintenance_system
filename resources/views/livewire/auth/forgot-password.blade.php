@@ -8,7 +8,7 @@
         <x-ui.alert tone="positive" class="mt-6">{{ session('status') }}</x-ui.alert>
     @endif
 
-    <form wire:submit="sendLink" class="mt-8 space-y-5">
+    <form data-validate wire:submit="sendLink" class="mt-8 space-y-5">
         <x-ui.input wire:model="email" name="email" label="Email address" type="email" icon="users" required autofocus />
 
         <x-ui.button type="submit" class="w-full" size="lg">

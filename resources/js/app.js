@@ -1,6 +1,11 @@
 import Alpine from 'alpinejs';
 import Chart from 'chart.js/auto';
 
+import confirmDialog, { installConfirmInterceptor } from './ui/confirm';
+import sitePlanArranger from './ui/site-plan';
+import toastStack from './ui/toasts';
+import { installValidation } from './ui/validation';
+
 /*
  * Livewire ships its own Alpine build. Registering a second instance breaks
  * both, so Alpine is only started here when Livewire is absent -- which is the
@@ -12,6 +17,25 @@ if (!window.Livewire) {
 }
 
 window.Chart = Chart;
+
+/*
+ * Shared interface behaviour.
+ *
+ * Registered against whichever Alpine is running -- Livewire's own, or the
+ * standalone one above -- by waiting for alpine:init, which both fire.
+ */
+document.addEventListener('alpine:init', () => {
+    window.Alpine.data('toastStack', toastStack);
+    window.Alpine.data('confirmDialog', confirmDialog);
+    window.Alpine.data('sitePlanArranger', sitePlanArranger);
+});
+
+/*
+ * These are document level and survive Livewire swapping the page out, so they
+ * are installed once rather than re-bound per component.
+ */
+installConfirmInterceptor();
+installValidation();
 
 /**
  * Theme handling.

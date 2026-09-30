@@ -19,7 +19,10 @@
                         </div>
                         <div class="flex shrink-0 gap-2">
                             <x-ui.button size="sm" variant="positive" wire:click="approve({{ $booking->id }})">Approve</x-ui.button>
-                            <x-ui.button size="sm" variant="ghost" wire:click="cancel({{ $booking->id }})">Decline</x-ui.button>
+                            <x-ui.button size="sm" variant="ghost" wire:click="cancel({{ $booking->id }})"
+                                data-confirm="Decline this booking request?"
+                                data-confirm-detail="The resident is told their request was not approved, and the slot goes back on offer."
+                                data-confirm-action="Decline it">Decline</x-ui.button>
                         </div>
                     </li>
                 @endforeach
@@ -43,7 +46,9 @@
                             <x-ui.status :value="$booking->status" />
                             @if ($booking->isCancellable())
                                 <x-ui.button size="sm" variant="ghost" wire:click="cancel({{ $booking->id }})"
-                                    wire:confirm="Cancel this booking?">Cancel</x-ui.button>
+                                    data-confirm="Cancel this booking?"
+                                    data-confirm-detail="The slot is released for anyone else to book. Any deposit is settled separately."
+                                    data-confirm-action="Cancel the booking">Cancel</x-ui.button>
                             @endif
                         </div>
                     </li>
@@ -121,7 +126,7 @@
                 </x-ui.alert>
             @endif
 
-            <form wire:submit="book" class="space-y-4" id="book-amenity-form">
+            <form data-validate wire:submit="book" class="space-y-4" id="book-amenity-form">
                 @if ($myUnits->count() > 1)
                     <x-ui.select wire:model="unitId" name="unitId" label="Booking for" required>
                         @foreach ($myUnits as $unit)
@@ -138,9 +143,9 @@
                     <x-ui.input wire:model="endTime" name="endTime" label="To" type="time" required />
                 </div>
 
-                <x-ui.input wire:model="guests" name="guests" label="Expected guests" type="number" min="0" />
+                <x-ui.input wire:model="guests" name="guests" label="Expected guests" type="number" min="0" max="2000" />
                 <x-ui.input wire:model="purpose" name="purpose" label="Purpose"
-                    placeholder="e.g. Birthday celebration" />
+                    placeholder="e.g. Birthday celebration" maxlength="200" />
 
                 @if ($selected?->rules)
                     <div class="rounded-lg surface-inset p-3">
