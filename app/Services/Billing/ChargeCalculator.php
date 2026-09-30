@@ -4,6 +4,7 @@ namespace App\Services\Billing;
 
 use App\Models\BillingPlan;
 use App\Models\ChargeHead;
+use App\Models\ChargeRate;
 use App\Models\Unit;
 use App\Models\UnitChargeOverride;
 use Illuminate\Support\Carbon;
@@ -11,9 +12,15 @@ use Illuminate\Support\Carbon;
 /**
  * Works out what a single charge head costs a single unit.
  *
- * The rate is resolved in order of specificity -- a unit-level override beats
- * the plan's rate, which beats the head's own default -- and the quantity
- * comes from whatever the head is billed on (area, bedrooms, members).
+ * The rate is resolved from the most specific thing that says something about
+ * this unit down to the most general:
+ *
+ *     this flat  ->  its size of home  ->  its building  ->  the plan  ->  the head
+ *
+ * which is how a committee actually decides: one amount for the society, a
+ * different one for the wing with the lift, and a handful of flats settled
+ * individually. The quantity comes from whatever the head is billed on
+ * (area, bedrooms, members, vehicles).
  */
 class ChargeCalculator
 {
@@ -38,7 +45,7 @@ class ChargeCalculator
         }
 
         $basis = $this->resolveBasis($head, $plan);
-        $rate = $this->resolveRate($head, $plan, $override);
+        $rate = $this->resolveRate($unit, $head, $plan, $override, $on);
         $quantity = $this->quantityFor($unit, $head, $basis);
 
         // A per-sqft head on a unit with no recorded area would silently bill
@@ -72,15 +79,57 @@ class ChargeCalculator
             ?: $head->basis;
     }
 
-    private function resolveRate(ChargeHead $head, ?BillingPlan $plan, ?UnitChargeOverride $override): float
-    {
+    private function resolveRate(
+        Unit $unit,
+        ChargeHead $head,
+        ?BillingPlan $plan,
+        ?UnitChargeOverride $override,
+        Carbon $on,
+    ): float {
+        // This flat specifically.
         if ($override && $override->rate !== null) {
             return (float) $override->rate;
+        }
+
+        // Its size of home, then its building.
+        $scoped = $this->scopedRateFor($unit, $head, $on);
+
+        if ($scoped !== null) {
+            return $scoped;
         }
 
         $planRate = $plan?->chargeHeads->firstWhere('id', $head->id)?->pivot?->rate;
 
         return (float) ($planRate ?? $head->default_rate);
+    }
+
+    /**
+     * A rate set for this unit's configuration or its building.
+     *
+     * Configuration wins: "3BHK pays more" is a more deliberate statement
+     * about this flat than "B wing pays more".
+     */
+    private function scopedRateFor(Unit $unit, ChargeHead $head, Carbon $on): ?float
+    {
+        $rates = ChargeRate::query()
+            ->where('charge_head_id', $head->id)
+            ->inForceOn($on)
+            ->where(function ($q) use ($unit) {
+                $q->where(fn ($i) => $i->where('scope', 'block')->where('block_id', $unit->block_id))
+                    ->orWhere(fn ($i) => $i->where('scope', 'configuration')
+                        ->where('configuration', $unit->configuration));
+            })
+            ->get();
+
+        $byConfiguration = $rates->firstWhere('scope', 'configuration');
+
+        if ($byConfiguration && $unit->configuration !== null) {
+            return (float) $byConfiguration->rate;
+        }
+
+        $byBlock = $rates->firstWhere('scope', 'block');
+
+        return $byBlock && $unit->block_id !== null ? (float) $byBlock->rate : null;
     }
 
     /** The multiplier the rate is applied to, per the head's billing basis. */

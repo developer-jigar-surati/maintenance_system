@@ -84,38 +84,216 @@
             </div>
 
         @elseif ($step === 3)
-            <h2 class="text-lg font-semibold">What do you charge?</h2>
+            <h2 class="text-lg font-semibold">How much is maintenance?</h2>
             <p class="mt-1 text-sm text-secondary">
-                Set a rate for each head you use. Leave the rest at zero - only
-                heads with a rate go onto the bill.
+                Most societies take one amount from every home. If yours varies, say how.
             </p>
 
+            {{--
+                The question a committee can actually answer.
+
+                The old step listed every seeded charge head with its basis
+                already chosen for them, and asked for a rate against each:
+                "Maintenance Charges, rate per sq.ft." Nobody decides it that
+                way. They decide an amount, and then whether it differs by
+                building or by size of home.
+            --}}
+            <fieldset class="mt-6">
+                <legend class="sr-only">How maintenance is worked out</legend>
+                <div class="grid gap-3 sm:grid-cols-2">
+                    @foreach ([
+                        'flat' => ['The same for every home', 'One amount, whatever the flat. This is what most societies do.'],
+                        'by_block' => ['Different for each building', 'A wing with a lift pays more than one without.'],
+                        'by_size' => ['Different by size of home', 'A 3BHK pays more than a 2BHK.'],
+                        'by_area' => ['By area', 'A rate for every '.$society->areaUnitLabel().' of the flat.'],
+                    ] as $key => [$title, $why])
+                        <button
+                            type="button"
+                            wire:click="$set('rateBasis', '{{ $key }}')"
+                            aria-pressed="{{ $rateBasis === $key ? 'true' : 'false' }}"
+                            @class([
+                                'rounded-xl border p-4 text-left transition-colors',
+                                'border-[var(--accent)] accent-soft-bg' => $rateBasis === $key,
+                                'border-subtle surface-raised hover:border-strong' => $rateBasis !== $key,
+                            ])
+                        >
+                            <span class="flex items-center gap-2">
+                                <span @class([
+                                    'flex size-4 shrink-0 items-center justify-center rounded-full border-2',
+                                    'border-[var(--accent)]' => $rateBasis === $key,
+                                    'border-strong' => $rateBasis !== $key,
+                                ])>
+                                    @if ($rateBasis === $key)
+                                        <span class="size-2 rounded-full accent-bg"></span>
+                                    @endif
+                                </span>
+                                <span class="text-sm font-semibold">{{ $title }}</span>
+                            </span>
+                            <span class="mt-1.5 block pl-6 text-xs text-secondary">{{ $why }}</span>
+                        </button>
+                    @endforeach
+                </div>
+            </fieldset>
+
+            {{-- Then only the numbers that answer it. --}}
             <div class="mt-6 space-y-3">
-                @foreach ($heads as $head)
-                    <div class="flex flex-wrap items-center gap-3 rounded-xl border border-subtle p-3">
-                        <div class="min-w-0 flex-1">
-                            <p class="text-sm font-medium">{{ $head->name }}</p>
-                            <p class="text-xs text-muted">
-                                {{ match ($head->basis) {
-                                    'per_sqft' => 'Rate per '.$society->areaUnitLabel(),
-                                    'per_bedroom' => 'Rate per bedroom',
-                                    'per_member' => 'Rate per resident',
-                                    'per_vehicle' => 'Rate per vehicle',
-                                    'manual' => 'Entered per unit when needed',
-                                    default => 'Same amount for every unit',
-                                } }}
-                            </p>
+                @if ($rateBasis === 'flat')
+                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-subtle p-4">
+                        <div>
+                            <p class="text-sm font-medium">Every home pays</p>
+                            <p class="text-xs text-muted">per {{ str_replace('_', ' ', $cycle === 'monthly' ? 'month' : $cycle) }}</p>
                         </div>
-                        @if ($head->basis !== 'manual')
-                            <div class="w-32">
-                                <x-ui.input wire:model="rates.{{ $head->id }}" type="number" step="0.01" min="0"
-                                    :aria-label="'Rate for '.$head->name" class="numeric text-right" />
-                            </div>
-                        @else
-                            <span class="text-xs text-muted">Not billed automatically</span>
-                        @endif
+                        <div class="w-40">
+                            <x-ui.input wire:model.live="flatAmount" name="flatAmount" type="number" step="1" min="0"
+                                aria-label="Amount every home pays" placeholder="12000" class="numeric text-right" />
+                        </div>
                     </div>
-                @endforeach
+                @endif
+
+                @if ($rateBasis === 'by_block')
+                    @forelse ($blocks as $block)
+                        <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-subtle p-4">
+                            <p class="text-sm font-medium">{{ $block->name }}</p>
+                            <div class="w-40">
+                                <x-ui.input wire:model.live="blockAmounts.{{ $block->id }}" type="number" step="1" min="0"
+                                    :aria-label="'Amount for '.$block->name" placeholder="12000" class="numeric text-right" />
+                            </div>
+                        </div>
+                    @empty
+                        <x-ui.alert tone="caution" title="No buildings yet">
+                            Go back a step and add your buildings, then this asks for an amount for each.
+                        </x-ui.alert>
+                    @endforelse
+                @endif
+
+                @if ($rateBasis === 'by_size')
+                    @forelse ($sizes as $size)
+                        <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-subtle p-4">
+                            <p class="text-sm font-medium">{{ $size }}</p>
+                            <div class="w-40">
+                                <x-ui.input wire:model.live="sizeAmounts.{{ $size }}" type="number" step="1" min="0"
+                                    :aria-label="'Amount for a '.$size" placeholder="12000" class="numeric text-right" />
+                            </div>
+                        </div>
+                    @empty
+                        <x-ui.alert tone="caution" title="No sizes recorded yet">
+                            Your homes do not have a configuration such as 2BHK against them yet. Pick another
+                            way for now; you can set rates by size later under Charge heads.
+                        </x-ui.alert>
+                    @endforelse
+                @endif
+
+                @if ($rateBasis === 'by_area')
+                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-subtle p-4">
+                        <div>
+                            <p class="text-sm font-medium">Rate per {{ $society->areaUnitLabel() }}</p>
+                            <p class="text-xs text-muted">Multiplied by each home's area.</p>
+                        </div>
+                        <div class="w-40">
+                            <x-ui.input wire:model.live="areaRate" name="areaRate" type="number" step="0.01" min="0"
+                                aria-label="Rate per unit of area" placeholder="3.50" class="numeric text-right" />
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            {{--
+                Paying a year at once for less than twelve months of it.
+
+                Nearly every society offers this and none of the systems we
+                looked at record it, so the discount lives in the treasurer's
+                head and gets applied by hand.
+            --}}
+            @if ($rateBasis !== 'by_area')
+                @php
+                    $periods = $this->periodsPerYear();
+                    $yearFull = $this->typicalPeriodAmount() * $periods;
+                @endphp
+
+                <div class="mt-6 rounded-xl border border-subtle p-4">
+                    <label class="flex min-h-11 items-center gap-3" for="offers-advance">
+                        <input type="checkbox" id="offers-advance" wire:model.live="offersAdvance"
+                            class="size-5 rounded border-strong accent-[var(--accent)]">
+                        <span>
+                            <span class="block text-sm font-medium">Cheaper if they pay for the year at once</span>
+                            <span class="block text-xs text-secondary">
+                                @if ($yearFull > 0)
+                                    A year at the rate above comes to <x-ui.money :amount="$yearFull" />.
+                                @else
+                                    Set the amount above and this works out the year's total.
+                                @endif
+                            </span>
+                        </span>
+                    </label>
+
+                    @if ($offersAdvance)
+                        <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-subtle pt-4">
+                            <div>
+                                <p class="text-sm font-medium">A year paid up front costs</p>
+                                @if ($yearFull > 0 && (float) $advanceAmount > 0)
+                                    <p class="text-xs text-[var(--color-positive)]">
+                                        They save <x-ui.money :amount="max(0, $yearFull - (float) $advanceAmount)" />,
+                                        which is {{ round((1 - ((float) $advanceAmount / $yearFull)) * 100) }} percent.
+                                    </p>
+                                @else
+                                    <p class="text-xs text-muted">Instead of {{ $periods }} separate bills.</p>
+                                @endif
+                            </div>
+                            <div class="w-40">
+                                <x-ui.input wire:model.live="advanceAmount" name="advanceAmount" type="number" step="1" min="0"
+                                    aria-label="Cost of a year paid up front"
+                                    :placeholder="$yearFull > 0 ? (string) round($yearFull * 0.85) : '120000'"
+                                    class="numeric text-right" />
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
+            {{-- Water, sinking fund, parking. Folded away, because most
+                 societies take one amount and nothing else. --}}
+            <div class="mt-6">
+                <button type="button" wire:click="$toggle('showExtras')"
+                    aria-expanded="{{ $showExtras ? 'true' : 'false' }}"
+                    class="flex min-h-11 items-center gap-2 text-sm font-medium text-secondary hover:text-primary">
+                    <x-ui.icon name="chevron-right" class="size-4 transition-transform {{ $showExtras ? 'rotate-90' : '' }}" />
+                    Do you charge anything else?
+                </button>
+
+                @if ($showExtras)
+                    <p class="mb-3 mt-2 text-xs text-secondary">
+                        Water, sinking fund, parking and the rest. Leave any at zero and it stays off the bill.
+                    </p>
+
+                    <div class="space-y-3">
+                        @foreach ($extraHeads as $head)
+                            <div class="flex flex-wrap items-center gap-3 rounded-xl border border-subtle p-3">
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-medium">{{ $head->name }}</p>
+                                    <p class="text-xs text-muted">
+                                        {{ match ($head->basis) {
+                                            'per_sqft' => 'Rate per '.$society->areaUnitLabel(),
+                                            'per_bedroom' => 'Rate per bedroom',
+                                            'per_member' => 'Rate per resident',
+                                            'per_vehicle' => 'Rate per vehicle',
+                                            'manual' => 'Entered per home when needed',
+                                            default => 'Same amount for every home',
+                                        } }}
+                                    </p>
+                                </div>
+                                @if ($head->basis !== 'manual')
+                                    <div class="w-32">
+                                        <x-ui.input wire:model="rates.{{ $head->id }}" type="number" step="0.01" min="0"
+                                            :aria-label="'Rate for '.$head->name" class="numeric text-right" />
+                                    </div>
+                                @else
+                                    <span class="text-xs text-muted">Not billed automatically</span>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
 
                 <div class="grid gap-4 border-t border-subtle pt-4 sm:grid-cols-2">
                     <x-ui.select wire:model="cycle" name="cycle" label="Bill every" required>

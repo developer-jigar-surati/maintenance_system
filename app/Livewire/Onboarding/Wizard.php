@@ -6,6 +6,7 @@ use App\Enums\Permission;
 use App\Models\BillingPlan;
 use App\Models\Block;
 use App\Models\ChargeHead;
+use App\Models\ChargeRate;
 use App\Models\Unit;
 use App\Services\SocietyProvisioner;
 use App\Support\SocietyContext;
@@ -40,6 +41,43 @@ class Wizard extends Component
     public string $unitPattern = '';
 
     // Step 3 - charges
+
+    /**
+     * How maintenance is worked out.
+     *
+     * The old step listed every seeded charge head with its basis already
+     * chosen, and asked for a rate against each: "Maintenance Charges, rate
+     * per sq.ft." A committee does not decide it that way. Nearly all of them
+     * take one amount per home; some vary it by building or by size; a few
+     * genuinely bill by area. Ask that first, then ask only for the numbers
+     * that answer it.
+     *
+     * Not called $method: Livewire's own update payload uses that key, and
+     * the property never reaches the view.
+     */
+    public string $rateBasis = 'flat';
+
+    /** The one amount, when every home pays the same. */
+    public ?float $flatAmount = null;
+
+    /** Amounts keyed by block id, when buildings differ. */
+    public array $blockAmounts = [];
+
+    /** Amounts keyed by configuration, when a 2BHK and a 3BHK differ. */
+    public array $sizeAmounts = [];
+
+    /** The rate per unit of area, when billed by area. */
+    public ?float $areaRate = null;
+
+    /** Paying a year at once, for less than twelve months of it. */
+    public bool $offersAdvance = false;
+
+    public ?float $advanceAmount = null;
+
+    /** Whether the extras beyond maintenance are showing. */
+    public bool $showExtras = false;
+
+    /** Rates for those extras, keyed by charge head id. */
     public array $rates = [];
 
     public string $cycle = 'monthly';
@@ -94,6 +132,12 @@ class Wizard extends Component
                 'unitPattern' => 'nullable|string|max:2000',
             ]),
             3 => $this->validate([
+                'rateBasis' => 'required|in:flat,by_block,by_size,by_area',
+                'flatAmount' => 'required_if:rateBasis,flat|nullable|numeric|min:0|max:10000000',
+                'areaRate' => 'required_if:rateBasis,by_area|nullable|numeric|min:0|max:100000',
+                'blockAmounts.*' => 'nullable|numeric|min:0|max:10000000',
+                'sizeAmounts.*' => 'nullable|numeric|min:0|max:10000000',
+                'advanceAmount' => 'nullable|numeric|min:0|max:100000000',
                 'cycle' => 'required|in:monthly,bi_monthly,quarterly,half_yearly,yearly',
                 'dueAfterDays' => 'required|integer|min:1|max:120',
             ]),
@@ -208,15 +252,30 @@ class Wizard extends Component
         };
     }
 
+    /**
+     * Turn the committee's answer into rates.
+     *
+     * Everything lands on the maintenance head: one default rate, plus a
+     * charge_rates row per building or per size where they differ. The
+     * remaining heads are only touched if the committee opened the extras.
+     */
     private function saveCharges($society): void
     {
         DB::transaction(function () use ($society) {
-            $active = collect();
+            $maintenance = ChargeHead::where('code', 'MAINT')->first();
 
+            if ($maintenance !== null) {
+                $this->applyMaintenance($society, $maintenance);
+            }
+
+            $active = collect()->when($maintenance && $this->maintenanceIsSet(), fn ($c) => $c->push($maintenance));
+
+            // Water, sinking fund, parking and the rest, only if they asked
+            // for them. Most societies take one amount and nothing else.
             foreach ($this->rates as $headId => $rate) {
                 $head = ChargeHead::find($headId);
 
-                if ($head === null) {
+                if ($head === null || $head->code === 'MAINT') {
                     continue;
                 }
 
@@ -244,11 +303,119 @@ class Wizard extends Component
                 ],
             );
 
-            $plan->forceFill(['cycle' => $this->cycle, 'due_after_days' => $this->dueAfterDays])->save();
+            $plan->forceFill([
+                'cycle' => $this->cycle,
+                'due_after_days' => $this->dueAfterDays,
+            ] + $this->advanceTerms())->save();
+
             $plan->chargeHeads()->sync(
-                $active->mapWithKeys(fn ($h, $i) => [$h->id => ['sort_order' => $i]])->all()
+                $active->unique('id')->values()
+                    ->mapWithKeys(fn ($h, $i) => [$h->id => ['sort_order' => $i]])->all()
             );
         });
+    }
+
+    private function maintenanceIsSet(): bool
+    {
+        return match ($this->rateBasis) {
+            'flat' => (float) $this->flatAmount > 0,
+            'by_area' => (float) $this->areaRate > 0,
+            'by_block' => collect($this->blockAmounts)->filter(fn ($v) => (float) $v > 0)->isNotEmpty(),
+            'by_size' => collect($this->sizeAmounts)->filter(fn ($v) => (float) $v > 0)->isNotEmpty(),
+            default => false,
+        };
+    }
+
+    private function applyMaintenance($society, ChargeHead $head): void
+    {
+        // Start clean: changing the answer should not leave the previous
+        // answer's rates behind quietly billing people.
+        ChargeRate::query()->where('charge_head_id', $head->id)->delete();
+
+        $head->forceFill([
+            'basis' => $this->rateBasis === 'by_area' ? 'per_sqft' : 'fixed_per_unit',
+            'default_rate' => match ($this->rateBasis) {
+                'flat' => (float) $this->flatAmount,
+                'by_area' => (float) $this->areaRate,
+                // A fallback for anything the committee left blank.
+                'by_block' => (float) collect($this->blockAmounts)->filter()->avg(),
+                'by_size' => (float) collect($this->sizeAmounts)->filter()->avg(),
+                default => 0.0,
+            },
+        ])->save();
+
+        if ($this->rateBasis === 'by_block') {
+            foreach ($this->blockAmounts as $blockId => $amount) {
+                if ((float) $amount > 0) {
+                    ChargeRate::create([
+                        'society_id' => $society->id,
+                        'charge_head_id' => $head->id,
+                        'scope' => 'block',
+                        'block_id' => (int) $blockId,
+                        'rate' => (float) $amount,
+                    ]);
+                }
+            }
+        }
+
+        if ($this->rateBasis === 'by_size') {
+            foreach ($this->sizeAmounts as $configuration => $amount) {
+                if ((float) $amount > 0) {
+                    ChargeRate::create([
+                        'society_id' => $society->id,
+                        'charge_head_id' => $head->id,
+                        'scope' => 'configuration',
+                        'configuration' => $configuration,
+                        'rate' => (float) $amount,
+                    ]);
+                }
+            }
+        }
+    }
+
+    /**
+     * The advance discount, stored as a percentage.
+     *
+     * A committee decides it as an amount ("a year is 1,20,000 instead of
+     * 1,44,000") but a percentage survives the next rate revision, so the
+     * interface takes the amount and the database keeps the proportion.
+     *
+     * @return array<string, mixed>
+     */
+    private function advanceTerms(): array
+    {
+        $periods = $this->periodsPerYear();
+        $full = $this->typicalPeriodAmount() * $periods;
+
+        if (! $this->offersAdvance || $this->advanceAmount === null || $full <= 0) {
+            return ['advance_periods' => null, 'advance_discount_percent' => null];
+        }
+
+        $discount = max(0, min(90, round((1 - ((float) $this->advanceAmount / $full)) * 100, 2)));
+
+        return ['advance_periods' => $periods, 'advance_discount_percent' => $discount];
+    }
+
+    public function periodsPerYear(): int
+    {
+        return match ($this->cycle) {
+            'monthly' => 12,
+            'bi_monthly' => 6,
+            'quarterly' => 4,
+            'half_yearly' => 2,
+            default => 1,
+        };
+    }
+
+    /** What one period costs a typical home, for showing the year's total. */
+    public function typicalPeriodAmount(): float
+    {
+        return match ($this->rateBasis) {
+            'flat' => (float) $this->flatAmount,
+            'by_block' => (float) collect($this->blockAmounts)->filter()->avg(),
+            'by_size' => (float) collect($this->sizeAmounts)->filter()->avg(),
+            default => 0.0,
+        };
     }
 
     public function finish(): void
@@ -271,11 +438,26 @@ class Wizard extends Component
 
     public function render()
     {
+        $society = app(SocietyContext::class)->check();
+        $heads = ChargeHead::income()->active()->orderBy('sort_order')->get();
+
         return view('livewire.onboarding.wizard', [
-            'society' => app(SocietyContext::class)->check(),
-            'heads' => ChargeHead::income()->active()->orderBy('sort_order')->get(),
+            'society' => $society,
+            'heads' => $heads,
+            // Maintenance is asked about on its own terms; the rest are the
+            // optional extras behind "anything else".
+            'extraHeads' => $heads->where('code', '!=', 'MAINT')->values(),
             'unitCount' => Unit::count(),
             'blockCount' => Block::count(),
+            'blocks' => Block::orderBy('sort_order')->orderBy('name')->get(),
+            // Only the sizes this society actually has, so nobody is asked
+            // about a 4BHK they do not own.
+            'sizes' => Unit::query()
+                ->whereNotNull('configuration')
+                ->where('configuration', '!=', '')
+                ->distinct()
+                ->orderBy('configuration')
+                ->pluck('configuration'),
         ])->title('Set up your society');
     }
 }

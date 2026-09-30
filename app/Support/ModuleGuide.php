@@ -126,7 +126,8 @@ class ModuleGuide
                 'steps' => [
                     'Each head has a basis - a fixed amount per flat, a rate per square foot, or per member - and that decides how it is worked out.',
                     'A per-square-foot head multiplies its rate by the unit\'s area, so a larger flat pays more.',
-                    'A unit that is charged differently from the rest gets an override on the unit itself, not a new head.',
+                    'Maintenance can differ by building or by size of home. The most specific rate wins: this flat, then its size, then its building, then the society default.',
+                    'A single flat that is charged differently gets an override on the flat itself, not a new head.',
                 ],
                 'watch' => [
                     'Changing a rate affects bills raised from now on. It does not rewrite bills already issued.',
@@ -144,6 +145,7 @@ class ModuleGuide
                 'watch' => [
                     'A plan will not bill the same unit for the same period twice, so a re-run is safe.',
                     'Auto-issue sends bills out as soon as they are raised. Leave it off if the committee reviews them first.',
+                    'A plan can record a discount for paying a year at once, so it stops living in the treasurer\'s head.',
                 ],
             ],
 
