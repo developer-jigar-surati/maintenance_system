@@ -44,18 +44,14 @@ class ChargeCalculator
     {
         $on ??= now();
 
-        if (! $head->appliesToUnit($unit)) {
+        $resolved = $this->explain($unit, $head, $plan, $on);
+
+        if (! $resolved['applies'] || $resolved['exempt']) {
             return null;
         }
 
-        $override = $this->overrideFor($unit, $head, $on);
-
-        if ($override?->is_exempt) {
-            return null;
-        }
-
-        $basis = $this->resolveBasis($head, $plan);
-        $rate = $this->resolveRate($unit, $head, $plan, $override, $on);
+        $basis = $resolved['basis'];
+        $rate = $resolved['rate'];
         $quantity = $this->quantityFor($unit, $head, $basis);
 
         // A per-sqft head on a unit with no recorded area would silently bill
@@ -73,9 +69,51 @@ class ChargeCalculator
         ];
     }
 
+    /**
+     * The same resolution, with its working shown.
+     *
+     * A committee looking at one flat needs to know not just what it pays but
+     * why: whether that figure is the society's, its building's, or one
+     * somebody set for this flat alone. Without that, nobody dares change a
+     * rate in case a hand-set exception disappears with it.
+     *
+     * @return array{applies: bool, exempt: bool, basis: string, rate: float, quantity: float, amount: float, tax_rate: float, gross: float, source: string, override: UnitChargeOverride|null}
+     */
+    public function explain(Unit $unit, ChargeHead $head, ?BillingPlan $plan = null, ?Carbon $on = null): array
+    {
+        $on ??= now();
+
+        $override = $this->overrideFor($unit, $head, $on);
+        $basis = $this->resolveBasis($head, $plan);
+        $applies = $head->appliesToUnit($unit);
+
+        [$rate, $source] = $this->traceRate($unit, $head, $plan, $override, $on);
+
+        // Counting members or vehicles costs a query, so it is skipped for a
+        // head that does not reach this unit in the first place.
+        $quantity = $applies ? $this->quantityFor($unit, $head, $basis) : 0.0;
+
+        $amount = round($rate * $quantity, 2);
+        $tax = $head->is_taxable ? (float) $head->tax_rate : 0.0;
+
+        return [
+            'applies' => $applies,
+            'exempt' => (bool) $override?->is_exempt,
+            'basis' => $basis,
+            'rate' => $rate,
+            'quantity' => round($quantity, 4),
+            'amount' => $amount,
+            'tax_rate' => $tax,
+            'gross' => round($amount * (1 + ($tax / 100)), 2),
+            'source' => $source,
+            'override' => $override,
+        ];
+    }
+
     private function overrideFor(Unit $unit, ChargeHead $head, Carbon $on): ?UnitChargeOverride
     {
         return UnitChargeOverride::query()
+            ->with('setBy')
             ->where('unit_id', $unit->id)
             ->where('charge_head_id', $head->id)
             ->where(fn ($q) => $q->whereNull('effective_from')->orWhereDate('effective_from', '<=', $on))
@@ -89,19 +127,24 @@ class ChargeCalculator
             ?: $head->basis;
     }
 
-    private function resolveRate(
+    /**
+     * The rate, and the name of whatever decided it.
+     *
+     * @return array{0: float, 1: string}
+     */
+    private function traceRate(
         Unit $unit,
         ChargeHead $head,
         ?BillingPlan $plan,
         ?UnitChargeOverride $override,
         Carbon $on,
-    ): float {
+    ): array {
         // This flat specifically.
         if ($override && $override->rate !== null) {
-            return (float) $override->rate;
+            return [(float) $override->rate, 'unit'];
         }
 
-        // Its size of home, then its building.
+        // Its building and size, its size, then its building.
         $scoped = $this->scopedRateFor($unit, $head, $on);
 
         if ($scoped !== null) {
@@ -110,7 +153,11 @@ class ChargeCalculator
 
         $planRate = $plan?->chargeHeads->firstWhere('id', $head->id)?->pivot?->rate;
 
-        return (float) ($planRate ?? $head->default_rate);
+        if ($planRate !== null) {
+            return [(float) $planRate, 'plan'];
+        }
+
+        return [(float) $head->default_rate, 'society'];
     }
 
     /**
@@ -120,8 +167,10 @@ class ChargeCalculator
      * flat. "A wing, 3BHK" is the most deliberate statement anyone can make
      * short of naming the flat itself, so it is preferred over "3BHK
      * anywhere", which in turn is preferred over "anything in A wing".
+     *
+     * @return array{0: float, 1: string}|null
      */
-    private function scopedRateFor(Unit $unit, ChargeHead $head, Carbon $on): ?float
+    private function scopedRateFor(Unit $unit, ChargeHead $head, Carbon $on): ?array
     {
         $block = $unit->block_id;
         $size = $unit->configuration;
@@ -154,7 +203,7 @@ class ChargeCalculator
             $match = $applies ? $rates->firstWhere('scope', $scope) : null;
 
             if ($match !== null) {
-                return (float) $match->rate;
+                return [(float) $match->rate, $scope];
             }
         }
 

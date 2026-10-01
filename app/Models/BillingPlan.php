@@ -33,6 +33,8 @@ class BillingPlan extends Model
             'auto_generate' => 'boolean',
             'auto_issue' => 'boolean',
             'is_active' => 'boolean',
+            'advance_periods' => 'integer',
+            'advance_discount_percent' => 'decimal:2',
         ];
     }
 
@@ -42,6 +44,11 @@ class BillingPlan extends Model
             ->withPivot(['rate', 'basis', 'sort_order'])
             ->withTimestamps()
             ->orderBy('billing_plan_charge_head.sort_order');
+    }
+
+    public function advanceDiscounts(): HasMany
+    {
+        return $this->hasMany(AdvanceDiscount::class);
     }
 
     public function lateFeeRule(): BelongsTo
@@ -112,6 +119,67 @@ class BillingPlan extends Model
     public function cycleLabel(): string
     {
         return ucwords(str_replace('_', '-', $this->cycle));
+    }
+
+    /**
+     * The stretch of time one bill covers, as a noun.
+     *
+     * "Every monthly" is not English. A total under a list of charges needs to
+     * say "every month", and that is not the same word as the cycle's name.
+     */
+    public function periodNoun(): string
+    {
+        return match ($this->cycle) {
+            'monthly' => 'month',
+            'bi_monthly' => 'two months',
+            'quarterly' => 'quarter',
+            'half_yearly' => 'half year',
+            'yearly' => 'year',
+            default => 'bill',
+        };
+    }
+
+    /** How many bills under this plan add up to a year. */
+    public function periodsPerYear(): int
+    {
+        $months = $this->cycleMonths();
+
+        return $months === 0 ? 0 : intdiv(12, $months);
+    }
+
+    /** Whether paying up front gets anybody anything. */
+    public function offersAdvance(): bool
+    {
+        return (int) $this->advance_periods > 1
+            && ((float) $this->advance_discount_percent > 0 || $this->advanceDiscounts()->exists());
+    }
+
+    /**
+     * The prepayment discount that applies to a building.
+     *
+     * A building's own figure wins, including a deliberate zero: a wing told
+     * in a meeting that it gets no discount should not quietly inherit the
+     * society's.
+     */
+    public function advanceDiscountFor(?int $blockId): ?float
+    {
+        if ((int) $this->advance_periods < 2) {
+            return null;
+        }
+
+        // Works whether or not the relation was eager loaded, because this is
+        // called from a page that lists plans and from one that shows a flat.
+        $forBlock = match (true) {
+            $blockId === null => null,
+            $this->relationLoaded('advanceDiscounts') => $this->advanceDiscounts->firstWhere('block_id', $blockId),
+            default => $this->advanceDiscounts()->where('block_id', $blockId)->first(),
+        };
+
+        $percent = $forBlock !== null
+            ? (float) $forBlock->discount_percent
+            : ($this->advance_discount_percent === null ? null : (float) $this->advance_discount_percent);
+
+        return $percent === null ? null : max(0.0, min(90.0, $percent));
     }
 
     public function scopeActive(Builder $query): Builder

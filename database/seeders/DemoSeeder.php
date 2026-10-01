@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\Role as RoleName;
+use App\Models\AdvanceDiscount;
 use App\Models\AmcContract;
 use App\Models\Amenity;
 use App\Models\Asset;
@@ -24,6 +25,7 @@ use App\Models\PollOption;
 use App\Models\Society;
 use App\Models\Staff;
 use App\Models\Unit;
+use App\Models\UnitChargeOverride;
 use App\Models\UnitResident;
 use App\Models\User;
 use App\Models\Vehicle;
@@ -151,6 +153,11 @@ class DemoSeeder extends Seeder
 
         $plan = $this->createPlan($society, ['MAINT', 'SINK', 'WATER', 'PARK'], 'Monthly maintenance');
 
+        // Set before the historic bills are raised, so the past invoices show
+        // the exceptions actually applied rather than claiming they would be.
+        $this->settleSomeHomesByHand($society, $people['treasurer']);
+        $this->offerAYearUpFront($society, $plan, 8.33, ['A' => 12.5]);
+
         $this->runHistoricBilling($plan, $people['treasurer'], months: 4);
 
         // --- operations -------------------------------------------------
@@ -209,6 +216,7 @@ class DemoSeeder extends Seeder
         ]);
 
         $plan = $this->createPlan($society, ['MAINT', 'SINK'], 'Quarterly maintenance', 'quarterly', 30);
+        $this->offerAYearUpFront($society, $plan, 10);
         $this->runHistoricBilling($plan, $admin, months: 3);
 
         Notice::create([
@@ -415,6 +423,71 @@ class DemoSeeder extends Seeder
         );
 
         return $plan->load('chargeHeads', 'society');
+    }
+
+    /**
+     * The handful of flats every society settles individually.
+     *
+     * A concession granted at a general body meeting, and a flat that paid its
+     * sinking fund off in one go. Both are ordinary and both used to live in
+     * the treasurer's memory, so the demo data carries them.
+     */
+    private function settleSomeHomesByHand(Society $society, User $actor): void
+    {
+        $maintenance = ChargeHead::where('code', 'MAINT')->first();
+        $sinking = ChargeHead::where('code', 'SINK')->first();
+
+        $homes = Unit::where('society_id', $society->id)->orderBy('id')->take(2)->get();
+
+        if ($maintenance && $homes->first()) {
+            UnitChargeOverride::create([
+                'society_id' => $society->id,
+                'unit_id' => $homes->first()->id,
+                'charge_head_id' => $maintenance->id,
+                'rate' => round((float) $maintenance->default_rate * 0.75, 4),
+                'reason' => 'Senior citizen concession agreed at the 2026 AGM',
+                'set_by' => $actor->id,
+            ]);
+        }
+
+        if ($sinking && $homes->count() > 1) {
+            UnitChargeOverride::create([
+                'society_id' => $society->id,
+                'unit_id' => $homes->get(1)->id,
+                'charge_head_id' => $sinking->id,
+                'is_exempt' => true,
+                'reason' => 'Sinking fund paid in full in 2024',
+                'set_by' => $actor->id,
+            ]);
+        }
+    }
+
+    /**
+     * The prepayment deal, which nearly every society offers.
+     *
+     * @param  array<string, float>  $perBlock  Wing name to its own percentage.
+     */
+    private function offerAYearUpFront(Society $society, BillingPlan $plan, float $percent, array $perBlock = []): void
+    {
+        $plan->forceFill([
+            'advance_periods' => $plan->periodsPerYear(),
+            'advance_discount_percent' => $percent,
+        ])->save();
+
+        foreach ($perBlock as $name => $blockPercent) {
+            $block = Block::where('society_id', $society->id)->where('name', $name)->first();
+
+            if ($block === null) {
+                continue;
+            }
+
+            AdvanceDiscount::create([
+                'society_id' => $society->id,
+                'billing_plan_id' => $plan->id,
+                'block_id' => $block->id,
+                'discount_percent' => $blockPercent,
+            ]);
+        }
     }
 
     /**

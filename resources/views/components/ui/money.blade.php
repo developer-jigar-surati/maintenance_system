@@ -16,6 +16,6 @@
     };
 @endphp
 
-<span {{ $attributes->merge(['class' => 'numeric whitespace-nowrap '.$colour]) }}>
-    @if ($signed && $value > 0)+@endif{{ $formatted }}
-</span>
+{{-- Kept on one line: a newline inside the span renders as a space, which
+     puts a gap before the full stop in a sentence that ends with money. --}}
+<span {{ $attributes->merge(['class' => 'numeric whitespace-nowrap '.$colour]) }}>@if ($signed && $value > 0)+@endif{{ $formatted }}</span>

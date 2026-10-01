@@ -32,4 +32,10 @@ class UnitChargeOverride extends Model
     {
         return $this->belongsTo(ChargeHead::class, 'charge_head_id');
     }
+
+    /** Whoever agreed to this exception, named on the unit's own page. */
+    public function setBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'set_by');
+    }
 }

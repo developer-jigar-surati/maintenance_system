@@ -73,6 +73,10 @@
         </div>
 
         <div class="space-y-6">
+            {{-- Its own component: the same permission that lets somebody see
+                 a unit does not let them change what it pays. --}}
+            <livewire:billing.unit-charges :unit="$unit" :key="'charges-'.$unit->id" />
+
             <x-ui.card title="Who lives here" padded="false">
                 <x-slot:description>
                     @if ($canSeeHistory)

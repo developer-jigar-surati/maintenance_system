@@ -128,7 +128,7 @@ class ModuleGuide
                     'A per-square-foot head multiplies its rate by the unit\'s area, so a larger flat pays more.',
                     'Maintenance can differ by building, by size of home, or by both at once. Set them with "Set rates" on the head.',
                     'The most specific rate wins: this flat, then its building and size together, then its size, then its building, then the society default.',
-                    'A single flat that is charged differently gets an override on the flat itself, not a new head.',
+                    'A single flat that is charged differently is set on the flat\'s own page, under "What this home pays", not with a new head.',
                 ],
                 'watch' => [
                     'Changing a rate affects bills raised from now on. It does not rewrite bills already issued, which is why an old receipt still adds up.',
@@ -148,6 +148,7 @@ class ModuleGuide
                     'A plan will not bill the same unit for the same period twice, so a re-run is safe.',
                     'Auto-issue sends bills out as soon as they are raised. Leave it off if the committee reviews them first.',
                     'A plan can record a discount for paying a year at once, so it stops living in the treasurer\'s head.',
+                    'That discount is typed as money and kept as a percentage, so it still means the same thing after maintenance changes. A building promised a different deal gets its own figure.',
                 ],
             ],
 
@@ -182,12 +183,14 @@ class ModuleGuide
                 'summary' => 'Every flat, villa, shop or plot in the society, and what each one owes.',
                 'steps' => [
                     'A unit belongs to a block or wing, and its area is what per-square-foot charges are worked out from.',
-                    'Opening a unit shows its bills, payments and who lives there.',
+                    'Opening a unit shows its bills, payments, who lives there, and what it pays.',
+                    '"What this home pays" is where one flat is settled on its own: a concession agreed at a meeting, or a ground floor flat left out of the lift charge.',
                     'A unit that should not be billed - a society office, say - can be marked not billable.',
                 ],
                 'watch' => [
                     'Occupancy is worked out from who lives there, so it is never typed and never drifts.',
                     'Past residents are shown to the chairman, secretary and society administrator only. Anyone else sees who lives there now.',
+                    'An amount set for one home overrides its building and its size, and keeps doing so until somebody puts it back on the shared amount.',
                 ],
             ],
 
