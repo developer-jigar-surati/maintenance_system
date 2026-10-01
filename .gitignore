@@ -1,11 +1,33 @@
-/vendor
+*.log
+.DS_Store
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+/.codex
+/.cursor/
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/auth.json
 /node_modules
+# The compiled CSS and JS are committed deliberately.
+#
+# This app is run straight from a clone with `php artisan serve`, so a pull
+# that does not also bring the built assets leaves the browser on whatever
+# was compiled last -- which looks like a broken interface rather than a
+# missing build step. If you add a deploy pipeline that runs `npm run build`,
+# re-ignore this directory.
+/public/fonts-manifest.dev.json
 /public/hot
 /public/storage
 /storage/*.key
-.env.backup
-.phpunit.result.cache
+/storage/pail
+/vendor
+_ide_helper.php
 Homestead.json
 Homestead.yaml
-npm-debug.log
-yarn-error.log
+Thumbs.db

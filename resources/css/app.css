@@ -1,0 +1,525 @@
+@import 'tailwindcss';
+
+@source '../../app/**/*.php';
+@source '../views/**/*.blade.php';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+/*
+ * Dark mode is driven by a data-theme attribute on <html> rather than only by
+ * the OS setting, so a resident can override it. The attribute is written by
+ * the inline script in the layout head before first paint.
+ */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+@theme {
+    /*
+     * Apple's own faces first: on iOS and macOS this resolves to SF Pro, which
+     * is what gives the interface its native feel. Inter is the fallback for
+     * Windows and Android so the metrics stay close everywhere else.
+     */
+    --font-sans:
+        -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Inter var', 'Inter',
+        'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+    --font-mono:
+        ui-monospace, 'SF Mono', SFMono-Regular, 'JetBrains Mono', Menlo, Consolas, monospace;
+
+    /* Tabular figures keep money columns from jittering as values change. */
+    --font-numeric: 'SF Pro Text', -apple-system, 'Inter', system-ui, sans-serif;
+
+    --radius-xs: 0.375rem;
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+    --radius-2xl: 1.5rem;
+
+    /*
+     * Brand ramp. Indigo reads as calm and administrative rather than alarming,
+     * which suits a tool people open to settle bills.
+     */
+    --color-brand-50: oklch(0.971 0.014 277);
+    --color-brand-100: oklch(0.942 0.029 277);
+    --color-brand-200: oklch(0.894 0.057 277);
+    --color-brand-300: oklch(0.822 0.094 277);
+    --color-brand-400: oklch(0.724 0.134 277);
+    --color-brand-500: oklch(0.632 0.164 277);
+    --color-brand-600: oklch(0.548 0.178 277);
+    --color-brand-700: oklch(0.472 0.165 277);
+    --color-brand-800: oklch(0.402 0.138 277);
+    --color-brand-900: oklch(0.346 0.112 277);
+    --color-brand-950: oklch(0.243 0.081 277);
+
+    /* Status hues, each picked to stay legible on both surfaces. */
+    --color-positive: oklch(0.63 0.152 152);
+    --color-positive-soft: oklch(0.951 0.042 152);
+    --color-caution: oklch(0.71 0.158 72);
+    --color-caution-soft: oklch(0.957 0.05 72);
+    --color-critical: oklch(0.601 0.196 24);
+    --color-critical-soft: oklch(0.951 0.036 24);
+    --color-info: oklch(0.63 0.13 232);
+    --color-info-soft: oklch(0.952 0.035 232);
+
+    --shadow-card: 0 1px 2px oklch(0 0 0 / 0.04), 0 1px 3px oklch(0 0 0 / 0.06);
+    --shadow-raised: 0 4px 6px -1px oklch(0 0 0 / 0.07), 0 2px 4px -2px oklch(0 0 0 / 0.05);
+    --shadow-overlay: 0 20px 25px -5px oklch(0 0 0 / 0.12), 0 8px 10px -6px oklch(0 0 0 / 0.08);
+}
+
+/*
+ * Semantic surface tokens. Components reference these rather than raw palette
+ * steps, so the whole interface re-themes from one block.
+ */
+@layer base {
+    :root {
+        --surface: oklch(0.985 0.002 275);
+        --surface-raised: oklch(1 0 0);
+        --surface-sunken: oklch(0.967 0.003 275);
+        --surface-inset: oklch(0.951 0.004 275);
+        --border-subtle: oklch(0.913 0.005 275);
+        --border-strong: oklch(0.842 0.008 275);
+        --text-primary: oklch(0.21 0.014 275);
+        --text-secondary: oklch(0.44 0.012 275);
+        --text-muted: oklch(0.58 0.011 275);
+        --accent: var(--color-brand-600);
+        --accent-contrast: oklch(1 0 0);
+        --accent-soft: var(--color-brand-50);
+
+        /* The two wall shades of a building on the 3D plan. */
+        --wall-near: var(--color-brand-100);
+        --wall-far: var(--color-brand-200);
+    }
+
+    [data-theme='dark'] {
+        --surface: oklch(0.178 0.011 275);
+        --surface-raised: oklch(0.221 0.013 275);
+        --surface-sunken: oklch(0.146 0.01 275);
+        --surface-inset: oklch(0.262 0.015 275);
+        --border-subtle: oklch(0.302 0.014 275);
+        --border-strong: oklch(0.392 0.018 275);
+        --text-primary: oklch(0.967 0.003 275);
+        --text-secondary: oklch(0.776 0.012 275);
+        --text-muted: oklch(0.632 0.013 275);
+        --accent: var(--color-brand-400);
+        --accent-contrast: oklch(0.184 0.04 277);
+        --accent-soft: oklch(0.28 0.06 277);
+
+        /* Soft status fills need to invert, or they glow on a dark surface. */
+        --color-positive-soft: oklch(0.29 0.055 152);
+        --color-caution-soft: oklch(0.31 0.06 72);
+        --color-critical-soft: oklch(0.3 0.062 24);
+        --color-info-soft: oklch(0.29 0.052 232);
+
+        --wall-near: oklch(0.34 0.072 277);
+        --wall-far: oklch(0.27 0.058 277);
+    }
+
+    * {
+        border-color: var(--border-subtle);
+    }
+
+    html {
+        scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        background-color: var(--surface);
+        color: var(--text-primary);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    }
+
+    /*
+     * Cursors.
+     *
+     * The browser default is `auto`, which shows a text I-beam over anything
+     * containing text -- including a header, a menu label and an account
+     * name, none of which anyone is trying to select. An application should
+     * read as an application: an arrow over its chrome, a hand over what can
+     * be clicked, and an I-beam only where words can actually be typed or are
+     * genuinely there to be copied.
+     *
+     * Tailwind's Preflight also sets `button { cursor: default }`, which would
+     * otherwise leave every button in the app showing an arrow.
+     */
+    body {
+        cursor: default;
+    }
+
+    /* Anything that acts like a control. */
+    button:not(:disabled),
+    [role='button']:not([aria-disabled='true']),
+    [role='tab'],
+    [role='menuitem'],
+    [role='menuitemcheckbox'],
+    [role='menuitemradio'],
+    [role='option'],
+    [role='switch'],
+    [role='link'],
+    [role='checkbox'],
+    [role='radio'],
+    [role='combobox'],
+    a[href],
+    label[for],
+    summary,
+    select:not(:disabled),
+    input[type='checkbox']:not(:disabled),
+    input[type='radio']:not(:disabled),
+    input[type='file']:not(:disabled),
+    input[type='submit']:not(:disabled),
+    input[type='reset']:not(:disabled),
+    input[type='button']:not(:disabled),
+    input[type='image']:not(:disabled),
+    input[type='color']:not(:disabled),
+    input[type='range']:not(:disabled),
+    /*
+     * Livewire and Alpine can make anything clickable, and a div that acts
+     * like a button has to say so. The colon is escaped because it is part of
+     * the attribute name, not a pseudo-class.
+     */
+    [wire\:click]:not([disabled]),
+    [x-on\:click]:not([disabled]),
+    [\@click]:not([disabled]) {
+        cursor: pointer;
+    }
+
+    /* Anything that cannot be used right now. */
+    button:disabled,
+    select:disabled,
+    textarea:disabled,
+    input:disabled,
+    fieldset:disabled,
+    [aria-disabled='true'],
+    [aria-busy='true'] {
+        cursor: not-allowed;
+    }
+
+    /* Only where words are actually typed. */
+    input:not([type]):not(:disabled),
+    input[type='text']:not(:disabled),
+    input[type='email']:not(:disabled),
+    input[type='password']:not(:disabled),
+    input[type='search']:not(:disabled),
+    input[type='tel']:not(:disabled),
+    input[type='url']:not(:disabled),
+    input[type='number']:not(:disabled),
+    input[type='date']:not(:disabled),
+    input[type='time']:not(:disabled),
+    input[type='month']:not(:disabled),
+    input[type='week']:not(:disabled),
+    input[type='datetime-local']:not(:disabled),
+    textarea:not(:disabled),
+    [contenteditable]:not([contenteditable='false']),
+    [role='textbox'],
+    /* And where text is plainly there to be read and copied. */
+    pre,
+    code,
+    kbd,
+    samp,
+    .selectable,
+    .selectable * {
+        cursor: text;
+    }
+
+    /* A control wins over the text it happens to contain. */
+    button *,
+    a[href] *,
+    label[for] *,
+    summary *,
+    [role='button'] * {
+        cursor: inherit;
+    }
+
+    /* Rows that navigate on click should advertise it. */
+    [data-clickable-row] {
+        cursor: pointer;
+    }
+
+    /*
+     * A single, consistent focus ring on every interactive element. Visible
+     * keyboard focus is the difference between a usable and an unusable
+     * interface for anyone not using a mouse.
+     */
+    :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+        border-radius: var(--radius-xs);
+    }
+
+    /* Honour the OS "reduce motion" setting rather than animating regardless. */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+
+    @media (prefers-contrast: more) {
+        :root {
+            --border-subtle: oklch(0.72 0.01 275);
+            --text-secondary: oklch(0.32 0.012 275);
+        }
+    }
+
+    [hidden] {
+        display: none !important;
+    }
+}
+
+@layer components {
+    /* Skip link: first tab stop on every page, hidden until focused. */
+    .skip-link {
+        position: absolute;
+        left: 0.75rem;
+        top: -100%;
+        z-index: 100;
+        border-radius: var(--radius-sm);
+        background-color: var(--accent);
+        color: var(--accent-contrast);
+        display: inline-flex;
+        align-items: center;
+        /* A skip link is the first thing a keyboard user lands on; it should
+           be as easy to hit as anything else. */
+        min-height: 2.75rem;
+        padding: 0.625rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        transition: top 0.15s ease;
+    }
+
+    .skip-link:focus {
+        top: 0.75rem;
+    }
+
+    .surface-card {
+        background-color: var(--surface-raised);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-card);
+    }
+
+    .numeric {
+        font-family: var(--font-numeric);
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: 'tnum';
+    }
+
+    /* Used on scrollable regions so a long table does not hide its overflow. */
+    .scrollbar-slim {
+        scrollbar-width: thin;
+        scrollbar-color: var(--border-strong) transparent;
+    }
+
+    .scrollbar-slim::-webkit-scrollbar {
+        height: 0.5rem;
+        width: 0.5rem;
+    }
+
+    .scrollbar-slim::-webkit-scrollbar-thumb {
+        background-color: var(--border-strong);
+        border-radius: 999px;
+    }
+}
+
+/*
+ * The 3D site plan.
+ *
+ * CSS transforms rather than WebGL, deliberately: every building and every
+ * flat stays a real <button> that takes focus and reads out to a screen
+ * reader, which a canvas cannot do without maintaining a parallel DOM. It
+ * also costs no dependency and runs on the kind of phone a guard actually
+ * carries.
+ *
+ * The scene is a ground plane tilted away from the viewer; buildings extrude
+ * along +Z, which the tilt turns into "up".
+ */
+@layer components {
+    .scene-3d {
+        perspective: 1400px;
+        perspective-origin: 50% 40%;
+
+        /*
+         * Every child of the scene is absolutely positioned, so without a
+         * height of its own the box collapses to nothing and the plan reads
+         * as an empty strip. The aspect ratio normally supplies that height;
+         * this is the floor under it, for a browser that does not support
+         * `aspect-ratio` or a stylesheet that arrives incomplete.
+         */
+        min-height: 20rem;
+    }
+
+    .scene-world {
+        position: absolute;
+        inset: 0;
+        transform-style: preserve-3d;
+        transform:
+            translateY(var(--pan, 2%))
+            rotateX(var(--tilt, 58deg))
+            rotateZ(var(--spin, 0deg))
+            scale(var(--zoom, 0.95));
+        transition: transform 0.35s ease;
+    }
+
+    /* A building: a footprint in the plane, extruded by --extrude. */
+    .solid-3d {
+        position: absolute;
+        transform-style: preserve-3d;
+    }
+
+    .solid-3d > .face {
+        position: absolute;
+        border: 1px solid var(--accent);
+        background-color: var(--accent-soft);
+    }
+
+    /*
+     * Wall shades are named per theme rather than derived. A `brightness()`
+     * filter on a very pale fill turns it grey, and mixing toward white in
+     * oklch drifts the hue -- indigo walls came out pink.
+     */
+
+    .solid-3d > .face-roof {
+        inset: 0;
+        transform-style: preserve-3d;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.125rem;
+        border-radius: var(--radius-sm);
+        transform: translateZ(var(--extrude, 40px));
+    }
+
+    /* Walls stand up from each edge of the footprint. */
+    .solid-3d > .face-n,
+    .solid-3d > .face-s {
+        left: 0;
+        width: 100%;
+        height: var(--extrude, 40px);
+        transform-origin: top;
+        transform: rotateX(90deg);
+    }
+
+    .solid-3d > .face-n { top: 0; }
+    .solid-3d > .face-s { top: 100%; }
+
+    .solid-3d > .face-w,
+    .solid-3d > .face-e {
+        top: 0;
+        height: 100%;
+        width: var(--extrude, 40px);
+        transform-origin: left;
+        transform: rotateY(-90deg);
+    }
+
+    .solid-3d > .face-w { left: 0; }
+    .solid-3d > .face-e { left: 100%; }
+
+    /* Two shades of wall, so the eye reads a volume rather than a flat blob. */
+    .solid-3d > .face-n,
+    .solid-3d > .face-s {
+        background-color: var(--wall-near);
+    }
+
+    .solid-3d > .face-w,
+    .solid-3d > .face-e {
+        background-color: var(--wall-far);
+    }
+
+    /*
+     * A roof label turns and tips with the building, which leaves it
+     * unreadable at a quarter turn or a low tilt. Undoing the world's
+     * rotation turns the label back to face the reader while the building
+     * itself keeps turning -- the billboarding trick.
+     */
+    .billboard {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.125rem;
+        /* Lifted a hair off the roof so it never z-fights with it. */
+        transform: translateZ(2px) rotateZ(calc(-1 * var(--spin, 0deg))) rotateX(calc(-1 * var(--tilt, 58deg)));
+        transition: transform 0.35s ease;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .billboard {
+            transition: none;
+        }
+    }
+
+    /* A floor slab in the building view, stacked and optionally separated. */
+    .slab-3d {
+        transform-style: preserve-3d;
+        transform: translateZ(calc(var(--level, 0) * var(--slab-gap, 46px)));
+        transition: transform 0.35s ease;
+    }
+
+    /*
+     * Motion is the one thing a 3D view adds that can make somebody ill.
+     * Honour the OS setting by removing the transitions; the view still
+     * rotates, it just arrives there without sliding.
+     */
+    @media (prefers-reduced-motion: reduce) {
+        .scene-world,
+        .slab-3d {
+            transition: none;
+        }
+    }
+}
+
+@utility surface {
+    background-color: var(--surface);
+}
+
+@utility surface-raised {
+    background-color: var(--surface-raised);
+}
+
+@utility surface-sunken {
+    background-color: var(--surface-sunken);
+}
+
+@utility surface-inset {
+    background-color: var(--surface-inset);
+}
+
+@utility text-primary {
+    color: var(--text-primary);
+}
+
+@utility text-secondary {
+    color: var(--text-secondary);
+}
+
+@utility text-muted {
+    color: var(--text-muted);
+}
+
+@utility border-subtle {
+    border-color: var(--border-subtle);
+}
+
+@utility border-strong {
+    border-color: var(--border-strong);
+}
+
+@utility accent-bg {
+    background-color: var(--accent);
+    color: var(--accent-contrast);
+}
+
+@utility accent-text {
+    color: var(--accent);
+}
+
+@utility accent-soft-bg {
+    background-color: var(--accent-soft);
+}
