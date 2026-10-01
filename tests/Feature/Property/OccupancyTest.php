@@ -224,8 +224,8 @@ class OccupancyTest extends TestCase
     /**
      * `residents` and `activeResidents` are two relations over overlapping
      * rows. A screen that eager loaded one and a helper that read the other
-     * produced a lazy-loading violation in production but never in a test,
-     * because tests do not run with lazy loading disabled by default.
+     * produced a lazy-loading violation, so this asserts the helper answers
+     * whichever of the two is loaded, and when neither is.
      */
     public function test_the_billing_contact_is_readable_whichever_relation_was_eager_loaded(): void
     {
@@ -237,6 +237,11 @@ class OccupancyTest extends TestCase
             'relation' => 'owner', 'is_billing_contact' => true,
         ]);
 
+        // The suite already prevents lazy loading, but say so here rather than
+        // depend on it, and put back whatever was in force afterwards. Hard
+        // coding `false` in the finally left every test that ran after this
+        // one with the check quietly switched off.
+        $previously = Model::preventsLazyLoading();
         Model::preventLazyLoading();
 
         try {
@@ -254,7 +259,7 @@ class OccupancyTest extends TestCase
             $bare = Unit::findOrFail($unit->id);
             $this->assertSame($owner->id, $bare->billingContact()?->user?->id);
         } finally {
-            Model::preventLazyLoading(false);
+            Model::preventLazyLoading($previously);
         }
     }
 

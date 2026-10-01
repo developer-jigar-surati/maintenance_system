@@ -14,6 +14,14 @@ row houses, a gated community, a township, a plotted development, a commercial
 complex, an office park, student housing or co-living - each with its own
 billing basis, and all on one installation.
 
+## Documentation
+
+| Document | What is in it |
+|---|---|
+| [docs/PROJECT-OVERVIEW.md](docs/PROJECT-OVERVIEW.md) | What the system is, its architecture, every panel and what it means, the domain rules that make it different, an honest list of what is not built, and a section written for pasting into an AI to compare it against the market |
+| [docs/WORKFLOWS.md](docs/WORKFLOWS.md) | Who does what in what order: the platform operator creating a society, the administrator setting it up, loading the property, the first bill run, and the working rhythm of each role |
+| [docs/TESTING.md](docs/TESTING.md) | How to run the suite, what each of its 209 tests guarantees, conventions for writing new ones, browser verification, and a manual checklist per role |
+
 ## Stack
 
 **Requires PHP 8.3 or newer, MySQL 8 (or MariaDB 10.6+), Composer 2 and Node 20+.**
@@ -321,7 +329,7 @@ as production, so anything engine-specific is caught here rather than in
 production. Host and credentials come from `.env`; only the database name is
 overridden in `phpunit.xml`.
 
-170 tests covering the parts that would be expensive to get wrong: tenancy
+209 tests covering the parts that would be expensive to get wrong: tenancy
 isolation, per-square-foot and fixed billing arithmetic, idempotent bill runs,
 simple versus compound interest and the guarantee against double-charging,
 oldest-first payment allocation and overpayment credit, gap-free receipt
@@ -340,8 +348,9 @@ past resident is never sent to the browser at all for someone without the
 permission - asserted against the raw HTML, because a name hidden behind an
 `@if` is still there to read.
 
-One test turns lazy loading off, which the suite otherwise does not, to catch
-the class of bug where a screen eager loads `residents` and a helper reads
+Lazy loading is prevented throughout the run, so an N+1 fails rather than
+quietly firing an extra query. One test says so explicitly, to pin the class of
+bug where a screen eager loads `residents` and a helper reads
 `activeResidents`.
 
 ## Production notes
