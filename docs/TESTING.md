@@ -17,7 +17,7 @@ php artisan test --filter=PerHomeAmountTest
 php artisan test tests/Feature/Billing/LateFeeTest.php
 ```
 
-**209 tests, 1,274 assertions.** A full run takes about two minutes.
+**218 tests, 1,306 assertions.** A full run takes about two minutes.
 
 ### Before the first run
 
@@ -253,6 +253,20 @@ Site plan:
 - A unit cannot exceed its concurrent booking cap
 - Hourly charging multiplies by the hours booked
 - An amenity needing approval starts as pending
+
+### Onboarding: 9 tests  `tests/Feature/Onboarding/WizardStructureTest.php`
+
+- One pattern fills every building when they match
+- **Each building can hold a different set of homes**
+- A building left empty is still created, ready for its homes
+- Turning off the shared pattern starts each building from it
+- **Naming a building that was removed brings it back**, with its homes, rather
+  than failing on a unique index that does not forget a soft-deleted row
+- Running the step again only adds what is missing
+- A building can be promised its own yearly deal
+- Turning the offer off leaves no building deals behind
+- A yearly amount for a building with no rate is ignored, because there is
+  nothing honest to take a percentage of
 
 ### Platform: 14 tests
 

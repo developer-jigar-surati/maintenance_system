@@ -139,78 +139,16 @@
                 </div>
             @else
                 <form data-validate wire:submit="saveAdvance" class="space-y-5">
-                    <label class="flex min-h-11 items-start gap-3" for="offers-advance">
-                        <input type="checkbox" id="offers-advance" wire:model.live="offersAdvance"
-                            class="mt-0.5 size-5 rounded border-strong accent-[var(--accent)]">
-                        <span>
-                            <span class="block text-sm font-medium">Homes that pay the year together pay less</span>
-                            <span class="block text-xs text-secondary">
-                                This is what gets people to pay on time, and it is the one thing
-                                committees never write down.
-                            </span>
-                        </span>
-                    </label>
-
-                    @if ($offersAdvance)
-                        <div class="rounded-xl border border-subtle p-4">
-                            <div class="flex flex-wrap items-center justify-between gap-3">
-                                <div class="min-w-0">
-                                    <p class="text-sm font-medium">A year paid in one go</p>
-                                    <p class="text-xs text-muted">
-                                        {{ $periods }} {{ \Illuminate\Support\Str::plural('bill', $periods) }} normally come to
-                                        about <x-ui.money :amount="$reference['society']" /> for a home.
-                                    </p>
-                                </div>
-                                <div class="w-44">
-                                    <x-ui.input wire:model.live="yearAmount" name="yearAmount" type="number" step="1" min="0"
-                                        required aria-label="What a year costs when paid in one go"
-                                        placeholder="120000" class="numeric text-right" />
-                                </div>
-                            </div>
-
-                            @if ($reference['society'] > 0 && (float) $yearAmount > 0)
-                                <p class="mt-2 text-xs text-secondary">
-                                    A saving of
-                                    <x-ui.money :amount="max(0, $reference['society'] - (float) $yearAmount)" class="font-medium" />,
-                                    which is {{ round((1 - ((float) $yearAmount / $reference['society'])) * 100, 2) }} percent.
-                                    Every home gets that same percentage off whatever it pays, so a 2BHK
-                                    and a 3BHK both keep their own amount.
-                                </p>
-                            @endif
-                        </div>
-
-                        <div>
-                            <p class="text-sm font-medium">Buildings promised something different</p>
-                            <p class="mt-0.5 text-xs text-secondary">
-                                Leave a building empty and it gets the offer above. Fill one in only where a
-                                meeting agreed a different deal for that wing.
-                            </p>
-
-                            <div class="mt-3 space-y-3">
-                                @forelse ($blocks as $block)
-                                    @php $blockYear = $reference['blocks'][$block->id] ?? $reference['society']; @endphp
-                                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-subtle p-4">
-                                        <div class="min-w-0">
-                                            <p class="text-sm font-medium">{{ $block->name }}</p>
-                                            <p class="text-xs text-muted">
-                                                Normally about <x-ui.money :amount="$blockYear" /> a year.
-                                            </p>
-                                        </div>
-                                        <div class="w-44">
-                                            <x-ui.input wire:model.live="blockYearAmounts.{{ $block->id }}"
-                                                type="number" step="1" min="0"
-                                                :aria-label="'What a year costs in '.$block->name.' when paid in one go'"
-                                                placeholder="Same as above" class="numeric text-right" />
-                                        </div>
-                                    </div>
-                                @empty
-                                    <x-ui.alert tone="caution" title="No buildings yet">
-                                        Add your buildings and each one can be given its own deal here.
-                                    </x-ui.alert>
-                                @endforelse
-                            </div>
-                        </div>
-                    @endif
+                    <x-billing.advance-question
+                        :offers="$offersAdvance"
+                        :periods="$periods"
+                        :society-year="$reference['society']"
+                        :amount="$yearAmount"
+                        :blocks="$blocks"
+                        :block-years="$reference['blocks']"
+                        :block-amounts="$blockYearAmounts"
+                        amount-field="yearAmount"
+                        block-field="blockYearAmounts" />
 
                     <x-ui.alert tone="info">
                         This changes what residents are shown and what a prepayment is worked out at.

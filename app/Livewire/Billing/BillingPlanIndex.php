@@ -93,13 +93,13 @@ class BillingPlanIndex extends Component
         // Shown as money, which means converting the stored percentage back
         // against the same reference it was worked out from.
         if ($plan->advance_discount_percent !== null) {
-            $this->yearAmount = $this->amountFromPercent(
+            $this->yearAmount = AdvanceOffer::amountAfter(
                 $reference['society'], (float) $plan->advance_discount_percent
             );
         }
 
         foreach ($plan->advanceDiscounts as $discount) {
-            $this->blockYearAmounts[$discount->block_id] = $this->amountFromPercent(
+            $this->blockYearAmounts[$discount->block_id] = AdvanceOffer::amountAfter(
                 $reference['blocks'][$discount->block_id] ?? $reference['society'],
                 (float) $discount->discount_percent
             );
@@ -134,7 +134,7 @@ class BillingPlanIndex extends Component
 
             $plan->forceFill([
                 'advance_periods' => $plan->periodsPerYear(),
-                'advance_discount_percent' => $this->percentFromAmount(
+                'advance_discount_percent' => AdvanceOffer::percentOff(
                     $reference['society'], (float) $this->yearAmount
                 ),
             ])->save();
@@ -148,7 +148,7 @@ class BillingPlanIndex extends Component
                     'society_id' => $society->id,
                     'billing_plan_id' => $plan->id,
                     'block_id' => (int) $blockId,
-                    'discount_percent' => $this->percentFromAmount(
+                    'discount_percent' => AdvanceOffer::percentOff(
                         $reference['blocks'][(int) $blockId] ?? $reference['society'], (float) $amount
                     ),
                 ]);
@@ -165,21 +165,6 @@ class BillingPlanIndex extends Component
                 ? 'Each home now sees what it saves by paying the year together.'
                 : null,
             tone: 'positive');
-    }
-
-    /** A yearly amount as a discount off what the year normally costs. */
-    private function percentFromAmount(float $normalYear, float $paidUpFront): float
-    {
-        if ($normalYear <= 0) {
-            return 0.0;
-        }
-
-        return max(0.0, min(90.0, round((1 - ($paidUpFront / $normalYear)) * 100, 2)));
-    }
-
-    private function amountFromPercent(float $normalYear, float $percent): ?float
-    {
-        return $normalYear <= 0 ? null : round($normalYear * (1 - ($percent / 100)), 2);
     }
 
     public function render()

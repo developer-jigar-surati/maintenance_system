@@ -134,6 +134,29 @@ class AdvanceOffer
             ->values();
     }
 
+    /**
+     * A yearly amount expressed as a discount off what the year normally costs.
+     *
+     * Static, because the committee types the amount in two different places
+     * (the setup wizard and the billing plan screen) and both must turn it
+     * into the same percentage. Clamped, so a typo cannot store a discount
+     * larger than the bill or a negative one.
+     */
+    public static function percentOff(float $normalYear, float $paidUpFront): float
+    {
+        if ($normalYear <= 0) {
+            return 0.0;
+        }
+
+        return max(0.0, min(90.0, round((1 - ($paidUpFront / $normalYear)) * 100, 2)));
+    }
+
+    /** The same sum backwards, for showing a stored percentage as money. */
+    public static function amountAfter(float $normalYear, float $percent): ?float
+    {
+        return $normalYear <= 0 ? null : round($normalYear * (1 - ($percent / 100)), 2);
+    }
+
     /** What one bill under this plan comes to for this home, tax included. */
     public function periodAmountFor(Unit $unit, BillingPlan $plan, ?Carbon $on = null): float
     {

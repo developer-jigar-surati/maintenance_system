@@ -143,8 +143,16 @@ A range expands (`101-104` becomes 101, 102, 103, 104), up to 500 at a time. A
 chunk that is not a range is taken literally, so `G-01, G-02` works. With no
 buildings named, units sit directly under the society.
 
+**When the buildings differ**, untick "Every building has the same unit
+numbers" and each one gets its own field, started from whatever common pattern
+you had already typed. A society with A to K wings almost never has the same
+flats in all eleven, and repeating one pattern into every building creates
+homes that do not exist while missing the ones that do. Each field shows how
+many homes it will create, with a total underneath.
+
 Nothing is overwritten: re-running the step adds what is missing and leaves
-what exists.
+what exists. A building or a flat that was removed earlier and is named again
+is brought back, with its history, rather than created a second time.
 
 ### Step 3: charges
 
@@ -163,7 +171,11 @@ Then two optional things:
 
 - **Paying the year in one go.** Tick it and type what a year costs when paid
   together. The screen shows the saving and the percentage it works out to.
-  Stored as a percentage; editable later per building.
+  Each building gets its own box underneath, labelled with what that building
+  normally pays for a year: leave one empty and it takes the society's offer,
+  fill it in for a wing that was promised a different deal, and put 0 where a
+  wing was told it gets nothing. Stored as percentages, and editable later
+  under Billing plans.
 - **The extras.** Water, sinking fund, parking and the rest, only if the
   society takes them. Most take one amount and nothing else.
 

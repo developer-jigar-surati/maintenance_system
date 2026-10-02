@@ -20,7 +20,7 @@ billing basis, and all on one installation.
 |---|---|
 | [docs/PROJECT-OVERVIEW.md](docs/PROJECT-OVERVIEW.md) | What the system is, its architecture, every panel and what it means, the domain rules that make it different, an honest list of what is not built, and a section written for pasting into an AI to compare it against the market |
 | [docs/WORKFLOWS.md](docs/WORKFLOWS.md) | Who does what in what order: the platform operator creating a society, the administrator setting it up, loading the property, the first bill run, and the working rhythm of each role |
-| [docs/TESTING.md](docs/TESTING.md) | How to run the suite, what each of its 209 tests guarantees, conventions for writing new ones, browser verification, and a manual checklist per role |
+| [docs/TESTING.md](docs/TESTING.md) | How to run the suite, what each of its 218 tests guarantees, conventions for writing new ones, browser verification, and a manual checklist per role |
 
 ## Stack
 
@@ -329,7 +329,7 @@ as production, so anything engine-specific is caught here rather than in
 production. Host and credentials come from `.env`; only the database name is
 overridden in `phpunit.xml`.
 
-209 tests covering the parts that would be expensive to get wrong: tenancy
+218 tests covering the parts that would be expensive to get wrong: tenancy
 isolation, per-square-foot and fixed billing arithmetic, idempotent bill runs,
 simple versus compound interest and the guarantee against double-charging,
 oldest-first payment allocation and overpayment credit, gap-free receipt

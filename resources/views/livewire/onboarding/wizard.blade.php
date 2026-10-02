@@ -67,12 +67,75 @@
             </p>
 
             <div class="mt-6 space-y-4">
-                <x-ui.input wire:model="blockNames" name="blockNames" label="Blocks, wings or towers"
+                <x-ui.input wire:model.live.blur="blockNames" name="blockNames" label="Blocks, wings or towers"
                     placeholder="A, B, C" hint="Comma separated. Leave blank if there are no blocks." maxlength="500" />
 
-                <x-ui.textarea wire:model="unitPattern" name="unitPattern" label="Unit numbers" rows="3"
-                    placeholder="101-104, 201-204, 301-304"
-                    hint="Ranges and individual numbers, comma separated. These are created in every block you named." maxlength="2000" />
+                @if (count($typedBlocks) > 1)
+                    {{-- A society with eleven wings rarely has the same flats
+                         in all eleven. Repeating one pattern into every
+                         building creates homes that do not exist and misses
+                         the ones that do. --}}
+                    <label class="flex min-h-11 items-start gap-3" for="same-units">
+                        <input type="checkbox" id="same-units" wire:model.live="sameUnitsEveryBlock"
+                            class="mt-0.5 size-5 rounded border-strong accent-[var(--accent)]">
+                        <span>
+                            <span class="block text-sm font-medium">Every building has the same unit numbers</span>
+                            <span class="block text-xs text-secondary">
+                                Untick this if some buildings have more floors or more flats than others.
+                            </span>
+                        </span>
+                    </label>
+                @endif
+
+                @if ($sameUnitsEveryBlock || count($typedBlocks) < 2)
+                    <x-ui.textarea wire:model.live.blur="unitPattern" name="unitPattern" label="Unit numbers" rows="3"
+                        placeholder="101-104, 201-204, 301-304"
+                        :hint="count($typedBlocks) > 1
+                            ? 'Ranges and individual numbers, comma separated. These are created in every building you named.'
+                            : 'Ranges and individual numbers, comma separated.'"
+                        maxlength="2000" />
+
+                    @if ($this->unitsIn($unitPattern) > 0)
+                        <p class="-mt-2 text-xs text-secondary">
+                            {{ $this->unitsIn($unitPattern) }}
+                            {{ \Illuminate\Support\Str::plural('home', $this->unitsIn($unitPattern)) }}
+                            @if (count($typedBlocks) > 1)
+                                in each of {{ count($typedBlocks) }} buildings, so
+                                {{ $this->unitsIn($unitPattern) * count($typedBlocks) }} in all.
+                            @endif
+                        </p>
+                    @endif
+                @else
+                    <div class="space-y-3">
+                        <p class="text-sm font-medium">Unit numbers in each building</p>
+
+                        @foreach ($typedBlocks as $name)
+                            @php $count = $this->unitsIn((string) ($blockUnitPatterns[$name] ?? '')); @endphp
+                            <div class="rounded-xl border border-subtle p-4" wire:key="block-units-{{ \Illuminate\Support\Str::slug($name) }}">
+                                <div class="flex flex-wrap items-baseline justify-between gap-2">
+                                    <label class="text-sm font-semibold" for="units-{{ \Illuminate\Support\Str::slug($name) }}">
+                                        {{ $name }}
+                                    </label>
+                                    <span class="text-xs {{ $count > 0 ? 'text-secondary' : 'text-muted' }}">
+                                        {{ $count > 0 ? $count.' '.\Illuminate\Support\Str::plural('home', $count) : 'No homes yet' }}
+                                    </span>
+                                </div>
+                                <div class="mt-2">
+                                    <x-ui.textarea wire:model.live.blur="blockUnitPatterns.{{ $name }}"
+                                        id="units-{{ \Illuminate\Support\Str::slug($name) }}" rows="2"
+                                        :aria-label="'Unit numbers in '.$name"
+                                        placeholder="101-104, 201-204" maxlength="2000" />
+                                </div>
+                            </div>
+                        @endforeach
+
+                        <p class="text-xs text-secondary">
+                            Total:
+                            {{ collect($typedBlocks)->sum(fn ($n) => $this->unitsIn((string) ($blockUnitPatterns[$n] ?? ''))) }}
+                            homes across {{ count($typedBlocks) }} buildings.
+                        </p>
+                    </div>
+                @endif
 
                 @if ($unitCount > 0)
                     <x-ui.alert tone="positive">
@@ -116,48 +179,15 @@
                 head and gets applied by hand.
             --}}
             @if ($rateBasis !== 'by_area')
-                @php
-                    $periods = $this->periodsPerYear();
-                    $yearFull = $this->typicalPeriodAmount() * $periods;
-                @endphp
-
-                <div class="mt-6 rounded-xl border border-subtle p-4">
-                    <label class="flex min-h-11 items-center gap-3" for="offers-advance">
-                        <input type="checkbox" id="offers-advance" wire:model.live="offersAdvance"
-                            class="size-5 rounded border-strong accent-[var(--accent)]">
-                        <span>
-                            <span class="block text-sm font-medium">Cheaper if they pay for the year at once</span>
-                            <span class="block text-xs text-secondary">
-                                @if ($yearFull > 0)
-                                    A year at the rate above comes to <x-ui.money :amount="$yearFull" />.
-                                @else
-                                    Set the amount above and this works out the year's total.
-                                @endif
-                            </span>
-                        </span>
-                    </label>
-
-                    @if ($offersAdvance)
-                        <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-subtle pt-4">
-                            <div>
-                                <p class="text-sm font-medium">A year paid up front costs</p>
-                                @if ($yearFull > 0 && (float) $advanceAmount > 0)
-                                    <p class="text-xs text-[var(--color-positive)]">
-                                        They save <x-ui.money :amount="max(0, $yearFull - (float) $advanceAmount)" />,
-                                        which is {{ round((1 - ((float) $advanceAmount / $yearFull)) * 100) }} percent.
-                                    </p>
-                                @else
-                                    <p class="text-xs text-muted">Instead of {{ $periods }} separate bills.</p>
-                                @endif
-                            </div>
-                            <div class="w-40">
-                                <x-ui.input wire:model.live="advanceAmount" name="advanceAmount" type="number" step="1" min="0"
-                                    aria-label="Cost of a year paid up front"
-                                    :placeholder="$yearFull > 0 ? (string) round($yearFull * 0.85) : '120000'"
-                                    class="numeric text-right" />
-                            </div>
-                        </div>
-                    @endif
+                <div class="mt-6">
+                    <x-billing.advance-question
+                        :offers="$offersAdvance"
+                        :periods="$this->periodsPerYear()"
+                        :society-year="$this->typicalPeriodAmount() * $this->periodsPerYear()"
+                        :amount="$advanceAmount"
+                        :blocks="$blocks"
+                        :block-years="$blockYears"
+                        :block-amounts="$blockAdvanceAmounts" />
                 </div>
             @endif
 
@@ -206,18 +236,20 @@
                 @endif
             </div>
 
-                <div class="grid gap-4 border-t border-subtle pt-4 sm:grid-cols-2">
-                    <x-ui.select wire:model="cycle" name="cycle" label="Bill every" required>
-                        <option value="monthly">Month</option>
-                        <option value="bi_monthly">Two months</option>
-                        <option value="quarterly">Quarter</option>
-                        <option value="half_yearly">Six months</option>
-                        <option value="yearly">Year</option>
-                    </x-ui.select>
+            {{-- One </div> too many used to close here, which ended the card's
+                 own padded body early and left the Back and Continue buttons
+                 flush against the card's edge. --}}
+            <div class="mt-6 grid gap-4 border-t border-subtle pt-5 sm:grid-cols-2">
+                <x-ui.select wire:model="cycle" name="cycle" label="Bill every" required>
+                    <option value="monthly">Month</option>
+                    <option value="bi_monthly">Two months</option>
+                    <option value="quarterly">Quarter</option>
+                    <option value="half_yearly">Six months</option>
+                    <option value="yearly">Year</option>
+                </x-ui.select>
 
-                    <x-ui.input wire:model="dueAfterDays" name="dueAfterDays" label="Due within (days)"
-                        type="number" min="1" max="120" required />
-                </div>
+                <x-ui.input wire:model="dueAfterDays" name="dueAfterDays" label="Due within (days)"
+                    type="number" min="1" max="120" required />
             </div>
 
         @else

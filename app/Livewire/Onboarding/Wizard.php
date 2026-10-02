@@ -3,10 +3,12 @@
 namespace App\Livewire\Onboarding;
 
 use App\Enums\Permission;
+use App\Models\AdvanceDiscount;
 use App\Models\BillingPlan;
 use App\Models\Block;
 use App\Models\ChargeHead;
 use App\Models\Unit;
+use App\Services\Billing\AdvanceOffer;
 use App\Services\Billing\RateWriter;
 use App\Services\SocietyProvisioner;
 use App\Support\SocietyContext;
@@ -39,6 +41,19 @@ class Wizard extends Component
     public string $blockNames = '';
 
     public string $unitPattern = '';
+
+    /**
+     * Whether every building holds the same unit numbers.
+     *
+     * Often it does, and one field is far quicker than eleven. Often it does
+     * not: a society with A to K wings usually has a different number of
+     * floors in some of them, and repeating 101-104 into all eleven creates
+     * flats that do not exist and misses the ones that do.
+     */
+    public bool $sameUnitsEveryBlock = true;
+
+    /** Unit numbers for one building, keyed by the name as it was typed. */
+    public array $blockUnitPatterns = [];
 
     // Step 3 - charges
 
@@ -81,6 +96,9 @@ class Wizard extends Component
     public bool $offersAdvance = false;
 
     public ?float $advanceAmount = null;
+
+    /** A year paid up front in one building, keyed by block id. */
+    public array $blockAdvanceAmounts = [];
 
     /** Whether the extras beyond maintenance are showing. */
     public bool $showExtras = false;
@@ -138,6 +156,8 @@ class Wizard extends Component
             2 => $this->validate([
                 'blockNames' => 'nullable|string|max:500',
                 'unitPattern' => 'nullable|string|max:2000',
+                'sameUnitsEveryBlock' => 'boolean',
+                'blockUnitPatterns.*' => 'nullable|string|max:2000',
             ]),
             3 => $this->validate([
                 'rateBasis' => 'required|in:flat,by_block,by_size,by_block_and_size,by_area',
@@ -147,6 +167,7 @@ class Wizard extends Component
                 'sizeAmounts.*' => 'nullable|numeric|min:0|max:10000000',
                 'gridAmounts.*' => 'nullable|numeric|min:0|max:10000000',
                 'advanceAmount' => 'nullable|numeric|min:0|max:100000000',
+                'blockAdvanceAmounts.*' => 'nullable|numeric|min:0|max:100000000',
                 'cycle' => 'required|in:monthly,bi_monthly,quarterly,half_yearly,yearly',
                 'dueAfterDays' => 'required|integer|min:1|max:120',
             ]),
@@ -179,43 +200,108 @@ class Wizard extends Component
         app(SocietyProvisioner::class)->openFinancialYear($society->refresh());
     }
 
+    /** The buildings named in the text field, in the order they were typed. */
+    public function blockNamesTyped(): array
+    {
+        return collect(explode(',', $this->blockNames))
+            ->map(fn ($n) => trim($n))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /** How many homes a pattern would create, for the hint under the field. */
+    public function unitsIn(string $pattern): int
+    {
+        return count($this->expandUnitPattern($pattern));
+    }
+
     /**
-     * Creates blocks and units from two plain-text fields. Typing
-     * "A, B" and "101-104, 201-204" is far quicker than a form per unit.
+     * Switching to per-building numbers starts each building from the common
+     * pattern, so a society where most buildings match only has to correct
+     * the two that do not.
+     */
+    public function updatedSameUnitsEveryBlock(bool $value): void
+    {
+        if ($value) {
+            return;
+        }
+
+        foreach ($this->blockNamesTyped() as $name) {
+            if (trim((string) ($this->blockUnitPatterns[$name] ?? '')) === '') {
+                $this->blockUnitPatterns[$name] = $this->unitPattern;
+            }
+        }
+    }
+
+    /**
+     * Creates blocks and units from plain text. Typing "A, B" and
+     * "101-104, 201-204" is far quicker than a form per unit.
      */
     private function saveStructure($society): void
     {
         DB::transaction(function () use ($society) {
-            $blocks = collect(explode(',', $this->blockNames))
-                ->map(fn ($n) => trim($n))
-                ->filter()
-                ->map(fn ($name) => Block::firstOrCreate(
-                    ['society_id' => $society->id, 'name' => $name],
-                    ['kind' => 'wing'],
-                ));
+            $names = $this->blockNamesTyped();
 
-            $numbers = $this->expandUnitPattern($this->unitPattern);
+            $blocks = collect($names)->map(fn ($name) => $this->blockNamed($society, $name));
 
-            if ($numbers === []) {
+            // With no blocks named, units sit directly under the society.
+            if ($blocks->isEmpty()) {
+                $this->createUnits($society, null, $this->expandUnitPattern($this->unitPattern));
+
                 return;
             }
 
-            // With no blocks named, units sit directly under the society.
-            $targets = $blocks->isEmpty() ? collect([null]) : $blocks;
+            foreach ($blocks as $index => $block) {
+                $pattern = $this->sameUnitsEveryBlock
+                    ? $this->unitPattern
+                    : (string) ($this->blockUnitPatterns[$names[$index]] ?? '');
 
-            foreach ($targets as $block) {
-                foreach ($numbers as $number) {
-                    Unit::firstOrCreate(
-                        [
-                            'society_id' => $society->id,
-                            'block_id' => $block?->id,
-                            'unit_number' => $number,
-                        ],
-                        ['type' => $this->defaultUnitType(), 'status' => 'active'],
-                    );
-                }
+                $this->createUnits($society, $block, $this->expandUnitPattern($pattern));
             }
         });
+    }
+
+    /**
+     * The building of that name, brought back if it was removed.
+     *
+     * Blocks are soft deleted but the unique index is not, so naming a wing
+     * that was deleted earlier used to fail outright with a duplicate key.
+     * A committee that removes C wing and then names it again means the same
+     * wing, not a second one.
+     */
+    private function blockNamed($society, string $name): Block
+    {
+        $block = Block::withTrashed()->firstOrNew(
+            ['society_id' => $society->id, 'name' => $name],
+            ['kind' => 'wing'],
+        );
+
+        $block->trashed() ? $block->restore() : $block->save();
+
+        return $block;
+    }
+
+    /**
+     * @param  array<int, string>  $numbers
+     */
+    private function createUnits($society, ?Block $block, array $numbers): void
+    {
+        foreach ($numbers as $number) {
+            // Same reasoning as a building: a flat that was removed and is
+            // named again is that flat, with its history, not a new one.
+            $unit = Unit::withTrashed()->firstOrNew(
+                [
+                    'society_id' => $society->id,
+                    'block_id' => $block?->id,
+                    'unit_number' => $number,
+                ],
+                ['type' => $this->defaultUnitType(), 'status' => 'active'],
+            );
+
+            $unit->trashed() ? $unit->restore() : $unit->save();
+        }
     }
 
     /** "101-104, 201, 203" becomes ['101','102','103','104','201','203']. */
@@ -321,7 +407,71 @@ class Wizard extends Component
                 $active->unique('id')->values()
                     ->mapWithKeys(fn ($h, $i) => [$h->id => ['sort_order' => $i]])->all()
             );
+
+            $this->saveBlockAdvances($society, $plan);
         });
+    }
+
+    /**
+     * The buildings promised a different deal for paying the year up front.
+     *
+     * The plan carries what the society offers everyone; a row here exists
+     * only where a wing was told something else, including a wing told it
+     * gets nothing, which is why a typed zero is kept rather than skipped.
+     */
+    private function saveBlockAdvances($society, BillingPlan $plan): void
+    {
+        AdvanceDiscount::query()->where('billing_plan_id', $plan->id)->delete();
+
+        if (! $this->offersAdvance) {
+            return;
+        }
+
+        $years = $this->blockYearTotals(Block::orderBy('sort_order')->orderBy('name')->get());
+
+        foreach ($this->blockAdvanceAmounts as $blockId => $amount) {
+            $full = (float) ($years[(int) $blockId] ?? 0);
+
+            if ($amount === null || $amount === '' || $full <= 0) {
+                continue;
+            }
+
+            AdvanceDiscount::create([
+                'society_id' => $society->id,
+                'billing_plan_id' => $plan->id,
+                'block_id' => (int) $blockId,
+                'discount_percent' => AdvanceOffer::percentOff($full, (float) $amount),
+            ]);
+        }
+    }
+
+    /**
+     * What a year comes to in each building, at the amounts typed above.
+     *
+     * The committee types what a year costs up front, which only means
+     * something next to what that building pays otherwise.
+     *
+     * @return array<int, float>
+     */
+    public function blockYearTotals($blocks): array
+    {
+        $periods = $this->periodsPerYear();
+        $totals = [];
+
+        foreach ($blocks as $block) {
+            $period = match ($this->rateBasis) {
+                'by_block' => (float) ($this->blockAmounts[$block->id] ?? 0),
+                'by_block_and_size' => (float) collect($this->gridAmounts)
+                    ->filter(fn ($value, $cell) => str_starts_with((string) $cell, $block->id.'|'))
+                    ->filter(fn ($value) => (float) $value > 0)
+                    ->avg(),
+                default => $this->typicalPeriodAmount(),
+            };
+
+            $totals[$block->id] = round($period * $periods, 2);
+        }
+
+        return $totals;
     }
 
     private function maintenanceIsSet(): bool
@@ -415,6 +565,7 @@ class Wizard extends Component
     {
         $society = app(SocietyContext::class)->check();
         $heads = ChargeHead::income()->active()->orderBy('sort_order')->get();
+        $blocks = Block::orderBy('sort_order')->orderBy('name')->get();
 
         return view('livewire.onboarding.wizard', [
             'society' => $society,
@@ -424,7 +575,11 @@ class Wizard extends Component
             'extraHeads' => $heads->where('code', '!=', 'MAINT')->values(),
             'unitCount' => Unit::count(),
             'blockCount' => Block::count(),
-            'blocks' => Block::orderBy('sort_order')->orderBy('name')->get(),
+            'blocks' => $blocks,
+            // The buildings as they have been typed, which is what step 2 asks
+            // about: they do not exist as rows until the step is saved.
+            'typedBlocks' => $this->blockNamesTyped(),
+            'blockYears' => $this->blockYearTotals($blocks),
             // Only the sizes this society actually has, so nobody is asked
             // about a 4BHK they do not own.
             'sizes' => Unit::query()

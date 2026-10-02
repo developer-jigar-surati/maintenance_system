@@ -33,6 +33,7 @@
         ] as $key => [$title, $why])
             <button
                 type="button"
+                wire:key="basis-{{ $key }}"
                 wire:click="$set('{{ $basisField }}', '{{ $key }}')"
                 aria-pressed="{{ $basis === $key ? 'true' : 'false' }}"
                 @class([
@@ -66,7 +67,7 @@
                 @if ($perLabel)<p class="text-xs text-muted">{{ $perLabel }}</p>@endif
             </div>
             <div class="w-40">
-                <x-ui.input wire:model.live="{{ $flatField }}" type="number" step="1" min="0"
+                <x-ui.input wire:model.live.debounce.700ms="{{ $flatField }}" name="{{ $flatField }}" type="number" step="1" min="0"
                     aria-label="Amount every home pays" placeholder="12000" class="numeric text-right" />
             </div>
         </div>
@@ -74,10 +75,11 @@
 
     @if ($basis === 'by_block')
         @forelse ($blocks ?? [] as $block)
-            <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-subtle p-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-subtle p-4"
+                wire:key="rate-block-{{ $block->id }}">
                 <p class="text-sm font-medium">{{ $block->name }}</p>
                 <div class="w-40">
-                    <x-ui.input wire:model.live="{{ $blockField }}.{{ $block->id }}" type="number" step="1" min="0"
+                    <x-ui.input wire:model.live.debounce.700ms="{{ $blockField }}.{{ $block->id }}" name="{{ $blockField }}.{{ $block->id }}" type="number" step="1" min="0"
                         :aria-label="'Amount for '.$block->name" placeholder="12000" class="numeric text-right" />
                 </div>
             </div>
@@ -90,10 +92,11 @@
 
     @if ($basis === 'by_size')
         @forelse ($sizes ?? [] as $size)
-            <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-subtle p-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-subtle p-4"
+                wire:key="rate-size-{{ \Illuminate\Support\Str::slug($size) }}">
                 <p class="text-sm font-medium">{{ $size }}</p>
                 <div class="w-40">
-                    <x-ui.input wire:model.live="{{ $sizeField }}.{{ $size }}" type="number" step="1" min="0"
+                    <x-ui.input wire:model.live.debounce.700ms="{{ $sizeField }}.{{ $size }}" name="{{ $sizeField }}.{{ $size }}" type="number" step="1" min="0"
                         :aria-label="'Amount for a '.$size" placeholder="12000" class="numeric text-right" />
                 </div>
             </div>
@@ -131,14 +134,15 @@
                     </thead>
                     <tbody>
                         @foreach ($blocks as $block)
-                            <tr>
+                            <tr wire:key="rate-grid-row-{{ $block->id }}">
                                 <th scope="row" class="whitespace-nowrap pr-2 text-left text-sm font-medium">
                                     {{ $block->name }}
                                 </th>
                                 @foreach ($sizes as $size)
-                                    <td class="w-32">
+                                    <td class="w-32" wire:key="rate-grid-{{ $block->id }}-{{ \Illuminate\Support\Str::slug($size) }}">
                                         <x-ui.input
-                                            wire:model.live="{{ $gridField }}.{{ $block->id }}|{{ $size }}"
+                                            wire:model.live.debounce.700ms="{{ $gridField }}.{{ $block->id }}|{{ $size }}"
+                                            name="{{ $gridField }}.{{ $block->id }}|{{ $size }}"
                                             type="number" step="1" min="0"
                                             :aria-label="$block->name.' '.$size"
                                             placeholder="0" class="numeric text-right" />
@@ -159,7 +163,7 @@
                 <p class="text-xs text-muted">Multiplied by each home's area.</p>
             </div>
             <div class="w-40">
-                <x-ui.input wire:model.live="{{ $areaField ?? $flatField }}" type="number" step="0.01" min="0"
+                <x-ui.input wire:model.live.debounce.700ms="{{ $areaField ?? $flatField }}" name="{{ $areaField ?? $flatField }}" type="number" step="0.01" min="0"
                     aria-label="Rate per unit of area" placeholder="3.50" class="numeric text-right" />
             </div>
         </div>

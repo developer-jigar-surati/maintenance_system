@@ -301,6 +301,7 @@ class ModuleGuide
                 'summary' => 'The handful of things a new society needs before it can raise its first bill.',
                 'steps' => [
                     'Add your blocks and units, since everything is billed against a unit.',
+                    'If your buildings do not all hold the same flats, untick "Every building has the same unit numbers" and give each one its own list.',
                     'Link residents to units, and mark who bills go to.',
                     'Set your charge head rates, then create a billing plan and let it run.',
                 ],

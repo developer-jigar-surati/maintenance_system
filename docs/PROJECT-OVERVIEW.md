@@ -704,7 +704,7 @@ prompts below.
 
 ### Facts an evaluating model should not have to guess
 
-- 209 automated tests, run against MySQL rather than SQLite, so anything
+- 218 automated tests, run against MySQL rather than SQLite, so anything
   engine-specific is caught in the suite.
 - One database, scoped by `society_id`, with a global scope and a write-stamping
   trait rather than per-tenant databases.
